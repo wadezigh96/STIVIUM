@@ -33,19 +33,884 @@
     min-height:100vh;
   }
   .mono{font-family:'IBM Plex Mono', monospace;}
+  .data-source-chip{
+    font-size:10px; letter-spacing:0.04em; text-transform:uppercase;
+    padding:3px 8px; border:1px solid var(--line); border-radius:999px;
+    color:var(--text-dim); margin-right:10px;
+  }
+
   button{font-family:inherit;}
-  /* Full prototype is in the ZIP / local artifacts — uploading complete file next */
-  .boot{max-width:640px;margin:80px auto;padding:32px;background:var(--surface);border:1px solid var(--line);border-radius:12px;}
-  .boot h1{color:var(--gold);margin:0 0 12px;}
-  .boot a{color:var(--gold);}
+
+  /* top bar */
+  header.top{
+    border-bottom:1px solid var(--line);
+    padding:20px 28px;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:baseline; gap:12px;}
+  .brand .mark{
+    width:10px;height:10px;border-radius:2px;
+    background:var(--gold);
+    display:inline-block;
+    transform:rotate(45deg);
+    box-shadow:0 0 12px rgba(240,185,11,0.7);
+  }
+  .brand h1{font-size:20px; margin:0; font-weight:700; letter-spacing:0.2px;}
+  .brand p{margin:2px 0 0; color:var(--text-dim); font-size:13px;}
+  .stat-pill{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--text-dim);
+    border:1px solid var(--line);
+    padding:6px 10px;
+    border-radius:20px;
+  }
+
+  .positioning{
+    margin:14px 28px 0;
+    display:flex; align-items:center; gap:10px;
+    color:var(--text-dim); font-size:12px;
+  }
+  .positioning-kicker{
+    color:var(--gold); font-family:'IBM Plex Mono', monospace;
+    font-size:10px; letter-spacing:1.2px; font-weight:600;
+    border:1px solid rgba(240,185,11,0.3); border-radius:999px;
+    padding:4px 7px;
+  }
+
+  /* ticker */
+  .ticker-wrap{
+    border-bottom:1px solid var(--line);
+    background:var(--surface);
+    overflow:hidden;
+    white-space:nowrap;
+    position:relative;
+  }
+  .ticker-wrap::before, .ticker-wrap::after{
+    content:"";
+    position:absolute; top:0; bottom:0; width:40px; z-index:2;
+  }
+  .ticker-wrap::before{left:0; background:linear-gradient(90deg, var(--surface), transparent);}
+  .ticker-wrap::after{right:0; background:linear-gradient(270deg, var(--surface), transparent);}
+  .ticker{
+    display:inline-flex;
+    gap:36px;
+    padding:10px 0;
+    animation: scroll 34s linear infinite;
+  }
+  .ticker span.item{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--text-dim);
+  }
+  .ticker span.item b{color:var(--text); font-weight:500;}
+  .up{color:var(--teal);}
+  .down{color:var(--coral);}
+  @keyframes scroll{
+    from{transform:translateX(0);}
+    to{transform:translateX(-50%);}
+  }
+
+  /* onboarding strip */
+  .onboard{
+    margin:22px 28px 0;
+    border:1px solid var(--line);
+    background:var(--surface);
+    border-radius:10px;
+    padding:14px 18px;
+    display:grid;
+    grid-template-columns:repeat(3, 1fr) auto;
+    gap:14px;
+    align-items:center;
+  }
+  .onboard .step{display:flex; gap:10px; align-items:flex-start;}
+  .onboard .num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; color:var(--gold);
+    border:1px solid rgba(240,185,11,0.35);
+    border-radius:50%;
+    width:20px; height:20px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .onboard .step p{margin:0; font-size:12.5px; color:var(--text-dim); line-height:1.4;}
+  .onboard .step p b{color:var(--text); font-weight:600;}
+  .onboard .close{
+    all:unset; cursor:pointer;
+    color:var(--text-dim); font-size:12px;
+    padding:6px 10px; border:1px solid var(--line); border-radius:6px;
+    justify-self:end;
+  }
+  .onboard .close:hover{color:var(--text);}
+
+  /* diversity strip */
+  .diversity{
+    margin:16px 28px 0;
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:10px;
+  }
+  .div-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+  }
+  .div-card .cat-name{font-size:12px; font-weight:600;}
+  .div-card .cat-metrics{
+    display:flex; justify-content:space-between;
+    margin-top:6px; font-family:'IBM Plex Mono', monospace;
+    font-size:11px; color:var(--text-dim);
+  }
+  .div-bar{height:4px; border-radius:2px; background:var(--line); margin-top:8px; overflow:hidden;}
+  .div-bar i{display:block; height:100%; background:var(--gold);}
+
+  /* layout */
+  .layout{
+    display:grid;
+    grid-template-columns:220px 1fr;
+    gap:0;
+    align-items:start;
+  }
+  aside{
+    padding:24px 20px;
+    border-right:1px solid var(--line);
+    position:sticky; top:0;
+    min-height:calc(100vh - 110px);
+  }
+  aside h2{
+    font-size:11px;
+    letter-spacing:0.3px;
+    color:var(--text-dim);
+    font-weight:500;
+    margin:0 0 10px;
+  }
+  .cat-list{display:flex; flex-direction:column; gap:2px; margin-bottom:26px;}
+  .cat-btn{
+    all:unset;
+    cursor:pointer;
+    padding:9px 10px;
+    border-radius:6px;
+    font-size:13.5px;
+    color:var(--text-dim);
+    display:flex; justify-content:space-between;
+  }
+  .cat-btn:hover{background:var(--surface);}
+  .cat-btn.active{background:var(--surface-2); color:var(--text); font-weight:600;}
+  .cat-btn .n{font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--text-dim);}
+
+  .sort-list{display:flex; flex-direction:column; gap:2px; margin-bottom:26px;}
+  .sort-btn{
+    all:unset; cursor:pointer;
+    padding:8px 10px; border-radius:6px;
+    font-size:13px; color:var(--text-dim);
+  }
+  .sort-btn:hover{background:var(--surface);}
+  .sort-btn.active{color:var(--gold); font-weight:600;}
+
+  .glossary summary{
+    cursor:pointer; font-size:11px; color:var(--text-dim);
+    letter-spacing:0.3px; margin-bottom:8px;
+  }
+  .glossary dl{margin:8px 0 0; font-size:12px; color:var(--text-dim); line-height:1.5;}
+  .glossary dt{color:var(--text); font-weight:600; margin-top:8px;}
+  .glossary dd{margin:2px 0 0;}
+
+  main{padding:20px 28px 60px;}
+  .legend{
+    display:flex; gap:18px; flex-wrap:wrap;
+    margin-bottom:16px;
+    font-size:12px; color:var(--text-dim);
+  }
+  .legend .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle;}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+    gap:14px;
+  }
+  .empty{
+    grid-column:1/-1;
+    text-align:center;
+    padding:40px 20px;
+    color:var(--text-dim);
+    border:1px dashed var(--line);
+    border-radius:10px;
+    font-size:13px;
+  }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-left:3px solid var(--slate);
+    border-radius:8px;
+    padding:16px 16px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    transition:transform .15s ease, border-color .15s ease;
+    cursor:pointer;
+  }
+  .card:hover{transform:translateY(-2px);}
+  .card.tier-legendary{border-left-color:var(--gold); box-shadow:0 0 0 1px rgba(240,185,11,0.15), 0 8px 24px rgba(240,185,11,0.06);}
+  .card.tier-epic{border-left-color:var(--violet);}
+  .card.tier-rare{border-left-color:var(--teal);}
+  .card.tier-uncommon{border-left-color:var(--slate);}
+  .card.tier-common{border-left-color:var(--line);}
+
+  .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+  .card-top h3{margin:0; font-size:16px; font-weight:600;}
+  .cat-tag{font-size:11px; color:var(--text-dim); margin-top:3px;}
+  .tier-tag{
+    font-size:10.5px;
+    font-family:'IBM Plex Mono', monospace;
+    padding:3px 7px;
+    border-radius:4px;
+    white-space:nowrap;
+    border:1px solid var(--line);
+  }
+  .tier-legendary .tier-tag{color:var(--gold); border-color:rgba(240,185,11,0.4);}
+  .tier-epic .tier-tag{color:var(--violet); border-color:rgba(167,139,250,0.4);}
+  .tier-rare .tier-tag{color:var(--teal); border-color:rgba(47,191,143,0.4);}
+  .tier-uncommon .tier-tag{color:var(--slate); border-color:var(--line);}
+  .tier-common .tier-tag{color:var(--text-dim); border-color:var(--line);}
+
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:8px;
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .stat b{display:block; font-size:13px; color:var(--text); font-weight:500;}
+  .stat span{font-size:10px; color:var(--text-dim);}
+
+  .spark{margin-top:2px;}
+
+  .card-bottom{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:2px;
+  }
+  .trend{font-family:'IBM Plex Mono', monospace; font-size:12.5px;}
+  .trend.hot{color:var(--gold);}
+  .trend.rising{color:var(--teal);}
+  .trend.flat{color:var(--text-dim);}
+  .trend.cooling{color:var(--coral);}
+
+  .hire-btn{
+    all:unset; cursor:pointer;
+    font-size:12.5px; font-weight:600;
+    padding:7px 13px;
+    border-radius:6px;
+    background:var(--gold);
+    color:#1a1607;
+  }
+  .hire-btn:hover{filter:brightness(1.08);}
+  .hire-btn.ghost{background:transparent; border:1px solid var(--line); color:var(--text-dim);}
+
+  footer{
+    padding:26px 28px 40px;
+    color:var(--text-dim);
+    font-size:12px;
+    border-top:1px solid var(--line);
+  }
+
+  /* modal */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(10,8,5,0.72);
+    display:none;
+    align-items:flex-start;
+    justify-content:center;
+    padding:40px 20px;
+    z-index:50;
+    overflow-y:auto;
+  }
+  .overlay.open{display:flex;}
+  .modal{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    width:100%; max-width:560px;
+    padding:22px 24px 24px;
+  }
+  .modal-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px;}
+  .modal-head h2{margin:0; font-size:19px;}
+  .modal-head .cat-tag{margin-top:4px;}
+  .modal-close{all:unset; cursor:pointer; color:var(--text-dim); font-size:18px; line-height:1; padding:4px;}
+  .modal-close:hover{color:var(--text);}
+  .modal-desc{font-size:13.5px; color:var(--text-dim); line-height:1.6; margin:14px 0 0;}
+  .synced{font-size:11px; color:var(--text-dim); margin-top:4px; font-family:'IBM Plex Mono', monospace;}
+
+  .breakdown{margin-top:18px;}
+  .breakdown h4{font-size:11px; letter-spacing:0.3px; color:var(--text-dim); margin:0 0 8px; font-weight:500;}
+  .bar-row{display:grid; grid-template-columns:110px 1fr 40px; align-items:center; gap:8px; margin-bottom:6px; font-size:11.5px;}
+  .bar-row span:first-child{color:var(--text-dim);}
+  .bar-track{height:5px; background:var(--surface-2); border-radius:3px; overflow:hidden;}
+  .bar-fill{height:100%; background:var(--gold);}
+  .bar-row .val{font-family:'IBM Plex Mono', monospace; text-align:right; color:var(--text-dim);}
+
+  .modal-stats{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+    margin-top:16px; padding-top:16px; border-top:1px solid var(--line);
+  }
+
+  .activate-box{
+    margin-top:18px; padding-top:16px; border-top:1px solid var(--line);
+  }
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:11.5px; color:var(--text-dim); margin-bottom:5px;}
+  .field input[type=number]{
+    width:100%; background:var(--surface-2); border:1px solid var(--line);
+    color:var(--text); padding:8px 10px; border-radius:6px; font-family:'IBM Plex Mono', monospace; font-size:13px;
+  }
+  .checks{display:flex; flex-wrap:wrap; gap:8px;}
+  .chk{
+    display:flex; align-items:center; gap:6px;
+    border:1px solid var(--line); border-radius:6px;
+    padding:6px 10px; font-size:12px; color:var(--text-dim); cursor:pointer;
+  }
+  .chk input{accent-color:var(--gold);}
+  select.expiry{
+    background:var(--surface-2); border:1px solid var(--line); color:var(--text);
+    padding:8px 10px; border-radius:6px; font-family:'IBM Plex Mono', monospace; font-size:13px;
+  }
+  .modal-actions{display:flex; gap:10px; margin-top:16px;}
+
+  .success-box{
+    margin-top:18px; padding:14px 16px; border-radius:8px;
+    background:rgba(47,191,143,0.08); border:1px solid rgba(47,191,143,0.35);
+  }
+  .success-box p{margin:0 0 6px; font-size:13px; color:var(--teal); font-weight:600;}
+  .success-box .detail{font-size:12px; color:var(--text-dim); font-family:'IBM Plex Mono', monospace; line-height:1.6;}
+
+  @media (max-width:760px){
+    .layout{grid-template-columns:1fr;}
+    aside{position:static; border-right:none; border-bottom:1px solid var(--line); min-height:auto;}
+    .cat-list{flex-direction:row; flex-wrap:wrap;}
+    .sort-list{flex-direction:row; flex-wrap:wrap;}
+    .onboard{grid-template-columns:1fr; grid-template-rows:auto auto auto auto;}
+    .diversity{grid-template-columns:repeat(2,1fr);}
+    .stats{grid-template-columns:repeat(2,1fr);}
+  }
 </style>
 </head>
 <body>
-  <div class="boot">
-    <h1>Stivium</h1>
-    <p>Prototype loading… If you still see this page, replace <code>index.html</code> with the full file from the release ZIP (one drag-and-drop on GitHub).</p>
-    <p>Repo docs and judging mapping are already live. Full interactive UI: open the downloaded <code>index.html</code> locally or re-upload it to this path.</p>
-    <p><a href="https://github.com/wadezigh96/STIVIUM">github.com/wadezigh96/STIVIUM</a></p>
+
+<header class="top">
+  <div class="brand">
+    <span class="mark"></span>
+    <div>
+      <h1>Stivium</h1>
+      <p>BNB Chain AI Agent Marketplace · Discover · Compare · Activate</p>
+    </div>
   </div>
+  <span class="stat-pill" id="floorCount">— agents available</span>
+</header>
+
+<div class="ticker-wrap">
+  <div class="ticker" id="ticker"></div>
+</div>
+
+<div class="onboard" id="onboard">
+  <div class="step"><span class="num">1</span><p><b>Pick a category</b> on the left, or browse everything.</p></div>
+  <div class="step"><span class="num">2</span><p><b>Compare an agent</b> to understand its strategy, track record, activity, and key risk signals.</p></div>
+  <div class="step"><span class="num">3</span><p><b>Activate safely</b> with a spend cap and scoped permissions — never a blank check.</p></div>
+  <button class="close" id="dismissOnboard">Got it</button>
+</div>
+
+<div class="positioning">
+  <span class="positioning-kicker"></span>
+  <span>Find the right agent, understand the risk, then activate with clear limits.</span>
+</div>
+
+<div class="diversity" id="diversity"></div>
+
+<div class="layout">
+  <aside>
+    <h2>Agent category</h2>
+    <div class="cat-list" id="catList"></div>
+
+    <h2>Sort by</h2>
+    <div class="sort-list" id="sortList">
+      <button class="sort-btn active" data-sort="rarity">Rarity</button>
+      <button class="sort-btn" data-sort="trending">Trending</button>
+      <button class="sort-btn" data-sort="tvl">TVL managed</button>
+      <button class="sort-btn" data-sort="success">Success rate</button>
+    </div>
+
+    <details class="glossary">
+      <summary>What do these terms mean?</summary>
+      <dl>
+        <dt>Rarity</dt>
+        <dd>How differentiated this agent is within its category, using peer scarcity, track record, consistency, and verification.</dd>
+        <dt>Trending</dt>
+        <dd>Whether demand for this agent is accelerating, based on recent hiring activity.</dd>
+        <dt>TVL managed</dt>
+        <dd>Total value currently managed by this agent.</dd>
+        <dt>Success rate</dt>
+        <dd>Share of the agent's actions that hit their intended outcome.</dd>
+        <dt>Spend cap</dt>
+        <dd>The maximum an activated agent can move, set by you before it can act.</dd>
+      </dl>
+    </details>
+  </aside>
+
+  <main>
+    <div class="legend">
+      <span class="data-source-chip mono" title="Seeded demo data — see docs/LIVE-DATA.md">DATA: seeded · live-ready</span>
+      <span><span class="dot" style="background:var(--gold)"></span>Legendary</span>
+      <span><span class="dot" style="background:var(--violet)"></span>Epic</span>
+      <span><span class="dot" style="background:var(--teal)"></span>Rare</span>
+      <span><span class="dot" style="background:var(--slate)"></span>Uncommon</span>
+      <span><span class="dot" style="background:var(--line)"></span>Common</span>
+      <span style="margin-left:auto;">🔥 Hot · ▲ Rising · ▼ Cooling · BNB Chain agents</span>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<footer>
+  <b>Stivium</b> — marketplace prototype for the <strong>Smart Money Era</strong> (Build the Era track).
+  Metrics are seeded samples ready to swap for live <a href="https://8004scan.io" target="_blank" rel="noopener" style="color:var(--gold)">8004scan</a> / Agent Studio data.
+  Rarity, Trending, and activation logic run fully in the browser. MIT · <span class="mono">open index.html</span>
+</footer>
+
+<script>
+// ---------- mock data ----------
+// peerCount: how many other agents run a near-identical strategy (lower = scarcer)
+// uptimeDays: track record length
+// successRate: % of actions that hit their target outcome
+// tvl: value the agent currently manages, USD
+// verified: audited / verified flag
+// h24n/h24p, h7n/h7p: hire counts, now vs prior window, for growth calc
+// hist7: last 7 daily hire counts, for the sparkline
+// keyMetric: one category-specific stat that goes beyond the generic four
+// desc: plain-language description of what the agent actually does
+const AGENTS = [
+  {name:"DriftGuard", cat:"Rebalancing", peerCount:3, uptimeDays:410, successRate:96, tvl:1_240_000, verified:true, h24n:38, h24p:22, h7n:210, h7p:150, hist7:[18,20,24,27,30,34,38],
+   keyLabel:"Rebalances / wk", keyValue:"12",
+   desc:"Watches your portfolio's target weights and trades back to them whenever drift crosses a threshold, so allocation stays on target without manual rebalancing."},
+  {name:"BalancerBee", cat:"Rebalancing", peerCount:9, uptimeDays:120, successRate:88, tvl:180_000, verified:false, h24n:14, h24p:13, h7n:90, h7p:88, hist7:[12,13,12,14,13,14,14],
+   keyLabel:"Rebalances / wk", keyValue:"5",
+   desc:"A lighter-weight rebalancer for smaller portfolios, checking allocation daily and trading back to target on a fixed schedule."},
+  {name:"WeightWatch", cat:"Rebalancing", peerCount:14, uptimeDays:35, successRate:79, tvl:22_000, verified:false, h24n:9, h24p:4, h7n:40, h7p:19, hist7:[3,4,5,6,7,8,9],
+   keyLabel:"Rebalances / wk", keyValue:"3",
+   desc:"A newer rebalancing agent, still building its track record, that nudges a portfolio back toward target weights once a week."},
+  {name:"AllocaFlow", cat:"Rebalancing", peerCount:6, uptimeDays:260, successRate:91, tvl:640_000, verified:true, h24n:20, h24p:19, h7n:130, h7p:128, hist7:[18,19,18,19,20,19,20],
+   keyLabel:"Rebalances / wk", keyValue:"8",
+   desc:"Rebalances across multiple pools at once, factoring in gas cost so it only trades when drift is worth correcting."},
+
+  {name:"GridForge", cat:"Grid Trading", peerCount:4, uptimeDays:380, successRate:94, tvl:980_000, verified:true, h24n:44, h24p:25, h7n:260, h7p:180, hist7:[20,24,29,33,36,40,44],
+   keyLabel:"Max drawdown", keyValue:"-4.2%",
+   desc:"Places buy and sell orders in a price grid around the current market price, capturing small moves in both directions without predicting where price goes next."},
+  {name:"BoxRunner", cat:"Grid Trading", peerCount:11, uptimeDays:90, successRate:83, tvl:95_000, verified:false, h24n:16, h24p:15, h7n:80, h7p:79, hist7:[14,15,14,15,16,15,16],
+   keyLabel:"Max drawdown", keyValue:"-9.1%",
+   desc:"A wider-spaced grid trader built for volatile pairs, trading fewer, larger steps than a tight grid."},
+  {name:"LatticeBot", cat:"Grid Trading", peerCount:2, uptimeDays:520, successRate:97, tvl:2_100_000, verified:true, h24n:29, h24p:27, h7n:190, h7p:186, hist7:[26,27,27,28,28,29,29],
+   keyLabel:"Max drawdown", keyValue:"-2.8%",
+   desc:"The longest-running grid trader in the marketplace, with a tight, actively-rebalanced grid tuned per trading pair."},
+  {name:"StepTrader", cat:"Grid Trading", peerCount:17, uptimeDays:20, successRate:74, tvl:9_000, verified:false, h24n:5, h24p:1, h7n:22, h7p:6, hist7:[1,2,3,3,4,4,5],
+   keyLabel:"Max drawdown", keyValue:"-14.5%",
+   desc:"An early-stage grid trader, still tuning its step size and range — higher variance than the established agents in this category."},
+
+  {name:"YieldCartographer", cat:"Yield Optimisation", peerCount:5, uptimeDays:300, successRate:92, tvl:1_450_000, verified:true, h24n:33, h24p:31, h7n:200, h7p:196, hist7:[28,29,29,30,31,32,33],
+   keyLabel:"Net APY", keyValue:"18.4%",
+   desc:"Continuously scans lending markets and LPs for the best safe yield, moving funds and compounding rewards automatically as rates shift."},
+  {name:"HarvestHand", cat:"Yield Optimisation", peerCount:10, uptimeDays:150, successRate:85, tvl:210_000, verified:false, h24n:12, h24p:12, h7n:78, h7p:80, hist7:[11,12,11,12,11,12,12],
+   keyLabel:"Net APY", keyValue:"11.2%",
+   desc:"Sticks to a small set of vetted, blue-chip pools and auto-compounds rewards on a fixed schedule rather than chasing the top rate."},
+  {name:"CompoundKeeper", cat:"Yield Optimisation", peerCount:1, uptimeDays:610, successRate:98, tvl:3_400_000, verified:true, h24n:19, h24p:18, h7n:120, h7p:118, hist7:[17,18,18,18,19,19,19],
+   keyLabel:"Net APY", keyValue:"22.7%",
+   desc:"The most established yield agent in the marketplace, with a strategy no other agent here currently replicates and the longest audited history."},
+  {name:"PoolPathfinder", cat:"Yield Optimisation", peerCount:13, uptimeDays:28, successRate:77, tvl:15_000, verified:false, h24n:11, h24p:3, h7n:38, h7p:12, hist7:[2,4,5,7,8,9,11],
+   keyLabel:"Net APY", keyValue:"9.8%",
+   desc:"A newer yield agent exploring smaller, newer pools for higher (and higher-risk) returns."},
+
+  {name:"HealthSentinel", cat:"Health Factor Monitoring", peerCount:4, uptimeDays:340, successRate:95, tvl:760_000, verified:true, h24n:41, h24p:24, h7n:230, h7p:160, hist7:[19,23,27,31,35,38,41],
+   keyLabel:"Min HF maintained", keyValue:"1.62",
+   desc:"Monitors a lending position's health factor and proactively adds collateral or repays debt before it gets close to liquidation."},
+  {name:"LiquidationLookout", cat:"Health Factor Monitoring", peerCount:8, uptimeDays:200, successRate:90, tvl:330_000, verified:false, h24n:17, h24p:16, h7n:100, h7p:97, hist7:[15,16,15,16,17,16,17],
+   keyLabel:"Min HF maintained", keyValue:"1.35",
+   desc:"Runs a leaner health-factor buffer than HealthSentinel, trading a slightly higher liquidation risk for lower idle collateral."},
+  {name:"MarginMinder", cat:"Health Factor Monitoring", peerCount:2, uptimeDays:480, successRate:97, tvl:1_900_000, verified:true, h24n:25, h24p:23, h7n:150, h7p:145, hist7:[22,23,23,24,24,25,25],
+   keyLabel:"Min HF maintained", keyValue:"1.78",
+   desc:"Keeps the widest safety buffer of any health-factor agent here, aimed at large positions where liquidation risk matters most."},
+  {name:"CushionBot", cat:"Health Factor Monitoring", peerCount:16, uptimeDays:15, successRate:72, tvl:6_000, verified:false, h24n:6, h24p:1, h7n:24, h7p:7, hist7:[1,2,3,3,4,5,6],
+   keyLabel:"Min HF maintained", keyValue:"1.11",
+   desc:"A new, thin-margin health-factor agent — still early, watch its track record grow before trusting it with a large position."},
+];
+
+const CATEGORIES = ["All", "Rebalancing", "Grid Trading", "Yield Optimisation", "Health Factor Monitoring"];
+const ALLOWLIST_OPTIONS = {
+  "Rebalancing": ["swap", "rebalance"],
+  "Grid Trading": ["place_order", "cancel_order"],
+  "Yield Optimisation": ["deposit", "withdraw", "claim"],
+  "Health Factor Monitoring": ["repay", "add_collateral"],
+};
+
+// ---------- scoring ----------
+function normalize(list, get){
+  const vals = list.map(get);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  return v => max === min ? 0.5 : (v - min) / (max - min);
+}
+
+function growth(now, prior){
+  if(prior <= 0) return now > 0 ? 1 : 0;
+  return (now - prior) / prior;
+}
+
+function computeScores(list){
+  const scarcityNorm = normalize(list, a => 1 / a.peerCount);
+  const trackNorm = normalize(list, a => a.uptimeDays);
+  const successNorm = normalize(list, a => a.successRate);
+
+  const scored = list.map(a => {
+    const scarcity = scarcityNorm(1 / a.peerCount);
+    const track = trackNorm(a.uptimeDays);
+    const consistency = successNorm(a.successRate);
+    const verified = a.verified ? 1 : 0;
+    const rarity = 0.35*scarcity + 0.30*track + 0.25*consistency + 0.10*verified;
+
+    const g24 = growth(a.h24n, a.h24p);
+    const g7 = growth(a.h7n, a.h7p);
+    const accel = g24 - g7;
+    const trending = 0.5*g24 + 0.3*g7 + 0.2*accel;
+
+    return {...a, rarity, trending, g24, g7, accel, sub:{scarcity, track, consistency, verified}};
+  });
+
+  const byRarity = [...scored].sort((a,b) => b.rarity - a.rarity);
+  byRarity.forEach((a, i) => {
+    const pct = i / byRarity.length;
+    if (pct < 0.05) a.tier = "legendary";
+    else if (pct < 0.15) a.tier = "epic";
+    else if (pct < 0.40) a.tier = "rare";
+    else if (pct < 0.70) a.tier = "uncommon";
+    else a.tier = "common";
+  });
+
+  const byTrend = [...scored].sort((a,b) => b.trending - a.trending);
+  byTrend.forEach((a, i) => {
+    const pct = i / byTrend.length;
+    if (a.trending < 0) a.trendBadge = "cooling";
+    else if (pct < 0.20) a.trendBadge = "hot";
+    else if (pct < 0.50) a.trendBadge = "rising";
+    else a.trendBadge = "flat";
+  });
+
+  return scored;
+}
+
+// ---------- state ----------
+let activeCat = "All";
+let activeSort = "rarity";
+let activations = {}; // name -> {stage:'overview'|'setup'|'done', cap, allowlist, expiry}
+
+// ---------- helpers ----------
+const TIER_LABEL = {legendary:"Legendary", epic:"Epic", rare:"Rare", uncommon:"Uncommon", common:"Common"};
+const TREND_LABEL = {hot:"🔥 Hot", rising:"▲ Rising", flat:"— Flat", cooling:"▼ Cooling"};
+
+function fmtUsd(v){
+  if(v >= 1_000_000) return "$" + (v/1_000_000).toFixed(2) + "M";
+  if(v >= 1_000) return "$" + (v/1_000).toFixed(0) + "K";
+  return "$" + v;
+}
+
+function sparklinePath(hist){
+  const w = 100, h = 26, pad = 2;
+  const min = Math.min(...hist), max = Math.max(...hist);
+  const pts = hist.map((v,i) => {
+    const x = pad + (i/(hist.length-1)) * (w - pad*2);
+    const y = max===min ? h/2 : h - pad - ((v-min)/(max-min)) * (h - pad*2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <polyline points="${pts}" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+function fakeSyncTime(){
+  const secs = 15 + Math.floor(Math.random()*100);
+  return secs < 60 ? `synced ${secs}s ago` : `synced ${Math.floor(secs/60)}m ago`;
+}
+
+// ---------- render: diversity strip ----------
+function renderDiversity(){
+  const scored = computeScores(AGENTS);
+  const cats = CATEGORIES.slice(1);
+  const maxCount = Math.max(...cats.map(c => scored.filter(a=>a.cat===c).length));
+
+  document.getElementById("diversity").innerHTML = cats.map(c => {
+    const items = scored.filter(a => a.cat === c);
+    const avgSuccess = (items.reduce((s,a)=>s+a.successRate,0)/items.length).toFixed(0);
+    const pct = (items.length / maxCount) * 100;
+    return `
+      <div class="div-card">
+        <div class="cat-name">${c}</div>
+        <div class="cat-metrics"><span>${items.length} agents</span><span>${avgSuccess}% avg success</span></div>
+        <div class="div-bar"><i style="width:${pct}%"></i></div>
+      </div>`;
+  }).join("");
+}
+
+// ---------- render: grid ----------
+function render(){
+  const scored = computeScores(AGENTS);
+  const filtered = activeCat === "All" ? scored : scored.filter(a => a.cat === activeCat);
+
+  const sorted = [...filtered].sort((a,b) => {
+    if(activeSort === "rarity") return b.rarity - a.rarity;
+    if(activeSort === "trending") return b.trending - a.trending;
+    if(activeSort === "tvl") return b.tvl - a.tvl;
+    if(activeSort === "success") return b.successRate - a.successRate;
+  });
+
+  document.getElementById("floorCount").textContent = `${sorted.length} agents available`;
+
+  const grid = document.getElementById("grid");
+  if(sorted.length === 0){
+    grid.innerHTML = `<div class="empty">No agents in this view yet. Try a different category or sort — nothing is broken, this category is just empty here.</div>`;
+    return;
+  }
+
+  grid.innerHTML = sorted.map(a => `
+    <div class="card tier-${a.tier}" data-name="${a.name}">
+      <div class="card-top">
+        <div>
+          <h3>${a.name}</h3>
+          <div class="cat-tag">${a.cat}${a.verified ? " · verified" : ""}</div>
+        </div>
+        <div class="tier-tag">${TIER_LABEL[a.tier]}</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>${fmtUsd(a.tvl)}</b><span>TVL managed</span></div>
+        <div class="stat"><b>${a.uptimeDays}d</b><span>Track record</span></div>
+        <div class="stat"><b>${a.successRate}%</b><span>Success rate</span></div>
+        <div class="stat"><b>${a.keyValue}</b><span>${a.keyLabel}</span></div>
+      </div>
+      ${sparklinePath(a.hist7)}
+      <div class="card-bottom">
+        <div class="trend ${a.trendBadge}">${TREND_LABEL[a.trendBadge]} · ${a.g24>=0?'+':''}${(a.g24*100).toFixed(0)}% 24h</div>
+        <button class="hire-btn" data-open="${a.name}">${activations[a.name]?.stage==='done' ? 'View activation' : 'Hire agent'}</button>
+      </div>
+    </div>
+  `).join("");
+
+  grid.querySelectorAll(".card").forEach(card => {
+    card.addEventListener("click", (e) => {
+      if(e.target.closest(".hire-btn")) return;
+      openModal(card.dataset.name);
+    });
+  });
+  grid.querySelectorAll(".hire-btn").forEach(btn => {
+    btn.addEventListener("click", () => openModal(btn.dataset.open, true));
+  });
+}
+
+// ---------- render: category / sort controls ----------
+function renderCats(){
+  const scored = computeScores(AGENTS);
+  const counts = {"All": scored.length};
+  CATEGORIES.slice(1).forEach(c => counts[c] = scored.filter(a => a.cat === c).length);
+
+  document.getElementById("catList").innerHTML = CATEGORIES.map(c => `
+    <button class="cat-btn ${c===activeCat?'active':''}" data-cat="${c}">
+      <span>${c}</span><span class="n">${counts[c]}</span>
+    </button>
+  `).join("");
+
+  document.querySelectorAll(".cat-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeCat = btn.dataset.cat;
+      renderCats();
+      render();
+    });
+  });
+}
+
+document.querySelectorAll(".sort-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    activeSort = btn.dataset.sort;
+    document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    render();
+  });
+});
+
+// ---------- render: ticker ----------
+function renderTicker(){
+  const scored = computeScores(AGENTS).sort((a,b) => b.trending - a.trending).slice(0, 10);
+  const items = scored.map(a => `
+    <span class="item"><b>${a.name}</b> ${TREND_LABEL[a.trendBadge]} <span class="${a.g24>=0?'up':'down'}">${a.g24>=0?'+':''}${(a.g24*100).toFixed(0)}%</span></span>
+  `).join("");
+  document.getElementById("ticker").innerHTML = items + items;
+}
+
+// ---------- onboarding dismiss ----------
+document.getElementById("dismissOnboard").addEventListener("click", () => {
+  document.getElementById("onboard").style.display = "none";
+});
+
+// ---------- modal / activation flow ----------
+const overlay = document.getElementById("overlay");
+const modalBody = document.getElementById("modalBody");
+
+function openModal(name, jumpToSetup){
+  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30"};
+  if(jumpToSetup && activations[name].stage === "overview") activations[name].stage = "setup";
+  overlay.classList.add("open");
+  renderModal(name);
+}
+
+function closeModal(){
+  overlay.classList.remove("open");
+  modalBody.innerHTML = "";
+}
+
+overlay.addEventListener("click", (e) => { if(e.target === overlay) closeModal(); });
+
+function renderModal(name){
+  const scored = computeScores(AGENTS);
+  const a = scored.find(x => x.name === name);
+  const state = activations[name];
+  const allow = ALLOWLIST_OPTIONS[a.cat];
+
+  const breakdown = `
+    <div class="breakdown">
+      <h4>Why this rarity tier</h4>
+      ${barRow("Scarcity", a.sub.scarcity, `${a.peerCount} peers`)}
+      ${barRow("Track record", a.sub.track, `${a.uptimeDays}d live`)}
+      ${barRow("Consistency", a.sub.consistency, `${a.successRate}% success`)}
+      ${barRow("Verified", a.sub.verified, a.verified ? "yes" : "no")}
+    </div>
+    <div class="breakdown">
+      <h4>Why this trending badge</h4>
+      ${barRow("24h growth", clamp01(a.g24), `${a.g24>=0?'+':''}${(a.g24*100).toFixed(0)}%`)}
+      ${barRow("7d growth", clamp01(a.g7), `${a.g7>=0?'+':''}${(a.g7*100).toFixed(0)}%`)}
+      ${barRow("Acceleration", clamp01(a.accel+0.5), a.accel>=0 ? "speeding up" : "slowing down")}
+    </div>
+  `;
+
+  let activateSection = "";
+  if(state.stage === "overview"){
+    activateSection = `
+      <div class="modal-actions">
+        <button class="hire-btn" id="goSetup">Activate agent</button>
+        <button class="hire-btn ghost" id="closeBtn">Close</button>
+      </div>`;
+  } else if(state.stage === "setup"){
+    activateSection = `
+      <div class="activate-box">
+        <h4 style="font-size:11px;color:var(--text-dim);letter-spacing:.3px;margin:0 0 12px;">Set the boundaries before this agent can act</h4>
+        <div class="field">
+          <label>Spend cap (USD) — the most this agent can ever move</label>
+          <input type="number" id="capInput" placeholder="e.g. 500" value="${state.cap}">
+        </div>
+        <div class="field">
+          <label>Allowed actions</label>
+          <div class="checks">
+            ${allow.map(opt => `
+              <label class="chk">
+                <input type="checkbox" data-opt="${opt}" ${state.allowlist.includes(opt)?"checked":""}>
+                ${opt.replace("_"," ")}
+              </label>`).join("")}
+          </div>
+        </div>
+        <div class="field">
+          <label>Session expires in</label>
+          <select class="expiry" id="expirySelect">
+            <option value="7" ${state.expiry==="7"?"selected":""}>7 days</option>
+            <option value="30" ${state.expiry==="30"?"selected":""}>30 days</option>
+            <option value="90" ${state.expiry==="90"?"selected":""}>90 days</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="hire-btn" id="confirmActivate">Confirm &amp; activate</button>
+        <button class="hire-btn ghost" id="closeBtn">Cancel</button>
+      </div>`;
+  } else if(state.stage === "done"){
+    activateSection = `
+      <div class="success-box">
+        <p>Agent activated</p>
+        <div class="detail">
+          Spend cap: $${state.cap || 0}<br>
+          Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none selected"}<br>
+          Expires: in ${state.expiry} days — revoke anytime, effective immediately.
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="hire-btn ghost" id="revokeBtn">Revoke access</button>
+        <button class="hire-btn ghost" id="closeBtn">Close</button>
+      </div>`;
+  }
+
+  modalBody.innerHTML = `
+    <div class="modal-head">
+      <div>
+        <h2>${a.name}</h2>
+        <div class="cat-tag">${a.cat} · <span class="tier-tag" style="border:none;padding:0;">${TIER_LABEL[a.tier]}</span></div>
+        <div class="synced">${fakeSyncTime()}</div>
+      </div>
+      <button class="modal-close" id="xClose">×</button>
+    </div>
+    <p class="modal-desc">${a.desc}</p>
+    <div class="modal-stats">
+      <div class="stat"><b>${fmtUsd(a.tvl)}</b><span>TVL managed</span></div>
+      <div class="stat"><b>${a.uptimeDays}d</b><span>Track record</span></div>
+      <div class="stat"><b>${a.successRate}%</b><span>Success rate</span></div>
+      <div class="stat"><b>${a.keyValue}</b><span>${a.keyLabel}</span></div>
+    </div>
+    ${breakdown}
+    ${activateSection}
+  `;
+
+  modalBody.querySelector("#xClose").addEventListener("click", closeModal);
+  const closeBtn = modalBody.querySelector("#closeBtn");
+  if(closeBtn) closeBtn.addEventListener("click", closeModal);
+
+  const goSetup = modalBody.querySelector("#goSetup");
+  if(goSetup) goSetup.addEventListener("click", () => { state.stage = "setup"; renderModal(name); });
+
+  const confirm = modalBody.querySelector("#confirmActivate");
+  if(confirm) confirm.addEventListener("click", () => {
+    const capInput = modalBody.querySelector("#capInput");
+    const expirySelect = modalBody.querySelector("#expirySelect");
+    state.cap = capInput.value || "0";
+    state.expiry = expirySelect.value;
+    state.allowlist = [...modalBody.querySelectorAll(".chk input:checked")].map(c => c.dataset.opt);
+    state.stage = "done";
+    renderModal(name);
+    render();
+  });
+
+  const revoke = modalBody.querySelector("#revokeBtn");
+  if(revoke) revoke.addEventListener("click", () => {
+    activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30"};
+    renderModal(name);
+    render();
+  });
+}
+
+function barRow(label, frac, valText){
+  const pct = Math.max(0, Math.min(1, frac)) * 100;
+  return `<div class="bar-row"><span>${label}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span class="val">${valText}</span></div>`;
+}
+function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+
+// ---------- init ----------
+renderDiversity();
+renderCats();
+renderTicker();
+render();
+</script>
 </body>
 </html>
