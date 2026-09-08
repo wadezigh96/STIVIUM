@@ -26,3 +26,9 @@ build/
 
 # Optional local server
 .python-version
+
+# Hardhat
+cache/
+artifacts/
+typechain-types/
+coverage/
