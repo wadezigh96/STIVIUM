@@ -1,68 +1,55 @@
-# Copy-paste fields for the official submission form
+# Form answers
 
-Form: https://forms.gle/9g9XPNFwnYaHAz9L8  
-Hackathon page: https://www.bnbchain.org/en/hackathons/smart-money-era
+Form: https://forms.gle/9g9XPNFwnYaHAz9L8
 
 ---
 
-## Project Name
+**Project name**
 
 ```
 Stivium
 ```
 
-## One-Line Pitch
+**One-line pitch**
 
 ```
-Stivium ranks BNB Agent Studio agents by Rarity and Trending — so users hire by scarcity and momentum, not by name.
+Stivium ranks BNB agents by rarity and momentum so you hire based on performance signals, not name recognition.
 ```
 
-## Project Description (paste into form)
+**Project description**
 
 ```
-Stivium is a marketplace for BNB Chain AI agents built for the Smart Money Era hackathon (Build the Era track).
+Stivium is an agent marketplace for BNB Chain, built for the Smart Money Era hackathon.
 
-Problem: finding an agent on BNB Chain today means trusting a name and follower count. There is no first-class place that surfaces agents by category, shows decision-relevant performance data, and lets users activate them with clear limits.
+Problem: discovering agents today is noisy. You get names and social proof, not decision-grade data.
 
-Solution: Stivium ranks every agent by two transparent scores:
-• Rarity — how hard the agent is to replace (scarcity + track record + consistency + verified)
-• Trending — whether demand is accelerating right now (24h / 7d hire growth + acceleration)
+Approach: rank every agent by Rarity (scarcity + track record + consistency) and Trending (24h/7d hire growth). Surface all four required categories at equal depth — rebalancing, grid trading, yield optimisation, health factor monitoring.
 
-All four required categories are first-class and equal depth:
-1. Rebalancing
-2. Grid Trading
-3. Yield Optimisation
-4. Health Factor Monitoring
+Flow: land → filter by category → read what the agent actually does → activate with spend cap / allowlist / expiry → revoke if needed.
 
-End-to-end journey (zero Agent Studio knowledge required):
-Land → filter by category → understand plain-language description + score breakdowns → activate with spend cap, category-specific allowlist, and expiry → inspect or revoke.
+Each card shows a category-specific metric (rebalances/week, max drawdown, net APY, or min health factor), a 7-day hire sparkline, and a full score breakdown in the detail view.
 
-Data quality goes beyond basic counts: rarity/trending component charts, 7-day hire sparklines, and one decision-relevant metric per category (rebalances/week, max drawdown, net APY, min health factor).
+The prototype is a single index.html — scoring and UI run client-side. Metrics are seeded for the demo and can be swapped for live Agent Studio / 8004scan data. Activation UI is structured for Altana session keys.
 
-Prototype is a single self-contained index.html (no build step). Scoring and UI are real; agent metrics are seeded mocks ready to swap for live 8004scan / Agent Studio reads. Activation UI mirrors Altana session keys for the partner track.
-
-GitHub: https://github.com/wadezigh96/STIVIUM
-Live demo: https://wadezigh96.github.io/STIVIUM/
+Repo: https://github.com/wadezigh96/STIVIUM
+Demo: https://wadezigh96.github.io/STIVIUM/
 ```
 
-## Sub-prize tracks (select all that apply)
+**Tracks** (select as relevant)
 
-- Main track: Build the BNB Agent Studio Marketplace
-- Best Built with Altana (session-key style activation UI ready)
-- TermiX Challenge (Agent Advantage Report template included — fill with real runs)
-- PancakeSwap Challenge (grid + rebalancing + yield agents relevant to LPs)
+- Main: Build the BNB Agent Studio Marketplace
+- Altana (session-key style activation)
+- TermiX (advantage report in docs/)
+- PancakeSwap (grid / rebalancing / yield)
 
-## Prototype Stage
-
-```
-Interactive prototype — full UI journey working, scoring live client-side, metrics seeded, activation state machine complete. Ready for live data + on-chain session keys.
-```
-
-## Additional Notes (optional)
+**Prototype stage**
 
 ```
-- Docs include explicit mapping to Functionality / Data Quality / Agent Diversity.
-- TermiX Agent Advantage Report template at docs/AGENT-ADVANTAGE-REPORT.md.
-- Live-data wiring guide (8004scan + Altana) at docs/LIVE-DATA.md.
-- MIT license, public repo, GitHub Pages workflow included.
+Interactive prototype. Full UI journey works. Scoring is live in the browser. Metrics are seeded; activation is local state, ready for on-chain session keys.
+```
+
+**Notes**
+
+```
+MIT. Public repo. Docs map to the three main-track criteria. TermiX report template at docs/AGENT-ADVANTAGE-REPORT.md.
 ```
