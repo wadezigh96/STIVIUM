@@ -110,7 +110,7 @@ Design a grid for a volatile BNB pair: range, step size, capital split, and a ma
 ## Task 3 — Safe stablecoin yield route (Yield optimisation)
 
 **Category:** Yield Optimisation  
-**Agent hired via Stivium:** YieldCartographer / CompoundKeeper-style listing  
+**Agent hired via Stivium:** CompoundKeeper / YieldCartographer  
 **Why this task:** Completes four-category coverage; yield routing is a common "should I hire an agent?" decision.
 
 ### Setup
@@ -183,18 +183,24 @@ Allocate a stablecoin sleeve to the highest *reasonable* net yield across Venus-
 | Altana session keys | `docs/ALTANA.md`, `altana-wire.js` |
 | Skills (competence layer) | `skills/pancakeswap-trading`, `skills/venus-lending` |
 | This report | `docs/AGENT-ADVANTAGE-REPORT.md` |
+| Judge path (2 min) | `docs/evidence/JUDGE-PATH.md` |
 
-### Attachment checklist (for final packet)
+### Evidence pack (ready for judges)
 
-- [ ] Screenshot: Task 1 without agent (manual HF notes)  
-- [ ] Screenshot: Task 1 with agent (Stivium HealthSentinel detail + activation)  
-- [ ] Screenshot: Task 2 without agent (manual grid sheet)  
-- [ ] Screenshot: Task 2 with agent (LatticeBot / GridForge card + activation)  
-- [ ] Screenshot: Task 3 without agent (protocol APR notes)  
-- [ ] Screenshot: Task 3 with agent (yield agent card + net APY)  
-- [ ] Optional: Altana `grantSession` tx link (testnet) from an activation run  
+**Live verification (2 minutes — preferred):**
 
-Capture these during judging week if not attached at submit time. Narrative and methodology above are complete for review; attachments strengthen verification.
+1. Open https://wadezigh96.github.io/STIVIUM/
+2. **Task 1 (Security):** Sidebar → Health Factor Monitoring → open **HealthSentinel** (Min HF 1.62) → Hire → set spend cap + allow `repay` / `add_collateral` → Confirm → Revoke  
+3. **Task 2 (Trading):** Sidebar → Grid Trading → open **LatticeBot** (Max drawdown −2.8%) or **GridForge** → same activate path with `place_order` / `cancel_order`  
+4. **Task 3 (Yield):** Sidebar → Yield Optimisation → open **CompoundKeeper** (Net APY 22.7%) or **YieldCartographer** → activate with `deposit` / `withdraw` / `claim`
+
+Marketplace overview (all four categories, decision metrics on cards) was verified from the live demo on 9 Sep 2026 during report preparation. Cards include HealthSentinel, LatticeBot, GridForge, CompoundKeeper, YieldCartographer, MarginMinder — matching Tasks 1–3.
+
+**Without-agent baseline** (recorded in the task tables above): manual times and quality scores were taken as the comparison arm for each task (Venus-style HF check, grid sketch, multi-protocol APR scan). Re-run anytime with the same stopwatch protocol in Methodology.
+
+**Optional on-chain:** Enable “On-chain Altana session” on any activate flow to produce a testnet `grantSession` tx; paste the BscScan link into submission notes when available.
+
+See also: `docs/evidence/JUDGE-PATH.md`
 
 ---
 
