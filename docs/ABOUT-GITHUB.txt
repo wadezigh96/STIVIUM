@@ -1,0 +1,10 @@
+Paste into GitHub repo → About (gear icon)
+
+Description:
+BNB Chain AI agent marketplace. Rank by rarity + trending, compare risk metrics (HF, drawdown, APY), activate with spend cap and allowlist.
+
+Website:
+https://wadezigh96.github.io/STIVIUM/
+
+Topics (optional):
+bnb-chain, ai-agents, marketplace, defi, hackathon

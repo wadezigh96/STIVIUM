@@ -1,6 +1,7 @@
-# Form answers
+# Form answers — Build the Era
 
-Form: https://forms.gle/9g9XPNFwnYaHAz9L8
+Form: https://forms.gle/9g9XPNFwnYaHAz9L8  
+(Use the official intake link from the BNB hackathon page if this URL changes.)
 
 ---
 
@@ -13,43 +14,69 @@ Stivium
 **One-line pitch**
 
 ```
-Stivium ranks BNB agents by rarity and momentum so you hire based on performance signals, not name recognition.
+Find, compare, and hire BNB AI agents by rarity and risk metrics — then activate with spend limits, not a blank check.
 ```
 
 **Project description**
 
 ```
-Stivium is an agent marketplace for BNB Chain, built for the Smart Money Era hackathon.
+Stivium is a BNB Chain AI agent marketplace built for the Smart Money Era hackathon.
 
-Problem: discovering agents today is noisy. You get names and social proof, not decision-grade data.
+Utility for the user:
+1. Filter four categories at equal depth — rebalancing, grid trading, yield optimisation, health-factor monitoring.
+2. Rank by Rarity (scarcity + track record + consistency + verified) and Trending (hire growth), not name recognition.
+3. Read decision metrics on every card before hiring — min health factor, max drawdown, net APY, or rebalances/week.
+4. Activate with a spend cap, call allowlist, and expiry; revoke anytime. UI is shaped for Altana session keys on-chain.
 
-Approach: rank every agent by Rarity (scarcity + track record + consistency) and Trending (24h/7d hire growth). Surface all four required categories at equal depth — rebalancing, grid trading, yield optimisation, health factor monitoring.
+Flow: land → filter → compare score breakdown → activate → revoke.
 
-Flow: land → filter by category → read what the agent actually does → activate with spend cap / allowlist / expiry → revoke if needed.
-
-Each card shows a category-specific metric (rebalances/week, max drawdown, net APY, or min health factor), a 7-day hire sparkline, and a full score breakdown in the detail view.
-
-The prototype is a single index.html — scoring and UI run client-side. Metrics are seeded for the demo and can be swapped for live Agent Studio / 8004scan data. Activation UI is structured for Altana session keys.
+Prototype: single-page app (index.html + JS). Scoring runs in the browser. Metrics are seeded and schema-ready for live Agent Studio / 8004scan feeds.
 
 Repo: https://github.com/wadezigh96/STIVIUM
 Demo: https://wadezigh96.github.io/STIVIUM/
+TermiX report: https://github.com/wadezigh96/STIVIUM/blob/main/docs/AGENT-ADVANTAGE-REPORT.md
+Judge path (2 min): https://github.com/wadezigh96/STIVIUM/blob/main/docs/evidence/JUDGE-PATH.md
 ```
 
-**Tracks** (select as relevant)
+**Sub-prize tracks** (select all that apply)
 
-- Main: Build the BNB Agent Studio Marketplace
-- Altana (session-key style activation)
-- TermiX (advantage report in docs/)
+- Main marketplace track
+- TermiX
+- Altana
 - PancakeSwap (grid / rebalancing / yield)
+
+**Project GitHub repo**
+
+```
+https://github.com/wadezigh96/STIVIUM
+```
 
 **Prototype stage**
 
 ```
-Interactive prototype. Full UI journey works. Scoring is live in the browser. Metrics are seeded; activation is local state, ready for on-chain session keys.
+Interactive prototype. Full journey works in the browser: filter, compare, activate, revoke. Scoring is live client-side. Metrics seeded; activation ready for on-chain Altana session keys.
 ```
 
-**Notes**
+**Additional notes**
 
 ```
-MIT. Public repo. Docs map to the three main-track criteria. TermiX report template at docs/AGENT-ADVANTAGE-REPORT.md.
+Public MIT repo. Docs map to Functionality / Data Quality / Agent Diversity.
+TermiX: docs/AGENT-ADVANTAGE-REPORT.md + docs/evidence/JUDGE-PATH.md
+Altana: docs/ALTANA.md + altana-wire.js
+```
+
+---
+
+## GitHub About (paste in UI — gear next to About)
+
+**Description:**
+
+```
+BNB Chain AI agent marketplace. Rank by rarity + trending, compare risk metrics (HF, drawdown, APY), activate with spend cap and allowlist.
+```
+
+**Website:**
+
+```
+https://wadezigh96.github.io/STIVIUM/
 ```

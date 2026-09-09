@@ -1,31 +1,33 @@
 # Stivium
 
-Marketplace for BNB Chain AI agents — built for the [Smart Money Era](https://www.bnbchain.org/en/hackathons/smart-money-era) hackathon.
+**What it does:** find a BNB Chain AI agent by category, compare risk and track-record signals, then activate it with a spend cap and scoped permissions — not a blank check.
 
-Right now finding an agent on BNB is mostly vibes and follower counts. Stivium ranks agents by two things that actually matter when you're putting capital to work:
-
-- **Rarity** — how hard this agent is to replace (track record, scarcity in its category, consistency)
-- **Trending** — whether demand is accelerating, not just who has the most historical hires
-
-Open [`index.html`](./index.html) in a browser. No build step.
-
-Demo (after Pages is on): https://wadezigh96.github.io/STIVIUM/
+Live demo: https://wadezigh96.github.io/STIVIUM/  
+Hackathon: [Smart Money Era — Build the Era](https://www.bnbchain.org/en/hackathons/smart-money-era)
 
 ---
 
-## What you can do in the prototype
+## Utility (what you get)
 
-1. Land and read a short onboarding strip
-2. Filter by the four required categories (rebalancing, grid trading, yield, health factor)
-3. Sort by rarity / trending / TVL / success rate
-4. Open any agent for a plain-language description + score breakdown
-5. Activate with a spend cap, allowlist, and expiry — then revoke if you want
+| Step | Utility |
+|------|---------|
+| Browse | 4 categories at equal depth: rebalancing, grid trading, yield optimisation, health-factor monitoring |
+| Compare | Rarity (scarcity + track + consistency + verified) and Trending (hire growth) on every card |
+| Decide | Category metrics before hire: rebalances/week, max drawdown, net APY, min health factor |
+| Activate | Spend cap + call allowlist + expiry; optional on-chain Altana session keys |
+| Exit | Revoke session from the same UI |
 
-All four categories have equal depth (4 agents each, same card layout, same detail level).
+Open [`index.html`](./index.html) locally if you prefer — no build step.
 
 ---
 
-## Scoring (how rarity & trending are computed)
+## Why this exists
+
+Finding agents on BNB is still mostly names and social proof. Stivium surfaces **decision-grade signals** so hiring is closer to “this agent keeps HF above X / drawdown under Y” than “this account has followers.”
+
+---
+
+## Scoring (client-side)
 
 **Rarity**
 
@@ -36,7 +38,7 @@ rarity = 0.35 * scarcity
        + 0.10 * verified
 ```
 
-Tiers are percentile-based inside the current filter (Legendary / Epic / Rare / Uncommon / Common).
+Tiers (percentile in current filter): Legendary · Epic · Rare · Uncommon · Common.
 
 **Trending**
 
@@ -44,44 +46,40 @@ Tiers are percentile-based inside the current filter (Legendary / Epic / Rare / 
 trending = 0.5 * growth24h + 0.3 * growth7d + 0.2 * acceleration
 ```
 
-Badges: Hot · Rising · Flat · Cooling
-
-Category-specific metrics on each card:
-- Rebalancing → rebalances / week
-- Grid → max drawdown
-- Yield → net APY
-- Health factor → min HF maintained
+Badges: Hot · Rising · Flat · Cooling.
 
 ---
 
 ## Real vs mock
 
-Working in the browser: scoring, filters, tiers, charts, sparklines, activation state machine.
+| Working now | Seeded / next |
+|-------------|----------------|
+| Filters, sort, tiers, sparklines, score breakdown | Agent metrics (swap-ready for Agent Studio / 8004scan) |
+| Activate → revoke state machine | Live ERC-8004 identity + job ledger |
+| Altana-shaped permissions UI | On-chain `grantSession` when Keystore is available |
 
-Mocked for now: agent metrics (seeded data standing in for Agent Studio / on-chain reads) and the hire transaction itself (UI is ready for Altana session keys).
-
-Details on wiring live data: [`docs/LIVE-DATA.md`](./docs/LIVE-DATA.md)
+See [`docs/LIVE-DATA.md`](./docs/LIVE-DATA.md).
 
 ---
 
-## Docs
+## Docs for judges
 
-| File | What it is |
-|------|------------|
-| [`docs/JUDGING.md`](./docs/JUDGING.md) | How this maps to Functionality / Data Quality / Agent Diversity |
+| Doc | Purpose |
+|-----|---------|
+| [`docs/JUDGING.md`](./docs/JUDGING.md) | Main-track criteria map |
+| [`docs/AGENT-ADVANTAGE-REPORT.md`](./docs/AGENT-ADVANTAGE-REPORT.md) | **TermiX** advantage report |
+| [`docs/evidence/JUDGE-PATH.md`](./docs/evidence/JUDGE-PATH.md) | 2-minute click path |
+| [`docs/ALTANA.md`](./docs/ALTANA.md) | Session-key activation |
+| [`docs/SUBMISSION.md`](./docs/SUBMISSION.md) | Form copy-paste |
 | [`docs/USER-JOURNEY.md`](./docs/USER-JOURNEY.md) | End-to-end path |
-| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Structure of the single-file prototype |
-| [`docs/ROADMAP.md`](./docs/ROADMAP.md) | Next steps after the hackathon |
-| [`docs/AGENT-ADVANTAGE-REPORT.md`](./docs/AGENT-ADVANTAGE-REPORT.md) | TermiX report template |
-| [`docs/SUBMISSION.md`](./docs/SUBMISSION.md) | Text for the official form |
 
 ---
 
 ## Partner tracks
 
-- **Altana** — activation UI already mirrors session keys (cap, allowlist, expiry, revoke)
-- **TermiX** — fill the advantage report with real runs before submitting that track
-- **PancakeSwap** — grid / rebalancing / yield agents fit LP workflows
+- **Altana** — activation mirrors session keys (cap, allowlist, expiry, revoke)
+- **TermiX** — full Agent Advantage Report in `docs/`
+- **PancakeSwap** — grid / rebalancing / yield agents align with LP workflows
 
 ---
 
