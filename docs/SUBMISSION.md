@@ -26,7 +26,7 @@ Utility for the user:
 1. Filter four categories at equal depth — rebalancing, grid trading, yield optimisation, health-factor monitoring.
 2. Rank by Rarity (scarcity + track record + consistency + verified) and Trending (hire growth), not name recognition.
 3. Read decision metrics on every card before hiring — min health factor, max drawdown, net APY, or rebalances/week.
-4. Activate with a spend cap, call allowlist, and expiry; revoke anytime. UI is shaped for Altana session keys on-chain.
+4. Activate with a spend cap, call allowlist, and expiry; optional x402 hire payment (B402 on BSC); revoke anytime. UI is shaped for Altana session keys on-chain.
 
 Flow: land → filter → compare score breakdown → activate → revoke.
 
@@ -36,6 +36,7 @@ Repo: https://github.com/wadezigh96/STIVIUM
 Demo: https://wadezigh96.github.io/STIVIUM/
 TermiX report: https://github.com/wadezigh96/STIVIUM/blob/main/docs/AGENT-ADVANTAGE-REPORT.md
 Judge path (2 min): https://github.com/wadezigh96/STIVIUM/blob/main/docs/evidence/JUDGE-PATH.md
+x402: https://github.com/wadezigh96/STIVIUM/blob/main/docs/X402.md
 ```
 
 **Sub-prize tracks** (select all that apply)
@@ -54,7 +55,7 @@ https://github.com/wadezigh96/STIVIUM
 **Prototype stage**
 
 ```
-Interactive prototype. Full journey works in the browser: filter, compare, activate, revoke. Scoring is live client-side. Metrics seeded; activation ready for on-chain Altana session keys.
+Interactive prototype. Full journey works in the browser: filter, compare, activate, revoke. Scoring is live client-side. Metrics seeded; activation ready for on-chain Altana session keys; x402 hire payment mocked in UI.
 ```
 
 **Additional notes**
@@ -63,6 +64,7 @@ Interactive prototype. Full journey works in the browser: filter, compare, activ
 Public MIT repo. Docs map to Functionality / Data Quality / Agent Diversity.
 TermiX: docs/AGENT-ADVANTAGE-REPORT.md + docs/evidence/JUDGE-PATH.md
 Altana: docs/ALTANA.md + altana-wire.js
+x402: docs/X402.md (hire payment mock; live B402 needs merchant API)
 ```
 
 ---
