@@ -54,7 +54,7 @@ function computeScores(list){
 // ---------- state ----------
 let activeCat = "All";
 let activeSort = "rarity";
-let activations = {}; // name -> {stage:'overview'|'setup'|'done', cap, allowlist, expiry}
+let activations = {}; // name -> {stage, cap, allowlist, expiry, onchain, x402, ...}
 
 // ---------- helpers ----------
 const TIER_LABEL = {legendary:"Legendary", epic:"Epic", rare:"Rare", uncommon:"Uncommon", common:"Common"};
@@ -172,7 +172,7 @@ const overlay = document.getElementById("overlay");
 const modalBody = document.getElementById("modalBody");
 
 function openModal(name, jumpToSetup){
-  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false};
+  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null};
   if(jumpToSetup && activations[name].stage === "overview") activations[name].stage = "setup";
   overlay.classList.add("open");
   renderModal(name);
@@ -217,6 +217,14 @@ function renderModal(name){
           <input type="checkbox" id="altanaOnchain" ${state.onchain?"checked":""}>
           <span style="font-size:12px;color:var(--text-dim);line-height:1.4;">On-chain Altana session (BNB testnet). Needs passkey + test BNB. Unchecked = local mock.</span>
         </label>
+        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;">
+          <input type="checkbox" id="x402Pay" ${state.x402?"checked":""}>
+          <span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Pay hire with x402</strong> — HTTP 402 micropayment (B402 on BSC). Demo settles a mock 0.10 USDT authorization; live B402 needs a merchant backend.</span>
+        </label>
+        <div class="field" id="x402PriceRow" style="${state.x402?'':'display:none'}">
+          <label>Hire fee (x402)</label>
+          <div style="font-size:13px;color:var(--gold);font-family:'IBM Plex Mono',monospace;">0.10 USDT · scheme exact · network eip155:97 (testnet)</div>
+        </div>
         <div class="field"><label>Spend cap (USD) — the most this agent can ever move</label>
           <input type="number" id="capInput" placeholder="e.g. 500" value="${state.cap}"></div>
         <div class="field"><label>Allowed actions</label>
@@ -230,7 +238,7 @@ function renderModal(name){
           </select></div>
       </div>
       <div class="modal-actions">
-        <button class="hire-btn" id="confirmActivate">Confirm &amp; activate</button>
+        <button class="hire-btn" id="confirmActivate">Confirm & activate</button>
         <button class="hire-btn ghost" id="closeBtn">Cancel</button>
       </div>`;
   } else {
@@ -242,6 +250,7 @@ function renderModal(name){
           Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none selected"}<br>
           Expires: in ${state.expiry} days — revoke anytime.<br>
           ${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError ? `On-chain error: ${state.altanaError}` : "Waiting for tx…")) : "Mode: local mock"}
+          ${state.x402 ? `<div style="margin-top:6px">x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected (not settled)"}</div>` : ""}
         </div>
       </div>
       <div class="modal-actions">
@@ -276,6 +285,15 @@ function renderModal(name){
   const goSetup = modalBody.querySelector("#goSetup");
   if(goSetup) goSetup.addEventListener("click", () => { state.stage = "setup"; renderModal(name); });
 
+  const x402Pay = modalBody.querySelector("#x402Pay");
+  if(x402Pay){
+    x402Pay.addEventListener("change", () => {
+      state.x402 = x402Pay.checked;
+      const row = modalBody.querySelector("#x402PriceRow");
+      if(row) row.style.display = x402Pay.checked ? "" : "none";
+    });
+  }
+
   const confirm = modalBody.querySelector("#confirmActivate");
   if(confirm) confirm.addEventListener("click", async () => {
     const capInput = modalBody.querySelector("#capInput");
@@ -283,8 +301,12 @@ function renderModal(name){
     const onchainEl = modalBody.querySelector("#altanaOnchain");
     state.cap = capInput.value || "0";
     state.expiry = expirySelect.value;
-    state.allowlist = [...modalBody.querySelectorAll(".chk input:checked")].map(c => c.dataset.opt);
+    state.allowlist = [...modalBody.querySelectorAll(".chk input:checked")].map(c => c.dataset.opt).filter(Boolean);
     state.onchain = !!(onchainEl && onchainEl.checked);
+    const x402El = modalBody.querySelector("#x402Pay");
+    state.x402 = !!(x402El && x402El.checked);
+    state.x402Paid = false;
+    state.x402Ref = null;
     state.txHash = null;
     state.explorer = null;
     state.altanaError = null;
@@ -314,6 +336,15 @@ function renderModal(name){
       confirm.disabled = false;
     }
 
+    if(state.x402){
+      confirm.disabled = true;
+      confirm.textContent = "x402: authorizing…";
+      await new Promise(r => setTimeout(r, 600));
+      state.x402Paid = true;
+      state.x402Ref = "x402-mock-" + Date.now().toString(36);
+      confirm.disabled = false;
+    }
+
     state.stage = "done";
     renderModal(name);
     render();
@@ -325,7 +356,7 @@ function renderModal(name){
       revoke.disabled = true;
       try { await window.StiviumAltana.revokeAgentSession(name); } catch(e){ console.warn(e); }
     }
-    activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false};
+    activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null};
     renderModal(name);
     render();
   });
