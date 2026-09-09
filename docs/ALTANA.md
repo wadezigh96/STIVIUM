@@ -34,3 +34,16 @@ If the SDK or network fails, the UI falls back to local mock boundaries so the m
 
 - `altana-wire.js` — grant / revoke helpers
 - `index.html` — checkbox + async activate / revoke handlers
+
+## Skills (competence)
+
+Session keys bound **authority**. [Altana Skills](https://docs.altana.network/skills) teach **how** to use a protocol.
+
+Stivium ships two example skills under `skills/`:
+
+- `skills/pancakeswap-trading/SKILL.md` — Grid Trading / Rebalancing
+- `skills/venus-lending/SKILL.md` — Yield Optimisation / Health Factor Monitoring
+
+An agent with a Stivium-granted session should load the matching skill and only `execute` through that session.
+
+Public catalog: https://skills.altana.network/
