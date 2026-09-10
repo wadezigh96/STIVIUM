@@ -40,7 +40,7 @@ main{padding:20px 28px 60px}.legend{display:flex;gap:18px;flex-wrap:wrap;margin-
 .tier-tag{font-size:10.5px;font-family:'IBM Plex Mono',monospace;padding:3px 7px;border-radius:4px;white-space:nowrap;border:1px solid var(--line)}
 .tier-legendary .tier-tag{color:var(--gold);border-color:rgba(240,185,11,.4)}.tier-epic .tier-tag{color:var(--violet);border-color:rgba(167,139,250,.4)}.tier-rare .tier-tag{color:var(--teal);border-color:rgba(47,191,143,.4)}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-family:'IBM Plex Mono',monospace}.stat b{display:block;font-size:13px;color:var(--text);font-weight:500}.stat span{font-size:10px;color:var(--text-dim)}
-.card-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:2px}.trend{font-family:'IBM Plex Mono',monospace;font-size:12.5px}.trend.hot{color:var(--gold)}.trend.rising{color:var(--teal)}.trend.flat{color:var(--text-dim)}.trend.cooling{color:var(--coral)}
+.card-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:2px;gap:8px;flex-wrap:wrap}.trend{font-family:'IBM Plex Mono',monospace;font-size:12.5px}.trend.hot{color:var(--gold)}.trend.rising{color:var(--teal)}.trend.flat{color:var(--text-dim)}.trend.cooling{color:var(--coral)}
 .hire-btn{all:unset;cursor:pointer;font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:6px;background:var(--gold);color:#1a1607}.hire-btn:hover{filter:brightness(1.08)}.hire-btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text-dim)}
 footer{padding:26px 28px 40px;color:var(--text-dim);font-size:12px;border-top:1px solid var(--line)}
 .overlay{position:fixed;inset:0;background:rgba(10,8,5,.72);display:none;align-items:flex-start;justify-content:center;padding:40px 20px;z-index:50;overflow-y:auto}.overlay.open{display:flex}
@@ -56,6 +56,13 @@ footer{padding:26px 28px 40px;color:var(--text-dim);font-size:12px;border-top:1p
 select.expiry{background:var(--surface-2);border:1px solid var(--line);color:var(--text);padding:8px 10px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:13px}
 .modal-actions{display:flex;gap:10px;margin-top:16px}
 .success-box{margin-top:18px;padding:14px 16px;border-radius:8px;background:rgba(47,191,143,.08);border:1px solid rgba(47,191,143,.35)}.success-box p{margin:0 0 6px;font-size:13px;color:var(--teal);font-weight:600}.success-box .detail{font-size:12px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;line-height:1.6}
+.restraint-pill{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--violet);margin-right:auto}
+.blast-box{margin:12px 0 4px;padding:12px 12px 10px;border-radius:8px;border:1px solid rgba(167,139,250,.35);background:rgba(167,139,250,.06)}
+.blast-title{font-size:12px;font-weight:600;margin-bottom:8px;color:var(--violet)}
+.blast-title .mono{font-size:10px;opacity:.85}
+.blast-line{font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:4px}
+.blast-line b{color:var(--text);font-weight:600}
+.blast-hint{margin-top:8px;font-size:11px;color:var(--text-dim);line-height:1.4}
 @media(max-width:760px){.layout{grid-template-columns:1fr}aside{position:static;border-right:none;border-bottom:1px solid var(--line);min-height:auto}.cat-list,.sort-list{flex-direction:row;flex-wrap:wrap}.onboard{grid-template-columns:1fr}.diversity{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr)}}
 /* Swap panel */
 .view-tabs{display:flex;gap:6px;margin-bottom:14px}
@@ -116,6 +123,9 @@ select.expiry{background:var(--surface-2);border:1px solid var(--line);color:var
         <dt>TVL managed</dt><dd>Total value currently managed by this agent.</dd>
         <dt>Success rate</dt><dd>Share of the agent's actions that hit their intended outcome.</dd>
         <dt>Spend cap</dt><dd>The maximum an activated agent can move, set by you before it can act.</dd>
+        <dt>Restraint</dt><dd>How often the agent declines a signal for risk — discipline, not just win rate.</dd>
+        <dt>Blast radius</dt><dd>Worst-case capital at risk under your spend cap before you confirm a hire.</dd>
+        <dt>Shadow mode</dt><dd>Observe-only window before the agent can place live calls.</dd>
       </dl>
     </details>
   </aside>
@@ -131,7 +141,7 @@ select.expiry{background:var(--surface-2);border:1px solid var(--line);color:var
     </div>
     <div class="view-tabs">
       <button type="button" class="view-tab active" data-view="agents" id="tabAgents">Agents</button>
-      <button type="button" class="view-tab" data-view="swap" id="tabSwap">Swap · Crypto & bStocks</button>
+      <button type="button" class="view-tab" data-view="swap" id="tabSwap">Swap · Crypto &amp; bStocks</button>
     </div>
     <div id="gridWrap">
     <div class="grid" id="grid"></div>
@@ -143,7 +153,7 @@ select.expiry{background:var(--surface-2);border:1px solid var(--line);color:var
 <footer>
   <b>Stivium</b> — marketplace prototype for the <strong>Smart Money Era</strong> (Build the Era track).
   Metrics are seeded samples ready to swap for live <a href="https://8004scan.io" target="_blank" rel="noopener" style="color:var(--gold)">8004scan</a> / Agent Studio data.
-  Rarity, Trending, activation, and a Pancake-style swap mock (crypto + bStocks) run fully in the browser. See <a href="./docs/SWAP.md" style="color:var(--gold)">docs/SWAP.md</a>.
+  Rarity, Trending, activation, Pancake-style swap mock, blast radius, shadow mode, and restraint signals run in the browser. See <a href="./docs/RARE-FEATURES.md" style="color:var(--gold)">docs/RARE-FEATURES.md</a>.
   MIT · <span class="mono">open index.html</span>
 </footer>
 <script src="./agents-data.js"></script>
