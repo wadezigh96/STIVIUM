@@ -215,7 +215,7 @@ function renderModal(name){
         <h4 style="font-size:11px;color:var(--text-dim);letter-spacing:.3px;margin:0 0 12px;">Set the boundaries before this agent can act</h4>
         <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;">
           <input type="checkbox" id="altanaOnchain" ${state.onchain?"checked":""}>
-          <span style="font-size:12px;color:var(--text-dim);line-height:1.4;">On-chain Altana session (BNB testnet). Needs passkey + test BNB. Unchecked = local mock.</span>
+          <span style="font-size:12px;color:var(--text-dim);line-height:1.4;">On-chain Altana session — <strong style="color:var(--coral)">BNB testnet only</strong>. Needs passkey (or ephemeral demo key). <strong style="color:var(--coral)">Do not deposit mainnet funds.</strong> Unchecked = local mock (safest for browsing).</span>
         </label>
         <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;">
           <input type="checkbox" id="x402Pay" ${state.x402?"checked":""}>
@@ -250,6 +250,8 @@ function renderModal(name){
           Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none selected"}<br>
           Expires: in ${state.expiry} days — revoke anytime.<br>
           ${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError ? `On-chain error: ${state.altanaError}` : "Waiting for tx…")) : "Mode: local mock"}
+          ${state.altanaWarning ? `<div style="margin-top:8px;color:var(--coral)">${state.altanaWarning}</div>` : ""}
+          ${state.walletMode === "ephemeral" && state.walletAddress ? `<div style="margin-top:4px;color:var(--coral)">Ephemeral wallet: ${state.walletAddress} — key lost on refresh; do not fund.</div>` : ""}
           ${state.x402 ? `<div style="margin-top:6px">x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected (not settled)"}</div>` : ""}
         </div>
       </div>
@@ -330,6 +332,9 @@ function renderModal(name){
         if(res.ok && !res.mock){
           state.txHash = res.txHash || null;
           state.explorer = res.explorer || null;
+          state.walletAddress = res.wallet || null;
+          state.walletMode = res.walletMode || null;
+          state.altanaWarning = res.warning || null;
         } else {
           state.altanaError = res.error || "grant failed — kept as mock boundaries";
           state.onchain = false;
