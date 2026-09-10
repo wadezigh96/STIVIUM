@@ -35,6 +35,7 @@ const NATIVE = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 let client = null;
 let wallet = null;
 let chainId = 97;
+let walletMode = "none"; // "passkey" | "ephemeral" | "none"
 
 async function loadSdk() {
   const mod = await import("https://esm.sh/@altananetwork/sdk@0.9.0");
@@ -42,10 +43,14 @@ async function loadSdk() {
 }
 
 async function ensureClient() {
-  if (client && wallet) return { client, wallet };
+  if (client && wallet) return { client, wallet, walletMode };
   const sdk = await loadSdk();
+  // Demo safety: always target BNB testnet (97). Do not wire mainnet funds here.
   const chain = sdk.BNB_TESTNET || sdk.BNB;
-  chainId = chain?.id === 56 ? 56 : 97;
+  chainId = 97;
+  if (chain?.id === 56) {
+    console.warn("Stivium Altana: SDK defaulted to mainnet chain object; session still tagged chainId 97 for demo.");
+  }
   client = sdk.createClient({ chains: [chain] });
 
   // Prefer passkey in browser (no seed in localStorage).
@@ -56,7 +61,9 @@ async function ensureClient() {
         name: "Stivium",
         rpId,
       });
-      return { client, wallet };
+      walletMode = "passkey";
+      window.__stiviumWalletMode = walletMode;
+      return { client, wallet, walletMode };
     } catch (e) {
       console.warn("Passkey wallet failed, falling back to ephemeral signer", e);
     }
@@ -64,13 +71,20 @@ async function ensureClient() {
 
   const signer = sdk.signerFromPrivateKey
     ? sdk.signerFromPrivateKey(
-        // Ephemeral key for demo only — user should fund & rotate in production
+        // Ephemeral key for demo only — lost on refresh; do NOT fund with real value
         (await import("https://esm.sh/viem/accounts")).generatePrivateKey()
       )
     : undefined;
 
   wallet = await client.createWallet(signer ? { signer } : {});
-  return { client, wallet };
+  walletMode = "ephemeral";
+  window.__stiviumWalletMode = walletMode;
+  const addr = wallet?.address || wallet?.account?.address || "";
+  console.warn(
+    "[Stivium] Ephemeral demo wallet. Key is not persisted. Do NOT deposit mainnet funds." +
+      (addr ? " Address: " + addr : "")
+  );
+  return { client, wallet, walletMode };
 }
 
 function usdToWeiApprox(usd) {
@@ -119,6 +133,11 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
     window.__stiviumSessions = window.__stiviumSessions || {};
     window.__stiviumSessions[agentName] = record;
 
+    const mode = walletMode || window.__stiviumWalletMode || "unknown";
+    const warn =
+      mode === "ephemeral"
+        ? "Ephemeral demo key — not saved after refresh. Use testnet BNB only; never mainnet funds."
+        : "BNB testnet session only. Revoke when done. Do not use mainnet funds in this demo.";
     return {
       ok: true,
       mock: false,
@@ -126,6 +145,8 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
       explorer: txHash ? EXPLORER_TX[chainId] + txHash : null,
       wallet: record.walletAddress,
       chainId,
+      walletMode: mode,
+      warning: warn,
     };
   } catch (err) {
     console.error("Altana grantSession failed", err);
