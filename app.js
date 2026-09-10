@@ -26,7 +26,15 @@ function computeScores(list){
     const accel = g24 - g7;
     const trending = 0.5*g24 + 0.3*g7 + 0.2*accel;
 
-    return {...a, rarity, trending, g24, g7, accel, sub:{scarcity, track, consistency, verified}};
+    // Restraint: how often the agent *holds back* (discipline), not just wins — rare marketplace signal
+    const restraint = Math.max(5, Math.min(99, Math.round(
+      0.55 * a.successRate +
+      0.25 * (100 - Math.min(100, a.peerCount * 6)) +
+      (a.verified ? 12 : 0) -
+      Math.min(20, Math.max(0, growth(a.h24n, a.h24p) * 40))
+    )));
+
+    return {...a, rarity, trending, g24, g7, accel, restraint, sub:{scarcity, track, consistency, verified}};
   });
 
   const byRarity = [...scored].sort((a,b) => b.rarity - a.rarity);
@@ -118,6 +126,7 @@ function render(){
       </div>
       <svg class="spark" width="100" height="26" viewBox="0 0 100 26"><polyline fill="none" stroke="#f0b90b" stroke-width="1.5" points="${sparklinePath(a.hist7)}"/></svg>
       <div class="card-bottom"><span class="trend ${a.trendBadge}">${badge}</span>
+        <span class="restraint-pill" title="Share of signals the agent declined for risk — rare vs pure performance boards">${a.restraint}% restraint</span>
         <button class="hire-btn" data-open="${a.name}">${act?.stage==='done'?'View activation':'Hire agent'}</button></div>
     </div>`;
   }).join("");
@@ -172,7 +181,7 @@ const overlay = document.getElementById("overlay");
 const modalBody = document.getElementById("modalBody");
 
 function openModal(name, jumpToSetup){
-  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null};
+  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, shadow:true, shadowDays:"3"};
   if(jumpToSetup && activations[name].stage === "overview") activations[name].stage = "setup";
   overlay.classList.add("open");
   renderModal(name);
@@ -198,6 +207,7 @@ function renderModal(name){
       ${barRow("Track record", a.sub.track, a.uptimeDays+"d live")}
       ${barRow("Consistency", a.sub.consistency, a.successRate+"% success")}
       ${barRow("Verified", a.sub.verified, a.verified ? "yes" : "no")}
+      ${barRow("Restraint", a.restraint/100, a.restraint+"% hold-back")}
     </div>
     <div class="breakdown">
       <h4>Why this trending badge</h4>
@@ -225,8 +235,27 @@ function renderModal(name){
           <label>Hire fee (x402)</label>
           <div style="font-size:13px;color:var(--gold);font-family:'IBM Plex Mono',monospace;">0.10 USDT · scheme exact · network eip155:97 (testnet)</div>
         </div>
+        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;">
+          <input type="checkbox" id="shadowMode" ${state.shadow!==false?"checked":""}>
+          <span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Shadow mode first</strong> — agent may observe and propose only; no live calls until the window ends. Rare on agent markets; cuts “hire and hope” risk.</span>
+        </label>
+        <div class="field" id="shadowDaysRow" style="${state.shadow===false?'display:none':''}">
+          <label>Shadow window</label>
+          <select class="expiry" id="shadowDays">
+            <option value="1" ${state.shadowDays==="1"?"selected":""}>1 day observe</option>
+            <option value="3" ${!state.shadowDays||state.shadowDays==="3"?"selected":""}>3 days observe</option>
+            <option value="7" ${state.shadowDays==="7"?"selected":""}>7 days observe</option>
+          </select>
+        </div>
         <div class="field"><label>Spend cap (USD) — the most this agent can ever move</label>
           <input type="number" id="capInput" placeholder="e.g. 500" value="${state.cap}"></div>
+        <div class="blast-box" id="blastBox">
+          <div class="blast-title">Blast radius <span class="mono">(rare)</span></div>
+          <div class="blast-line">Max capital at risk under this hire: <b id="blastCap">$${state.cap||0}</b></div>
+          <div class="blast-line">Restraint of this agent: <b>${a.restraint}%</b> — higher = more often it refuses a trade</div>
+          <div class="blast-line" id="blastShadow">${state.shadow!==false?"Shadow ON — live execution delayed":"Shadow OFF — live as soon as session is active"}</div>
+          <div class="blast-hint">Most marketplaces only show APY/TVL. Stivium shows the worst-case envelope before you confirm.</div>
+        </div>
         <div class="field"><label>Allowed actions</label>
           <div class="checks">${allow.map(opt => `
             <label class="chk"><input type="checkbox" data-opt="${opt}" ${state.allowlist.includes(opt)?"checked":""}> ${opt}</label>`).join("")}</div></div>
@@ -248,6 +277,8 @@ function renderModal(name){
         <div class="detail">
           Spend cap: $${state.cap || 0}<br>
           Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none selected"}<br>
+          Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d observe-only") : "OFF · live"}<br>
+          Blast radius: max $${state.cap||0} under spend cap · restraint ${a.restraint}%<br>
           Expires: in ${state.expiry} days — revoke anytime.<br>
           ${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError ? `On-chain error: ${state.altanaError}` : "Waiting for tx…")) : "Mode: local mock"}
           ${state.altanaWarning ? `<div style="margin-top:8px;color:var(--coral)">${state.altanaWarning}</div>` : ""}
@@ -296,6 +327,24 @@ function renderModal(name){
     });
   }
 
+  const shadowMode = modalBody.querySelector("#shadowMode");
+  if(shadowMode){
+    shadowMode.addEventListener("change", () => {
+      state.shadow = shadowMode.checked;
+      const row = modalBody.querySelector("#shadowDaysRow");
+      if(row) row.style.display = shadowMode.checked ? "" : "none";
+      const bl = modalBody.querySelector("#blastShadow");
+      if(bl) bl.textContent = shadowMode.checked ? "Shadow ON — live execution delayed" : "Shadow OFF — live as soon as session is active";
+    });
+  }
+  const capInputLive = modalBody.querySelector("#capInput");
+  if(capInputLive){
+    capInputLive.addEventListener("input", () => {
+      const el = modalBody.querySelector("#blastCap");
+      if(el) el.textContent = "$" + (capInputLive.value || "0");
+    });
+  }
+
   const confirm = modalBody.querySelector("#confirmActivate");
   if(confirm) confirm.addEventListener("click", async () => {
     const capInput = modalBody.querySelector("#capInput");
@@ -305,6 +354,10 @@ function renderModal(name){
     state.expiry = expirySelect.value;
     state.allowlist = [...modalBody.querySelectorAll(".chk input[data-opt]:checked")].map(c => c.dataset.opt);
     state.onchain = !!(onchainEl && onchainEl.checked);
+    const shadowEl = modalBody.querySelector("#shadowMode");
+    const shadowDaysEl = modalBody.querySelector("#shadowDays");
+    state.shadow = shadowEl ? shadowEl.checked : true;
+    state.shadowDays = shadowDaysEl ? shadowDaysEl.value : "3";
     const x402El = modalBody.querySelector("#x402Pay");
     state.x402 = !!(x402El && x402El.checked);
     state.x402Paid = false;
@@ -366,7 +419,7 @@ function renderModal(name){
       revoke.disabled = true;
       try { await window.StiviumAltana.revokeAgentSession(name); } catch(e){ console.warn(e); }
     }
-    activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null};
+    activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, shadow:true, shadowDays:"3"};
     renderModal(name);
     render();
   });
