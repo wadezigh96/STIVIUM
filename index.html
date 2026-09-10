@@ -57,6 +57,32 @@ select.expiry{background:var(--surface-2);border:1px solid var(--line);color:var
 .modal-actions{display:flex;gap:10px;margin-top:16px}
 .success-box{margin-top:18px;padding:14px 16px;border-radius:8px;background:rgba(47,191,143,.08);border:1px solid rgba(47,191,143,.35)}.success-box p{margin:0 0 6px;font-size:13px;color:var(--teal);font-weight:600}.success-box .detail{font-size:12px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;line-height:1.6}
 @media(max-width:760px){.layout{grid-template-columns:1fr}aside{position:static;border-right:none;border-bottom:1px solid var(--line);min-height:auto}.cat-list,.sort-list{flex-direction:row;flex-wrap:wrap}.onboard{grid-template-columns:1fr}.diversity{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr)}}
+/* Swap panel */
+.view-tabs{display:flex;gap:6px;margin-bottom:14px}
+.view-tab{all:unset;cursor:pointer;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:6px;border:1px solid var(--line);color:var(--text-dim)}
+.view-tab.active{background:var(--gold);color:#1a1607;border-color:var(--gold)}
+.swap-panel{display:none;max-width:420px;margin:0 auto 40px}
+.swap-panel.open{display:block}
+.swap-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px}
+.swap-card h3{margin:0 0 4px;font-size:16px}
+.swap-card .sub{font-size:12px;color:var(--text-dim);margin:0 0 14px;line-height:1.45}
+.swap-leg{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
+.swap-leg .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.swap-leg label{font-size:11px;color:var(--text-dim)}
+.swap-leg input[type=number]{width:100%;margin-top:8px;background:transparent;border:none;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;outline:none}
+.swap-leg select{background:var(--surface);border:1px solid var(--line);color:var(--text);padding:6px 8px;border-radius:8px;font-size:13px;font-weight:600;max-width:140px}
+.swap-flip{all:unset;cursor:pointer;display:flex;align-items:center;justify-content:center;width:32px;height:32px;margin:-4px auto 4px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--gold);font-size:14px}
+.swap-meta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);margin:10px 0 12px;line-height:1.6}
+.swap-meta b{color:var(--text);font-weight:500}
+.swap-btn{all:unset;cursor:pointer;display:block;text-align:center;width:100%;box-sizing:border-box;font-size:14px;font-weight:600;padding:12px;border-radius:8px;background:var(--gold);color:#1a1607}
+.swap-btn:disabled{opacity:.5;cursor:not-allowed}
+.swap-note{margin-top:12px;font-size:11.5px;color:var(--text-dim);line-height:1.5}
+.swap-note a{color:var(--gold)}
+.token-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.token-chip{font-size:11px;font-family:'IBM Plex Mono',monospace;padding:4px 8px;border-radius:999px;border:1px solid var(--line);color:var(--text-dim)}
+.token-chip.bstock{border-color:rgba(167,139,250,.45);color:var(--violet)}
+.token-chip.crypto{border-color:rgba(47,191,143,.35);color:var(--teal)}
+#gridWrap.hidden{display:none}
 </style>
 </head>
 <body>
@@ -103,17 +129,27 @@ select.expiry{background:var(--surface-2);border:1px solid var(--line);color:var
       <span><span class="dot" style="background:var(--line)"></span>Common</span>
       <span style="margin-left:auto;">🔥 Hot · ▲ Rising · ▼ Cooling · BNB Chain agents</span>
     </div>
+    <div class="view-tabs">
+      <button type="button" class="view-tab active" data-view="agents" id="tabAgents">Agents</button>
+      <button type="button" class="view-tab" data-view="swap" id="tabSwap">Swap · Crypto & bStocks</button>
+    </div>
+    <div id="gridWrap">
     <div class="grid" id="grid"></div>
+    </div>
+    <div class="swap-panel" id="swapPanel"></div>
   </main>
 </div>
 <div class="overlay" id="overlay"><div class="modal" id="modalBody"></div></div>
 <footer>
   <b>Stivium</b> — marketplace prototype for the <strong>Smart Money Era</strong> (Build the Era track).
   Metrics are seeded samples ready to swap for live <a href="https://8004scan.io" target="_blank" rel="noopener" style="color:var(--gold)">8004scan</a> / Agent Studio data.
-  Rarity, Trending, and activation logic run fully in the browser. MIT · <span class="mono">open index.html</span>
+  Rarity, Trending, activation, and a Pancake-style swap mock (crypto + bStocks) run fully in the browser. See <a href="./docs/SWAP.md" style="color:var(--gold)">docs/SWAP.md</a>.
+  MIT · <span class="mono">open index.html</span>
 </footer>
 <script src="./agents-data.js"></script>
+<script src="./swap-data.js"></script>
 <script src="./app.js"></script>
+<script src="./swap-ui.js"></script>
 <script type="module" src="./altana-wire.js"></script>
 </body>
 </html>
