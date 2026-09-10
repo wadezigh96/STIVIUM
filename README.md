@@ -16,6 +16,7 @@ Hackathon: [Smart Money Era — Build the Era](https://www.bnbchain.org/en/hacka
 | Decide | Category metrics before hire: rebalances/week, max drawdown, net APY, min health factor |
 | Activate | Spend cap + call allowlist + expiry; optional on-chain Altana session keys |
 | Pay | Optional **x402** hire fee (HTTP 402 / B402 on BSC) — UI mock, see `docs/X402.md` |
+| Swap | Mock Pancake-style swap: crypto + **bStocks** RWA — see `docs/SWAP.md` |
 | Exit | Revoke session from the same UI |
 
 Open [`index.html`](./index.html) locally if you prefer — no build step.
@@ -39,54 +40,12 @@ rarity = 0.35 * scarcity
        + 0.10 * verified
 ```
 
-Tiers (percentile in current filter): Legendary · Epic · Rare · Uncommon · Common.
-
-**Trending**
-
-```
-trending = 0.5 * growth24h + 0.3 * growth7d + 0.2 * acceleration
-```
-
-Badges: Hot · Rising · Flat · Cooling.
+**Trending** uses 24h / 7d hire growth and acceleration. Tiers are percentile-based inside the current set.
 
 ---
 
-## Real vs mock
+## Stack
 
-| Working now | Seeded / next |
-|-------------|----------------|
-| Filters, sort, tiers, sparklines, score breakdown | Agent metrics (swap-ready for Agent Studio / 8004scan) |
-| Activate → revoke state machine | Live ERC-8004 identity + job ledger |
-| Altana-shaped permissions UI | On-chain `grantSession` when Keystore is available |
-| x402 hire checkbox + mock receipt | Live B402 merchant API + settle |
+Static HTML/JS on GitHub Pages. Optional Altana session keys (BNB testnet). Optional x402 hire mock. Optional swap mock (Pancake story + bStocks list).
 
-See [`docs/LIVE-DATA.md`](./docs/LIVE-DATA.md) and [`docs/X402.md`](./docs/X402.md).
-
----
-
-## Docs for judges
-
-| Doc | Purpose |
-|-----|---------|
-| [`docs/JUDGING.md`](./docs/JUDGING.md) | Main-track criteria map |
-| [`docs/AGENT-ADVANTAGE-REPORT.md`](./docs/AGENT-ADVANTAGE-REPORT.md) | **TermiX** advantage report |
-| [`docs/evidence/JUDGE-PATH.md`](./docs/evidence/JUDGE-PATH.md) | 2-minute click path |
-| [`docs/ALTANA.md`](./docs/ALTANA.md) | Session-key activation |
-| [`docs/X402.md`](./docs/X402.md) | x402 / B402 hire payment |
-| [`docs/SUBMISSION.md`](./docs/SUBMISSION.md) | Form copy-paste |
-| [`docs/USER-JOURNEY.md`](./docs/USER-JOURNEY.md) | End-to-end path |
-
----
-
-## Partner tracks
-
-- **Altana** — activation mirrors session keys (cap, allowlist, expiry, revoke)
-- **x402 / B402** — optional hire micropayment (mock in UI; live path in `docs/X402.md`)
-- **TermiX** — full Agent Advantage Report in `docs/`
-- **PancakeSwap** — grid / rebalancing / yield agents align with LP workflows
-
----
-
-## License
-
-MIT
+Docs: `docs/` — SUBMISSION, AGENT-ADVANTAGE-REPORT, ALTANA, X402, SWAP, LIVE-DATA.
