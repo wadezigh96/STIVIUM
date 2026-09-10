@@ -238,7 +238,7 @@ function renderModal(name){
           </select></div>
       </div>
       <div class="modal-actions">
-        <button class="hire-btn" id="confirmActivate">Confirm & activate</button>
+        <button class="hire-btn" id="confirmActivate">Confirm &amp; activate</button>
         <button class="hire-btn ghost" id="closeBtn">Cancel</button>
       </div>`;
   } else {
@@ -301,7 +301,7 @@ function renderModal(name){
     const onchainEl = modalBody.querySelector("#altanaOnchain");
     state.cap = capInput.value || "0";
     state.expiry = expirySelect.value;
-    state.allowlist = [...modalBody.querySelectorAll(".chk input:checked")].map(c => c.dataset.opt).filter(Boolean);
+    state.allowlist = [...modalBody.querySelectorAll(".chk input[data-opt]:checked")].map(c => c.dataset.opt);
     state.onchain = !!(onchainEl && onchainEl.checked);
     const x402El = modalBody.querySelector("#x402Pay");
     state.x402 = !!(x402El && x402El.checked);
@@ -311,7 +311,12 @@ function renderModal(name){
     state.explorer = null;
     state.altanaError = null;
 
-    if(state.onchain && window.StiviumAltana){
+    if(state.onchain && !(window.StiviumAltana && typeof window.StiviumAltana.grantAgentSession === "function")){
+      state.altanaError = "Altana SDK not ready — using local mock boundaries";
+      state.onchain = false;
+    }
+
+    if(state.onchain && window.StiviumAltana && typeof window.StiviumAltana.grantAgentSession === "function"){
       confirm.disabled = true;
       confirm.textContent = "Signing session…";
       try {
@@ -352,7 +357,7 @@ function renderModal(name){
 
   const revoke = modalBody.querySelector("#revokeBtn");
   if(revoke) revoke.addEventListener("click", async () => {
-    if(state.onchain && window.StiviumAltana){
+    if(state.onchain && window.StiviumAltana && typeof window.StiviumAltana.revokeAgentSession === "function"){
       revoke.disabled = true;
       try { await window.StiviumAltana.revokeAgentSession(name); } catch(e){ console.warn(e); }
     }
