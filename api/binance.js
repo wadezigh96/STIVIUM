@@ -5,8 +5,8 @@
 const crypto = require("crypto");
 
 const BASE = "https://web3.binance.com/build";
-const API_KEY = process.env.BINANCE_WEB3_API_KEY;
-const API_SECRET = process.env.BINANCE_WEB3_API_SECRET;
+const API_KEY = process.env.BINANCE_WEB3_API_KEY?.trim();
+const API_SECRET = process.env.BINANCE_WEB3_API_SECRET?.trim();
 
 const ACTIONS = {
   chains: { method: "GET", path: "/api/v1/dex/balance/supported/chain", query: () => "" },
@@ -30,6 +30,7 @@ const ACTIONS = {
       ...(q.limit ? { limit: q.limit } : {}),
       ...(q.begin ? { begin: q.begin } : {}),
       ...(q.end ? { end: q.end } : {}),
+      ...(q.cursor ? { cursor: q.cursor } : {}),
     }).toString(),
   },
   gasLimit: { method: "POST", path: "/api/v1/dex/pre-transaction/gas-limit", query: () => "" },
@@ -88,14 +89,23 @@ const ACTIONS = {
 };
 
 function sign(prehash) {
+  // Binance Web3 API accepts HMAC-SHA256 or Ed25519 signatures.
+  // PEM-formatted private keys are treated as Ed25519/private-key material;
+  // otherwise the configured API secret is used as the HMAC key.
   if (API_SECRET.includes("BEGIN")) {
-    return crypto.sign(null, Buffer.from(prehash), API_SECRET).toString("base64");
+    return crypto.sign(null, Buffer.from(prehash, "utf8"), API_SECRET).toString("base64");
   }
-  return crypto.createHmac("sha256", API_SECRET).update(prehash).digest("base64");
+
+  return crypto
+    .createHmac("sha256", API_SECRET)
+    .update(prehash, "utf8")
+    .digest("base64");
 }
 
 function json(res, status, body) {
-  return res.status(status).setHeader("Cache-Control", "no-store").json(body);
+  return res.status(status)
+    .setHeader("Cache-Control", "no-store")
+    .json(body);
 }
 
 module.exports = async function handler(req, res) {
@@ -107,9 +117,11 @@ module.exports = async function handler(req, res) {
 
   const action = String(req.query.action || "chains");
   const spec = ACTIONS[action];
-  if (!spec) return json(res, 400, { ok: false, error: "Unsupported Binance API action." });
 
-  const isPost = spec.method === "POST";
+  if (!spec) {
+    return json(res, 400, { ok: false, error: "Unsupported Binance API action." });
+  }
+
   if (req.method !== spec.method) {
     return json(res, 405, { ok: false, error: "Method not allowed for this action." });
   }
@@ -125,15 +137,31 @@ module.exports = async function handler(req, res) {
   const q = req.query || {};
   const query = spec.query(q);
   const requestPath = spec.path + (query ? "?" + query : "");
-  const body = isPost ? (typeof req.body === "string" ? req.body : JSON.stringify(req.body || {})) : "";
+
+  // Preserve exactly the body that is sent over the wire for POST signatures.
+  const body = spec.method === "POST"
+    ? (typeof req.body === "string" ? req.body : JSON.stringify(req.body || {}))
+    : "";
+
+  // Binance requires an ISO-8601 UTC timestamp with millisecond precision.
   const timestamp = new Date().toISOString();
+
+  // Unique nonce prevents replay and is accepted by the Wallet API.
+  const nonce = crypto.randomUUID();
+
+  // Binance signature pre-hash:
+  // timestamp + METHOD + requestPath + body
   const prehash = timestamp + spec.method + requestPath + body;
 
   let signature;
   try {
     signature = sign(prehash);
   } catch (error) {
-    return json(res, 500, { ok: false, error: "Signing failed.", detail: error.message });
+    return json(res, 500, {
+      ok: false,
+      error: "Signing failed.",
+      detail: error.message,
+    });
   }
 
   const headers = {
@@ -141,18 +169,22 @@ module.exports = async function handler(req, res) {
     "X-OC-TIMESTAMP": timestamp,
     "X-OC-SIGN": signature,
     "X-OC-RECV-WINDOW": "5000",
+    "X-OC-NONCE": nonce,
   };
 
-  if (isPost) headers["Content-Type"] = "application/json";
+  if (spec.method === "POST") {
+    headers["Content-Type"] = "application/json";
+  }
 
   try {
     const upstream = await fetch(BASE + requestPath, {
       method: spec.method,
       headers,
-      ...(isPost ? { body } : {}),
+      ...(spec.method === "POST" ? { body } : {}),
     });
 
     const text = await upstream.text();
+
     let data;
     try {
       data = JSON.parse(text);
@@ -160,6 +192,7 @@ module.exports = async function handler(req, res) {
       data = { raw: text };
     }
 
+    // Binance Wallet API may return HTTP 200 with a non-zero business code.
     return json(res, upstream.ok ? 200 : upstream.status, data);
   } catch (error) {
     return json(res, 502, {
