@@ -1,113 +1,134 @@
 /**
- * Stivium ↔ Altana session key wiring (BNB testnet by default).
- * Loaded as ES module from index.html.
+ * Stivium ↔ Altana session-key wiring.
+ * REAL BNB Smart Chain Testnet flow only (chain 97).
  *
- * Qualifies Altana track when grantSession lands on-chain with:
- * spend cap, call allowlist, expiry, Keystore registration, and visible tx.
+ * A successful grant returns a real on-chain transaction hash. There is no
+ * mock fallback in this module: if the wallet cannot sign/fund the grant,
+ * the activation flow must stop and show the error.
  */
 
-const EXPLORER_TX = {
-  56: "https://bscscan.com/tx/",
-  97: "https://testnet.bscscan.com/tx/",
-};
+const SDK_URL = "https://esm.sh/@altananetwork/sdk@0.9.0";
+const TESTNET_RPC = "https://bsc-testnet-rpc.publicnode.com";
+const EXPLORER_TX = "https://testnet.bscscan.com/tx/";
+const FAUCET_URL = "https://testnet.bnbchain.org/faucet-smart";
+const CHAIN_ID = 97;
 
-// Category → example contract targets on BSC mainnet (testnet may differ).
-// Used as call allowlist when "on-chain" mode is selected.
+// Category → allowed contract targets. These are permission boundaries only;
+// the grant itself is executed on Altana's BNB testnet stack.
 const CATEGORY_TARGETS = {
-  "Rebalancing": [
-    "0x10ED43C718714eb63d5aA57B78B54704E256024E", // PancakeSwap Router V2
-  ],
-  "Grid Trading": [
-    "0x10ED43C718714eb63d5aA57B78B54704E256024E",
-  ],
+  "Rebalancing": ["0x10ED43C718714eb63d5aA57B78B54704E256024E"],
+  "Grid Trading": ["0x10ED43C718714eb63d5aA57B78B54704E256024E"],
   "Yield Optimisation": [
-    "0xfd36e2c2a6789db23113685031d7f16329158384", // Venus Comptroller (illustrative)
+    "0xfd36e2c2a6789db23113685031d7f16329158384",
     "0x10ED43C718714eb63d5aA57B78B54704E256024E",
   ],
-  "Health Factor Monitoring": [
-    "0xfd36e2c2a6789db23113685031d7f16329158384",
-  ],
+  "Health Factor Monitoring": ["0xfd36e2c2a6789db23113685031d7f16329158384"],
 };
-
-// Native BNB placeholder for spend (18 decimals). For stablecoins, swap token address.
-const NATIVE = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 let client = null;
 let wallet = null;
-let chainId = 97;
-let walletMode = "none"; // "passkey" | "ephemeral" | "none"
 
 async function loadSdk() {
-  const mod = await import("https://esm.sh/@altananetwork/sdk@0.9.0");
-  return mod;
+  return import(SDK_URL);
+}
+
+function rpId() {
+  return location.hostname === "localhost" ? "localhost" : location.hostname;
 }
 
 async function ensureClient() {
-  if (client && wallet) return { client, wallet, walletMode };
+  if (client && wallet) return { client, wallet };
+
   const sdk = await loadSdk();
-  // Demo safety: always target BNB testnet (97). Do not wire mainnet funds here.
-  const chain = sdk.BNB_TESTNET || sdk.BNB;
-  chainId = 97;
-  if (chain?.id === 56) {
-    console.warn("Stivium Altana: SDK defaulted to mainnet chain object; session still tagged chainId 97 for demo.");
+  if (!sdk.BNB_TESTNET) {
+    throw new Error("Altana SDK did not expose BNB_TESTNET.");
   }
-  client = sdk.createClient({ chains: [chain] });
 
-  // Prefer passkey in browser (no seed in localStorage).
-  if (typeof sdk.createPasskeyWallet === "function" || client.createPasskeyWallet) {
-    try {
-      const rpId = location.hostname === "localhost" ? "localhost" : location.hostname;
-      wallet = await client.createPasskeyWallet({
-        name: "Stivium",
-        rpId,
-      });
-      walletMode = "passkey";
-      window.__stiviumWalletMode = walletMode;
-      return { client, wallet, walletMode };
-    } catch (e) {
-      console.warn("Passkey wallet failed, falling back to ephemeral signer", e);
+  client = sdk.createClient({ chains: [sdk.BNB_TESTNET] });
+
+  // Recover an existing passkey wallet when possible; otherwise create one.
+  // This avoids generating a new wallet on every visit.
+  try {
+    if (typeof client.recoverFromPasskey === "function") {
+      wallet = await client.recoverFromPasskey({ rpId: rpId() });
     }
+  } catch (recoverError) {
+    console.info("[Stivium] No recoverable Altana passkey yet; creating one.", recoverError);
   }
 
-  const signer = sdk.signerFromPrivateKey
-    ? sdk.signerFromPrivateKey(
-        // Ephemeral key for demo only — lost on refresh; do NOT fund with real value
-        (await import("https://esm.sh/viem/accounts")).generatePrivateKey()
-      )
-    : undefined;
+  if (!wallet) {
+    if (typeof client.createPasskeyWallet !== "function") {
+      throw new Error("This browser/SDK cannot create an Altana passkey wallet.");
+    }
+    wallet = await client.createPasskeyWallet({
+      name: "Stivium",
+      rpId: rpId(),
+    });
+  }
 
-  wallet = await client.createWallet(signer ? { signer } : {});
-  walletMode = "ephemeral";
-  window.__stiviumWalletMode = walletMode;
-  const addr = wallet?.address || wallet?.account?.address || "";
-  console.warn(
-    "[Stivium] Ephemeral demo wallet. Key is not persisted. Do NOT deposit mainnet funds." +
-      (addr ? " Address: " + addr : "")
-  );
-  return { client, wallet, walletMode };
+  if (!wallet?.address || !wallet?.signer) {
+    throw new Error("Altana passkey wallet was created without a usable signer.");
+  }
+
+  window.__stiviumWalletMode = "passkey";
+  window.__stiviumWalletAddress = wallet.address;
+  return { client, wallet };
 }
 
-function usdToWeiApprox(usd) {
-  // Demo: treat 1 USD ≈ 0.001 BNB for cap sizing on testnet (not a price oracle).
-  const bnb = Math.max(0.0001, Number(usd) * 0.001);
-  const wei = BigInt(Math.floor(bnb * 1e18));
-  return wei;
+function usdToNativeWei(usd) {
+  const value = Number(usd);
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error("Spend cap must be greater than 0.");
+  }
+  // Demo sizing only: $1 ≈ 0.001 tBNB. This is NOT a price oracle.
+  return BigInt(Math.floor(value * 0.001 * 1e18));
+}
+
+async function waitForReceipt(txHash, timeoutMs = 45000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const response = await fetch(TESTNET_RPC, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: Date.now(),
+        method: "eth_getTransactionReceipt",
+        params: [txHash],
+      }),
+    });
+    if (!response.ok) throw new Error("BNB testnet RPC returned HTTP " + response.status);
+    const json = await response.json();
+    const receipt = json.result;
+    if (receipt) {
+      if (receipt.status === "0x0") {
+        throw new Error("Altana grant transaction reverted on BNB testnet.");
+      }
+      return receipt;
+    }
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+  return null;
 }
 
 /**
- * Grant an on-chain session for an agent hire.
- * @returns {{ ok: boolean, mock?: boolean, txHash?: string, explorer?: string, error?: string, wallet?: string }}
+ * Grant a real Altana session on BNB testnet.
  */
-export async function grantAgentSession({ agentName, category, capUsd, expiryDays, allowlistLabels }) {
+export async function grantAgentSession({ agentName, category, capUsd, expiryDays }) {
+  let currentWallet = wallet;
   try {
     const { client: c, wallet: w } = await ensureClient();
+    currentWallet = w;
+
     const targets = CATEGORY_TARGETS[category] || CATEGORY_TARGETS["Rebalancing"];
     const expiry = Math.floor(Date.now() / 1000) + Number(expiryDays || 7) * 86400;
-    const limit = usdToWeiApprox(capUsd || 50);
+    const nativeLimit = usdToNativeWei(capUsd || 50);
 
+    // Native tBNB spend cap. The Altana relay also consumes fees from this cap,
+    // so the user must fund the smart wallet with test BNB before confirming.
     const permissions = {
-      calls: targets.map((to) => ({ to })),
-      spend: [{ limit, period: "day", token: NATIVE }],
+      calls: targets.map(to => ({ to })),
+      spend: [{ limit: nativeLimit, period: "day" }],
     };
 
     const session = await c.grantSession({
@@ -116,44 +137,52 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
       permissions,
       expiry,
       register: true,
-      chainId,
+      chainId: CHAIN_ID,
     });
 
-    const txHash = session.transactionHash || session.txHash || null;
-    // Keep a minimal non-secret record for revoke
+    const txHash = session?.transactionHash || session?.txHash || null;
+    if (!txHash) {
+      throw new Error("Altana returned no transaction hash. Do not submit this activation as on-chain.");
+    }
+
+    const receipt = await waitForReceipt(txHash);
+
     const record = {
       agentName,
       walletAddress: session.walletAddress || w.address,
       publicKey: session.publicKey,
       expiry: session.expiry || expiry,
       txHash,
-      // session object kept in memory only for this tab
+      receipt,
       _session: session,
     };
     window.__stiviumSessions = window.__stiviumSessions || {};
     window.__stiviumSessions[agentName] = record;
 
-    const mode = walletMode || window.__stiviumWalletMode || "unknown";
-    const warn =
-      mode === "ephemeral"
-        ? "Ephemeral demo key — not saved after refresh. Use testnet BNB only; never mainnet funds."
-        : "BNB testnet session only. Revoke when done. Do not use mainnet funds in this demo.";
     return {
       ok: true,
       mock: false,
       txHash,
-      explorer: txHash ? EXPLORER_TX[chainId] + txHash : null,
+      explorer: EXPLORER_TX + txHash,
       wallet: record.walletAddress,
-      chainId,
-      walletMode: mode,
-      warning: warn,
+      walletMode: "passkey",
+      chainId: CHAIN_ID,
+      confirmed: !!receipt,
+      faucet: FAUCET_URL,
+      warning: receipt
+        ? "Real Altana session grant confirmed on BNB testnet. Testnet only."
+        : "Real Altana transaction submitted; confirmation is still pending. Testnet only.",
     };
   } catch (err) {
-    console.error("Altana grantSession failed", err);
+    console.error("[Stivium] Real Altana grant failed", err);
     return {
       ok: false,
-      mock: true,
+      mock: false,
       error: err?.message || String(err),
+      wallet: currentWallet?.address || window.__stiviumWalletAddress || null,
+      walletMode: wallet ? "passkey" : "none",
+      chainId: CHAIN_ID,
+      faucet: FAUCET_URL,
     };
   }
 }
@@ -161,20 +190,20 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
 export async function revokeAgentSession(agentName) {
   const rec = window.__stiviumSessions?.[agentName];
   if (!rec?._session || !client || !wallet) {
-    return { ok: true, mock: true };
+    return { ok: false, mock: false, error: "No live Altana session is available in this browser tab." };
   }
   try {
-    await client.revokeSession({
+    const result = await client.revokeSession({
       wallet,
       signer: wallet.signer,
       session: rec._session,
-      chainId,
+      chainId: CHAIN_ID,
     });
     delete window.__stiviumSessions[agentName];
-    return { ok: true, mock: false };
+    return { ok: true, mock: false, result };
   } catch (err) {
-    console.error("Altana revoke failed", err);
-    return { ok: false, error: err?.message || String(err) };
+    console.error("[Stivium] Altana revoke failed", err);
+    return { ok: false, mock: false, error: err?.message || String(err) };
   }
 }
 
