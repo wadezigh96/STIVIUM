@@ -6,7 +6,10 @@ const crypto = require("crypto");
 const BASE = "https://web3.binance.com/build";
 const API_KEY = (process.env.BINANCE_WEB3_API_KEY || "").trim();
 const API_SECRET = (process.env.BINANCE_WEB3_API_SECRET || "").trim();
-const SIGN_ALGO = (process.env.BINANCE_WEB3_SIGN_ALGO || "").trim().toLowerCase();
+const SIGN_ALGO = (process.env.BINANCE_WEB3_SIGN_ALGO || "hmac-sha256")
+  .trim()
+  .toLowerCase()
+  .replace(/_/g, "-");
 
 const ACTIONS = {
   chains: {
@@ -117,21 +120,65 @@ function signHmac(prehash) {
     .digest("base64");
 }
 
+function loadEd25519Key(secret) {
+  const value = String(secret || "").trim();
+
+  // Preferred Vercel setting: full PEM private key.
+  if (value.includes("BEGIN")) {
+    return value;
+  }
+
+  // Also accept a raw 32-byte seed or 64-byte private key supplied as hex/base64.
+  const raw = /^[0-9a-fA-F]+$/.test(value) && value.length % 2 === 0
+    ? Buffer.from(value, "hex")
+    : Buffer.from(value, "base64");
+
+  if (raw.length === 32) {
+    // PKCS#8 wrapper for an Ed25519 seed.
+    return crypto.createPrivateKey({
+      key: Buffer.concat([
+        Buffer.from("302e020100300506032b657004220420", "hex"),
+        raw,
+      ]),
+      format: "der",
+      type: "pkcs8",
+    });
+  }
+
+  if (raw.length === 64) {
+    return crypto.createPrivateKey({
+      key: Buffer.concat([
+        Buffer.from("302e020100300506032b657004220420", "hex"),
+        raw.subarray(0, 32),
+      ]),
+      format: "der",
+      type: "pkcs8",
+    });
+  }
+
+  throw new Error(
+    "Ed25519 secret must be a PEM private key, 32-byte seed, or 64-byte private key."
+  );
+}
+
 function signEd25519(prehash) {
   return crypto
-    .sign(null, Buffer.from(prehash, "utf8"), API_SECRET)
+    .sign(null, Buffer.from(prehash, "utf8"), loadEd25519Key(API_SECRET))
     .toString("base64");
 }
 
 function sign(prehash) {
-  // Binance Web3 Wallet API documents HMAC-SHA256 and Ed25519.
-  // Default is HMAC-SHA256 for an API secret. A PEM private key is Ed25519.
-  if (SIGN_ALGO === "ed25519" || API_SECRET.includes("BEGIN")) {
+  // Binance Web3 Wallet API supports HMAC-SHA256 and Ed25519.
+  // Do not auto-detect the algorithm from the secret contents: the Vercel
+  // environment variable explicitly controls which credential type is used.
+  if (SIGN_ALGO === "ed25519") {
     return signEd25519(prehash);
   }
 
-  if (SIGN_ALGO && SIGN_ALGO !== "hmac" && SIGN_ALGO !== "hmac-sha256") {
-    throw new Error("Unsupported BINANCE_WEB3_SIGN_ALGO. Use hmac-sha256 or ed25519.");
+  if (SIGN_ALGO !== "hmac" && SIGN_ALGO !== "hmac-sha256") {
+    throw new Error(
+      "Unsupported BINANCE_WEB3_SIGN_ALGO. Use hmac-sha256 or ed25519."
+    );
   }
 
   return signHmac(prehash);
@@ -212,7 +259,8 @@ module.exports = async function handler(req, res) {
     "X-OC-APIKEY": API_KEY,
     "X-OC-TIMESTAMP": timestamp,
     "X-OC-SIGN": signature,
-    "X-OC-RECV-WINDOW": "5000",
+    "X-OC-RECV-WINDOW": "60000",
+    "X-OC-NONCE": crypto.randomBytes(16).toString("hex"),
   };
 
   if (spec.method === "POST") {
