@@ -363,6 +363,18 @@ select.expiry{
   Rarity, Trending, activation, Pancake-style swap mock, blast radius, shadow mode, and restraint signals run in the browser. See <a href="./docs/RARE-FEATURES.md" style="color:var(--gold)">docs/RARE-FEATURES.md</a>.
   MIT · <span class="mono">open index.html</span>
 </footer>
+
+<script>
+window.StiviumBinance = {
+  async request(action, params = {}) {
+    const qs = new URLSearchParams({ action, ...params });
+    const res = await fetch("./api/binance?" + qs.toString(), { credentials: "omit" });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Binance Web3 API request failed");
+    return data;
+  }
+};
+</script>
 <script src="./agents-data.js"></script>
 <script src="./swap-data.js"></script>
 <script src="./app.js"></script>
