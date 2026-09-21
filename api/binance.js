@@ -44,6 +44,21 @@ const ACTIONS = {
       ...(q.end ? { end: q.end } : {}),
     }).toString(),
   },
+  gasLimit: {
+    method: "POST",
+    path: "/api/v1/dex/pre-transaction/gas-limit",
+    query: () => "",
+  },
+  simulate: {
+    method: "POST",
+    path: "/api/v1/dex/pre-transaction/simulate",
+    query: () => "",
+  },
+  broadcast: {
+    method: "POST",
+    path: "/api/v1/dex/pre-transaction/broadcast-transaction",
+    query: () => "",
+  },
   txDetail: {
     method: "GET",
     path: "/api/v1/dex/post-transaction/transaction-detail-by-txhash",
@@ -66,6 +81,30 @@ const ACTIONS = {
     query: q => new URLSearchParams({
       binanceChainId: q.binanceChainId || "56",
       tokenContractAddresses: q.tokenContractAddresses,
+    }).toString(),
+  },
+  txSupported: {
+    method: "GET",
+    path: "/api/v1/dex/pre-transaction/supported/chain",
+    query: () => "",
+  },
+  gasPrice: {
+    method: "GET",
+    path: "/api/v1/dex/pre-transaction/gas-price",
+    query: q => new URLSearchParams({
+      binanceChainId: q.binanceChainId || "56",
+    }).toString(),
+  },
+  broadcastOrders: {
+    method: "GET",
+    path: "/api/v1/dex/post-transaction/orders",
+    query: q => new URLSearchParams({
+      address: q.address,
+      binanceChainId: q.binanceChainId || "56",
+      ...(q.txStatus ? { txStatus: q.txStatus } : {}),
+      ...(q.orderId ? { orderId: q.orderId } : {}),
+      ...(q.cursor ? { cursor: q.cursor } : {}),
+      ...(q.limit ? { limit: q.limit } : {}),
     }).toString(),
   },
   rwaTokens: {
@@ -98,7 +137,7 @@ module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "GET") return json(res, 405, { error: "GET only" });
+  const action = String(req.query.action || "chains");\n  const spec = ACTIONS[action];\n  if (!spec) return json(res, 400, { ok: false, error: "Unsupported Binance API action." });\n\n  const isPost = ["gasLimit", "simulate", "broadcast"].includes(action);\n  if (req.method !== "GET" && !isPost) return json(res, 405, { error: "Method not allowed for this action" });
 
   if (!API_KEY || !API_SECRET) {
     return json(res, 500, {
