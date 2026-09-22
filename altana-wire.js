@@ -141,9 +141,20 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
       chainId: CHAIN_ID,
     });
 
-    const txHash = session?.transactionHash || session?.txHash || null;
-    if (!txHash) {
-      throw new Error("Altana returned no transaction hash. Do not submit this activation as on-chain.");
+    // @altananetwork/sdk >= 0.9 returns grantSession metadata in `legs`;
+    // transactionHash lives on the confirmed account/registry leg, not on the
+    // top-level session object.
+    const legs = Array.isArray(session?.legs) ? session.legs : [];
+    const confirmedLeg = legs.find(leg => leg?.status === "CONFIRMED" && leg?.transactionHash);
+    const txHash = confirmedLeg?.transactionHash || session?.transactionHash || session?.txHash || null;
+    const grantStatus = session?.status || null;
+    if (grantStatus !== "granted" || !txHash) {
+      const reasons = legs.filter(leg => leg?.reason).map(leg => leg.reason);
+      throw new Error(
+        "Altana session grant did not produce a confirmed transaction." +
+        (grantStatus ? ` status=${grantStatus}.` : "") +
+        (reasons.length ? ` ${reasons.join(" | ")}` : "")
+      );
     }
 
     const receipt = await waitForReceipt(txHash);
@@ -172,7 +183,15 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
       faucet: FAUCET_URL,
       warning: receipt
         ? "Real Altana session grant confirmed on BNB testnet. Testnet only."
-        : "Real Altana transaction submitted; confirmation is still pending. Testnet only.",
+        : "Real Altana transaction was returned by the confirmed Altana grant. Testnet only.",
+      grantStatus,
+      legs: legs.map(leg => ({
+        chainId: leg?.chainId,
+        kind: leg?.kind,
+        status: leg?.status,
+        transactionHash: leg?.transactionHash || null,
+        reason: leg?.reason || null,
+      })),
     };
   } catch (err) {
     console.error("[Stivium] Real Altana grant failed", err);
@@ -207,14 +226,21 @@ export async function executeAgentSession(agentName) {
         data: "0x",
       },
     });
-    const txHash = result?.transactionHash || null;
+    const txHash =
+      result?.transactionHash ||
+      result?.receipts?.find?.(receipt => receipt?.transactionHash)?.transactionHash ||
+      null;
     if (!txHash) {
       return {
         ok: false,
         mock: false,
         status: result?.status || "PENDING",
+        statusCode: result?.statusCode || null,
         callsId: result?.callsId || null,
-        error: "Altana execute returned no transaction hash.",
+        error:
+          result?.status === "FAILED"
+            ? `Altana execute failed (relay code ${result?.statusCode || "unknown"}).`
+            : "Altana execute is pending but the relay has not returned a transaction receipt yet.",
       };
     }
     rec.executeTxHash = txHash;
@@ -223,6 +249,7 @@ export async function executeAgentSession(agentName) {
       ok: true,
       mock: false,
       status: result.status,
+      statusCode: result.statusCode || null,
       callsId: result.callsId,
       txHash,
       explorer: EXPLORER_TX + txHash,
