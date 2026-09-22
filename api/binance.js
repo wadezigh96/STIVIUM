@@ -275,7 +275,10 @@ module.exports = async function handler(req, res) {
     "X-OC-APIKEY": API_KEY,
     "X-OC-TIMESTAMP": timestamp,
     "X-OC-SIGN": signature,
-    // NONCE is optional; omit it while validating the base authentication path.
+    // Binance documents X-OC-NONCE as optional and says it falls back to
+    // X-OC-SIGN when omitted. Sending the same signature explicitly removes
+    // ambiguity at the gateway while keeping the signed payload unchanged.
+    "X-OC-NONCE": signature,
     "X-OC-RECV-WINDOW": "60000",
   };
 
