@@ -71,7 +71,11 @@ async function getWalletProvider(){
   return getInjectedProvider();
 }
 async function ensureBsc(){
-  if(window.__stiviumPrivy?.walletAddress)return;
+  const privy=window.__stiviumPrivy;
+  if(privy?.walletAddress){
+    if(typeof privy.ensureBsc==="function") return privy.ensureBsc();
+    return;
+  }
   const provider=getInjectedProvider(),current=await provider.request({method:"eth_chainId"});
   if(current===PANCAKE_BSC.chainId)return;
   try{ await provider.request({method:"wallet_switchEthereumChain",params:[{chainId:PANCAKE_BSC.chainId}]}); }
@@ -202,13 +206,20 @@ function renderSwapPanel(){
   root.querySelector("#swapExecute").addEventListener("click",async()=>{
     const result=root.querySelector("#swapResult"),btn=root.querySelector("#swapExecute");btn.disabled=true;btn.textContent="Preparing…";
     try{
-      await ensureBsc();const wallet=window.__stiviumPrivy?.walletAddress||(await rpc("eth_accounts"))[0]||await connectWallet(),from=tokenById(s.from),to=tokenById(s.to),q=await quoteLive(s.amount,from,to),minOut=minOutFromQuote(q.amountOut,Number(s.slippage)),deadline=Math.floor(Date.now()/1000)+600;
+      await ensureBsc();const wallet=window.__stiviumPrivy?.walletAddress||window.__swapState.wallet||(await rpc("eth_accounts"))[0]||await connectWallet(),from=tokenById(s.from),to=tokenById(s.to),q=await quoteLive(s.amount,from,to),minOut=minOutFromQuote(q.amountOut,Number(s.slippage)),deadline=Math.floor(Date.now()/1000)+600;
       if(from.native){
         const hash=await sendTx({from:wallet,to:PANCAKE_BSC.router,value:"0x"+q.rawIn.toString(16),data:encodeSwapExactETHForTokens(minOut,q.path,wallet,deadline)});
         result.innerHTML='Swap submitted · <a href="'+bscTx(hash)+'" target="_blank" rel="noopener">View on BscScan</a>';btn.textContent="Confirming…";await waitForReceipt(hash);result.innerHTML='<b style="color:var(--teal)">Swap confirmed</b> · <a href="'+bscTx(hash)+'" target="_blank" rel="noopener">'+shortAddress(hash)+'</a>';
       }else{
         const bal=await tokenBalance(from,wallet);if(bal<q.rawIn)throw new Error("Insufficient "+from.symbol+" balance.");
-        if((await allowance(from,wallet))<q.rawIn){result.textContent="Approval required. Confirm token approval in your wallet.";const ah=await sendTx({from:wallet,to:from.address,data:encodeApprove(PANCAKE_BSC.router,q.rawIn)});await waitForReceipt(ah);}
+        if((await allowance(from,wallet))<q.rawIn){
+          result.textContent="Approval required · confirm once in your wallet.";
+          btn.textContent="Waiting for approval…";
+          const ah=await sendTx({from:wallet,to:from.address,data:encodeApprove(PANCAKE_BSC.router,q.rawIn)});
+          result.innerHTML='Approval submitted · <a href="'+bscTx(ah)+'" target="_blank" rel="noopener">View on BscScan</a>';
+          await waitForReceipt(ah);
+          result.textContent="Approval confirmed · preparing swap signature…";
+        }
         const data=to.native?encodeSwapExactTokensForETH(q.rawIn,minOut,q.path,wallet,deadline):encodeSwapExactTokensForTokens(q.rawIn,minOut,q.path,wallet,deadline);
         const hash=await sendTx({from:wallet,to:PANCAKE_BSC.router,data});result.innerHTML='Swap submitted · <a href="'+bscTx(hash)+'" target="_blank" rel="noopener">View on BscScan</a>';btn.textContent="Confirming…";await waitForReceipt(hash);result.innerHTML='<b style="color:var(--teal)">Swap confirmed</b> · <a href="'+bscTx(hash)+'" target="_blank" rel="noopener">'+shortAddress(hash)+'</a>';
       }
@@ -216,7 +227,18 @@ function renderSwapPanel(){
   });
   if(window.__stiviumPrivy){
     window.__stiviumPrivy.onStateChange=({walletAddress})=>{s.wallet=walletAddress||null;if(!s.wallet)s.quote=null;renderSwapPanel();};
-  } else {
+  }
+  if(!window.__stiviumPrivyStateWired){
+    window.__stiviumPrivyStateWired=true;
+    window.addEventListener("stivium:privy-state",event=>{
+      const wallet=event?.detail?.walletAddress||null;
+      const state=window.__swapState||{};
+      state.wallet=wallet;
+      if(!wallet) state.quote=null;
+      renderSwapPanel();
+    });
+  }
+  if(!window.__stiviumPrivy){
     const provider=window.ethereum;
     if(provider&&!provider.__stiviumSwapWired){provider.__stiviumSwapWired=true;provider.on?.("accountsChanged",a=>{s.wallet=a?.[0]||null;renderSwapPanel();});provider.on?.("chainChanged",()=>{s.quote=null;renderSwapPanel();});}
   }
