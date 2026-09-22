@@ -56,7 +56,13 @@ function getInjectedProvider(){
   if(p) return p;
   throw new Error("Wallet belum terdeteksi. Jika memakai Android Chrome, buka Stivium dari browser bawaan MetaMask/Trust Wallet atau gunakan wallet yang menyediakan EIP-1193. Tombol ini tidak bisa meminta seed phrase/private key.");
 }
-async function rpc(method,params=[]){ return getInjectedProvider().request({method,params}); }
+const BSC_RPC = "https://bsc-dataseed.binance.org";
+async function rpc(method,params=[]){
+  const res=await fetch(BSC_RPC,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:Date.now(),method,params})});
+  const data=await res.json();
+  if(data.error) throw new Error(data.error.message||"BNB Chain RPC error");
+  return data.result;
+}
 async function ensureBsc(){
   const provider=getInjectedProvider(),current=await provider.request({method:"eth_chainId"});
   if(current===PANCAKE_BSC.chainId)return;
@@ -71,6 +77,18 @@ async function ensureBsc(){
   }
 }
 async function connectWallet(){
+  if(window.__stiviumPrivy?.login){
+    await window.__stiviumPrivy.login();
+    const started=Date.now();
+    while(Date.now()-started<60000){
+      if(window.__stiviumPrivy?.walletAddress){
+        window.__swapState.wallet=window.__stiviumPrivy.walletAddress;
+        return window.__swapState.wallet;
+      }
+      await new Promise(r=>setTimeout(r,500));
+    }
+    throw new Error("Privy login completed without an available wallet. Check that an EVM embedded wallet is enabled in the Privy dashboard.");
+  }
   const provider=getInjectedProvider();
   await ensureBsc();
   const accounts=await provider.request({method:"eth_requestAccounts"});
@@ -124,7 +142,18 @@ async function allowance(token,wallet){
   if(token.native)return null;
   return BigInt(await rpc("eth_call",[{to:token.address,data:encodeAllowance(wallet,PANCAKE_BSC.router)},"latest"]));
 }
-async function sendTx(tx){ return rpc("eth_sendTransaction",[tx]); }
+async function sendTx(tx){
+  if(window.__stiviumPrivy?.sendTransaction){
+    const result=await window.__stiviumPrivy.sendTransaction({
+      to:tx.to,
+      data:tx.data||"0x",
+      value:tx.value?BigInt(tx.value):0n,
+      chainId:56
+    });
+    return result.hash;
+  }
+  return getInjectedProvider().request({method:"eth_sendTransaction",params:[tx]});
+}
 async function waitForReceipt(hash,timeoutMs=180000){
   const started=Date.now();
   while(Date.now()-started<timeoutMs){
@@ -177,8 +206,12 @@ function renderSwapPanel(){
       }
     }catch(e){result.textContent=e?.message||String(e);}btn.disabled=false;btn.textContent="Swap in wallet";
   });
-  const provider=window.ethereum;
-  if(provider&&!provider.__stiviumSwapWired){provider.__stiviumSwapWired=true;provider.on?.("accountsChanged",a=>{s.wallet=a?.[0]||null;renderSwapPanel();});provider.on?.("chainChanged",()=>{s.quote=null;renderSwapPanel();});}
+  if(window.__stiviumPrivy){
+    window.__stiviumPrivy.onStateChange=({walletAddress})=>{s.wallet=walletAddress||null;if(!s.wallet)s.quote=null;renderSwapPanel();};
+  } else {
+    const provider=window.ethereum;
+    if(provider&&!provider.__stiviumSwapWired){provider.__stiviumSwapWired=true;provider.on?.("accountsChanged",a=>{s.wallet=a?.[0]||null;renderSwapPanel();});provider.on?.("chainChanged",()=>{s.quote=null;renderSwapPanel();});}
+  }
 }
 function wireViewTabs(){
   const tabA=document.getElementById("tabAgents"),tabS=document.getElementById("tabSwap"),gridWrap=document.getElementById("gridWrap"),swapPanel=document.getElementById("swapPanel");
