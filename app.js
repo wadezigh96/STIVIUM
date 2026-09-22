@@ -167,7 +167,7 @@ document.getElementById("dismissOnboard").addEventListener("click", () => {
 const overlay = document.getElementById("overlay");
 const modalBody = document.getElementById("modalBody");
 function openModal(name, jumpToSetup){
-  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, shadow:true, shadowDays:"3"};
+  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, shadow:true, shadowDays:"3", authorityVerified:false, authority:null};
   if(jumpToSetup && activations[name].stage === "overview") activations[name].stage = "setup";
   overlay.classList.add("open");
   renderModal(name);
@@ -254,13 +254,13 @@ function renderModal(name){
       confirm.textContent = "Signing session…";
       try {
         const res = await window.StiviumAltana.grantAgentSession({ agentName: name, category: a.cat, capUsd: state.cap, expiryDays: state.expiry, allowlistLabels: state.allowlist });
-        if(res.ok && !res.mock){ state.txHash = res.txHash || null; state.explorer = res.explorer || null; state.walletAddress = res.wallet || null; state.walletMode = res.walletMode || null; state.altanaWarning = res.warning || null; }
+        if(res.ok && !res.mock){ state.txHash = res.txHash || null; state.explorer = res.explorer || null; state.walletAddress = res.wallet || null; state.walletMode = res.walletMode || null; state.altanaWarning = res.warning || null; if(window.StiviumAltana && typeof window.StiviumAltana.verifyAgentAuthority === "function"){ const auth = await window.StiviumAltana.verifyAgentAuthority(name); state.authorityVerified = !!(auth.ok && auth.authorized); state.authority = auth; if(!state.authorityVerified) state.altanaError = auth.error || "Altana authority was not verified on-chain."; } }
         else { state.altanaError = res.error || "REAL Altana grant failed"; state.onchain = true; }
       } catch(e){ state.altanaError = e.message || String(e); state.onchain = true; }
       confirm.disabled = false;
     }
     if(state.x402){ state.x402Paid = true; state.x402Ref = "x402-mock-" + Date.now().toString(36); }
-    const activationFailed = !!state.altanaError && state.onchain;
+    const activationFailed = (!!state.altanaError && state.onchain) || (state.onchain && state.authorityVerified === false);
     state.stage = activationFailed ? "setup" : "done";
     if (!activationFailed) persistActivations();
     renderModal(name);
