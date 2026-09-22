@@ -13,30 +13,24 @@ function computeScores(list){
   const scarcityNorm = normalize(list, a => 1 / a.peerCount);
   const trackNorm = normalize(list, a => a.uptimeDays);
   const successNorm = normalize(list, a => a.successRate);
-
   const scored = list.map(a => {
     const scarcity = scarcityNorm(1 / a.peerCount);
     const track = trackNorm(a.uptimeDays);
     const consistency = successNorm(a.successRate);
     const verified = a.verified ? 1 : 0;
     const rarity = 0.35*scarcity + 0.30*track + 0.25*consistency + 0.10*verified;
-
     const g24 = growth(a.h24n, a.h24p);
     const g7 = growth(a.h7n, a.h7p);
     const accel = g24 - g7;
     const trending = 0.5*g24 + 0.3*g7 + 0.2*accel;
-
-    // Restraint: how often the agent *holds back* (discipline), not just wins — rare marketplace signal
     const restraint = Math.max(5, Math.min(99, Math.round(
       0.55 * a.successRate +
       0.25 * (100 - Math.min(100, a.peerCount * 6)) +
       (a.verified ? 12 : 0) -
       Math.min(20, Math.max(0, growth(a.h24n, a.h24p) * 40))
     )));
-
     return {...a, rarity, trending, g24, g7, accel, restraint, sub:{scarcity, track, consistency, verified}};
   });
-
   const byRarity = [...scored].sort((a,b) => b.rarity - a.rarity);
   byRarity.forEach((a, i) => {
     const pct = i / byRarity.length;
@@ -46,7 +40,6 @@ function computeScores(list){
     else if (pct < 0.70) a.tier = "uncommon";
     else a.tier = "common";
   });
-
   const byTrend = [...scored].sort((a,b) => b.trending - a.trending);
   byTrend.forEach((a, i) => {
     const pct = i / byTrend.length;
@@ -55,16 +48,21 @@ function computeScores(list){
     else if (pct < 0.50) a.trendBadge = "rising";
     else a.trendBadge = "flat";
   });
-
   return scored;
 }
 
-// ---------- state ----------
 let activeCat = "All";
 let activeSort = "rarity";
-let activations = {}; // name -> {stage, cap, allowlist, expiry, onchain, x402, ...}
+let activations = {};
+const ACTIVATION_KEY = "stivium-activations-v1";
+try {
+  const saved = JSON.parse(localStorage.getItem(ACTIVATION_KEY) || "{}");
+  if (saved && typeof saved === "object") activations = saved;
+} catch (_) {}
+function persistActivations(){
+  try { localStorage.setItem(ACTIVATION_KEY, JSON.stringify(activations)); } catch (_) {}
+}
 
-// ---------- helpers ----------
 const TIER_LABEL = {legendary:"Legendary", epic:"Epic", rare:"Rare", uncommon:"Uncommon", common:"Common"};
 const TREND_LABEL = {hot:"🔥 Hot", rising:"▲ Rising", flat:"— Flat", cooling:"▼ Cooling"};
 
@@ -73,7 +71,6 @@ function fmtUsd(v){
   if(v >= 1_000) return "$" + (v/1_000).toFixed(0) + "K";
   return "$" + v;
 }
-
 function sparklinePath(hist){
   const w = 100, h = 26, pad = 2;
   const min = Math.min(...hist), max = Math.max(...hist);
@@ -84,12 +81,12 @@ function sparklinePath(hist){
   });
   return pts.join(" ");
 }
-
-function fakeSyncTime(){
-  const secs = Math.floor(Math.random()*40)+5;
-  return secs < 60 ? `synced ${secs}s ago` : `synced ${Math.floor(secs/60)}m ago`;
+function syncTime(){
+  if (window.StiviumLive && typeof window.StiviumLive.syncLabel === "function") {
+    return window.StiviumLive.syncLabel();
+  }
+  return "seed catalog";
 }
-
 function renderDiversity(){
   const scored = computeScores(AGENTS);
   const root = document.getElementById("diversity");
@@ -100,7 +97,6 @@ function renderDiversity(){
     return `<div class="div-card"><div class="cat-name">${cat}</div><div class="cat-metrics"><span>${items.length} agents</span><span>${avgSuccess}% avg success</span></div><div class="div-bar"><i style="width:${avgSuccess}%"></i></div></div>`;
   }).join("");
 }
-
 function render(){
   const scored = computeScores(AGENTS);
   let list = activeCat === "All" ? scored : scored.filter(a => a.cat === activeCat);
@@ -108,11 +104,9 @@ function render(){
   else if(activeSort === "trending") list = [...list].sort((a,b)=>b.trending-a.trending);
   else if(activeSort === "tvl") list = [...list].sort((a,b)=>b.tvl-a.tvl);
   else list = [...list].sort((a,b)=>b.successRate-a.successRate);
-
   document.getElementById("floorCount").textContent = list.length + " agents available";
   const grid = document.getElementById("grid");
   if(!list.length){ grid.innerHTML = '<div class="empty">No agents in this view.</div>'; return; }
-
   grid.innerHTML = list.map(a => {
     const badge = TREND_LABEL[a.trendBadge] || "—";
     const act = activations[a.name];
@@ -126,11 +120,10 @@ function render(){
       </div>
       <svg class="spark" width="100" height="26" viewBox="0 0 100 26"><polyline fill="none" stroke="#f0b90b" stroke-width="1.5" points="${sparklinePath(a.hist7)}"/></svg>
       <div class="card-bottom"><span class="trend ${a.trendBadge}">${badge}</span>
-        <span class="restraint-pill" title="Share of signals the agent declined for risk — rare vs pure performance boards">${a.restraint}% restraint</span>
+        <span class="restraint-pill" title="Share of signals the agent declined for risk">${a.restraint}% restraint</span>
         <button class="hire-btn" data-open="${a.name}">${act?.stage==='done'?'View activation':'Hire agent'}</button></div>
     </div>`;
   }).join("");
-
   grid.querySelectorAll(".card").forEach(card => {
     card.addEventListener("click", e => {
       if(e.target.closest(".hire-btn")) return;
@@ -144,7 +137,6 @@ function render(){
     });
   });
 }
-
 function renderCats(){
   const root = document.getElementById("catList");
   const scored = computeScores(AGENTS);
@@ -156,7 +148,6 @@ function renderCats(){
     btn.addEventListener("click", () => { activeCat = btn.dataset.cat; renderCats(); render(); });
   });
 }
-
 document.getElementById("sortList").querySelectorAll(".sort-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     activeSort = btn.dataset.sort;
@@ -164,42 +155,33 @@ document.getElementById("sortList").querySelectorAll(".sort-btn").forEach(btn =>
     render();
   });
 });
-
 function renderTicker(){
   const scored = computeScores(AGENTS);
   const items = [...scored].sort((a,b)=>b.trending-a.trending).slice(0,8);
   const html = items.map(a => `<span class="item"><b>${a.name}</b> ${a.g24>=0?'<span class="up">▲</span>':'<span class="down">▼</span>'} ${(a.g24*100).toFixed(0)}%</span>`).join("");
   document.getElementById("ticker").innerHTML = html + html;
 }
-
 document.getElementById("dismissOnboard").addEventListener("click", () => {
   document.getElementById("onboard").style.display = "none";
 });
-
-// ---------- modal / activation flow ----------
 const overlay = document.getElementById("overlay");
 const modalBody = document.getElementById("modalBody");
-
 function openModal(name, jumpToSetup){
   if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, shadow:true, shadowDays:"3"};
   if(jumpToSetup && activations[name].stage === "overview") activations[name].stage = "setup";
   overlay.classList.add("open");
   renderModal(name);
 }
-
 function closeModal(){
   overlay.classList.remove("open");
   modalBody.innerHTML = "";
 }
-
 overlay.addEventListener("click", (e) => { if(e.target === overlay) closeModal(); });
-
 function renderModal(name){
   const scored = computeScores(AGENTS);
   const a = scored.find(x => x.name === name);
   const state = activations[name];
   const allow = ALLOWLIST_OPTIONS[a.cat];
-
   const breakdown = `
     <div class="breakdown">
       <h4>Why this rarity tier</h4>
@@ -215,136 +197,38 @@ function renderModal(name){
       ${barRow("7d growth", clamp01(a.g7), (a.g7>=0?'+':'')+(a.g7*100).toFixed(0)+"%")}
       ${barRow("Acceleration", clamp01(a.accel+0.5), a.accel>=0 ? "speeding up" : "slowing down")}
     </div>`;
-
   let activateSection = "";
   if(state.stage === "overview"){
     activateSection = `<div class="modal-actions"><button class="hire-btn" id="goSetup">Activate agent</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
   } else if(state.stage === "setup"){
-    activateSection = `
-      <div class="activate-box">
+    activateSection = `<div class="activate-box">
         <h4 style="font-size:11px;color:var(--text-dim);letter-spacing:.3px;margin:0 0 12px;">Set the boundaries before this agent can act</h4>
-        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;">
-          <input type="checkbox" id="altanaOnchain" ${state.onchain?"checked":""}>
-          <span style="font-size:12px;color:var(--text-dim);line-height:1.4;">On-chain Altana session — <strong style="color:var(--coral)">BNB testnet only</strong>. Needs passkey (or ephemeral demo key). <strong style="color:var(--coral)">Do not deposit mainnet funds.</strong> Unchecked = local mock (safest for browsing).</span>
-        </label>
-        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;">
-          <input type="checkbox" id="x402Pay" ${state.x402?"checked":""}>
-          <span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Pay hire with x402</strong> — HTTP 402 micropayment (B402 on BSC). Demo settles a mock 0.10 USDT authorization; live B402 needs a merchant backend.</span>
-        </label>
-        <div class="field" id="x402PriceRow" style="${state.x402?'':'display:none'}">
-          <label>Hire fee (x402)</label>
-          <div style="font-size:13px;color:var(--gold);font-family:'IBM Plex Mono',monospace;">0.10 USDT · scheme exact · network eip155:97 (testnet)</div>
-        </div>
-        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;">
-          <input type="checkbox" id="shadowMode" ${state.shadow!==false?"checked":""}>
-          <span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Shadow mode first</strong> — agent may observe and propose only; no live calls until the window ends. Rare on agent markets; cuts “hire and hope” risk.</span>
-        </label>
-        <div class="field" id="shadowDaysRow" style="${state.shadow===false?'display:none':''}">
-          <label>Shadow window</label>
-          <select class="expiry" id="shadowDays">
-            <option value="1" ${state.shadowDays==="1"?"selected":""}>1 day observe</option>
-            <option value="3" ${!state.shadowDays||state.shadowDays==="3"?"selected":""}>3 days observe</option>
-            <option value="7" ${state.shadowDays==="7"?"selected":""}>7 days observe</option>
-          </select>
-        </div>
-        <div class="field"><label>Spend cap (USD) — the most this agent can ever move</label>
-          <input type="number" id="capInput" placeholder="e.g. 500" value="${state.cap}"></div>
-        <div class="blast-box" id="blastBox">
-          <div class="blast-title">Blast radius <span class="mono">(rare)</span></div>
-          <div class="blast-line">Max capital at risk under this hire: <b id="blastCap">$${state.cap||0}</b></div>
-          <div class="blast-line">Restraint of this agent: <b>${a.restraint}%</b> — higher = more often it refuses a trade</div>
-          <div class="blast-line" id="blastShadow">${state.shadow!==false?"Shadow ON — live execution delayed":"Shadow OFF — live as soon as session is active"}</div>
-          <div class="blast-hint">Most marketplaces only show APY/TVL. Stivium shows the worst-case envelope before you confirm.</div>
-        </div>
-        <div class="field"><label>Allowed actions</label>
-          <div class="checks">${allow.map(opt => `
-            <label class="chk"><input type="checkbox" data-opt="${opt}" ${state.allowlist.includes(opt)?"checked":""}> ${opt}</label>`).join("")}</div></div>
-        <div class="field"><label>Expiry</label>
-          <select class="expiry" id="expirySelect">
-            <option value="1" ${state.expiry==="1"?"selected":""}>1 day</option>
-            <option value="7" ${state.expiry==="7"?"selected":""}>7 days</option>
-            <option value="30" ${state.expiry==="30"?"selected":""}>30 days</option>
-          </select></div>
+        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="altanaOnchain" ${state.onchain?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;">On-chain Altana session — <strong style="color:var(--coral)">BNB testnet only</strong>. Unchecked = local mock.</span></label>
+        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="x402Pay" ${state.x402?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Pay hire with x402</strong> — demo mock 0.10 USDT.</span></label>
+        <div class="field" id="x402PriceRow" style="${state.x402?'':'display:none'}"><label>Hire fee (x402)</label><div style="font-size:13px;color:var(--gold);font-family:'IBM Plex Mono',monospace;">0.10 USDT · eip155:97</div></div>
+        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="shadowMode" ${state.shadow!==false?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Shadow mode first</strong></span></label>
+        <div class="field" id="shadowDaysRow" style="${state.shadow===false?'display:none':''}"><label>Shadow window</label><select class="expiry" id="shadowDays"><option value="1" ${state.shadowDays==="1"?"selected":""}>1 day observe</option><option value="3" ${!state.shadowDays||state.shadowDays==="3"?"selected":""}>3 days observe</option><option value="7" ${state.shadowDays==="7"?"selected":""}>7 days observe</option></select></div>
+        <div class="field"><label>Spend cap (USD)</label><input type="number" id="capInput" placeholder="e.g. 500" value="${state.cap}"></div>
+        <div class="blast-box"><div class="blast-title">Blast radius</div><div class="blast-line">Max capital at risk: <b id="blastCap">$${state.cap||0}</b></div><div class="blast-line">Restraint: <b>${a.restraint}%</b></div><div class="blast-line" id="blastShadow">${state.shadow!==false?"Shadow ON":"Shadow OFF"}</div></div>
+        <div class="field"><label>Allowed actions</label><div class="checks">${allow.map(opt => `<label class="chk"><input type="checkbox" data-opt="${opt}" ${state.allowlist.includes(opt)?"checked":""}> ${opt}</label>`).join("")}</div></div>
+        <div class="field"><label>Expiry</label><select class="expiry" id="expirySelect"><option value="1" ${state.expiry==="1"?"selected":""}>1 day</option><option value="7" ${state.expiry==="7"?"selected":""}>7 days</option><option value="30" ${state.expiry==="30"?"selected":""}>30 days</option></select></div>
       </div>
-      <div class="modal-actions">
-        <button class="hire-btn" id="confirmActivate">Confirm &amp; activate</button>
-        <button class="hire-btn ghost" id="closeBtn">Cancel</button>
-      </div>`;
+      <div class="modal-actions"><button class="hire-btn" id="confirmActivate">Confirm & activate</button><button class="hire-btn ghost" id="closeBtn">Cancel</button></div>`;
   } else {
-    activateSection = `
-      <div class="success-box">
-        <p>Agent activated${state.onchain && state.txHash ? " on-chain" : state.onchain ? " (Altana attempted)" : ""}</p>
-        <div class="detail">
-          Spend cap: $${state.cap || 0}<br>
-          Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none selected"}<br>
-          Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d observe-only") : "OFF · live"}<br>
-          Blast radius: max $${state.cap||0} under spend cap · restraint ${a.restraint}%<br>
-          Expires: in ${state.expiry} days — revoke anytime.<br>
-          ${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError ? `On-chain error: ${state.altanaError}` : "Waiting for tx…")) : "Mode: local mock"}
-          ${state.altanaWarning ? `<div style="margin-top:8px;color:var(--coral)">${state.altanaWarning}</div>` : ""}
-          ${state.walletMode === "ephemeral" && state.walletAddress ? `<div style="margin-top:4px;color:var(--coral)">Ephemeral wallet: ${state.walletAddress} — key lost on refresh; do not fund.</div>` : ""}
-          ${state.x402 ? `<div style="margin-top:6px">x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected (not settled)"}</div>` : ""}
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button class="hire-btn ghost" id="revokeBtn">Revoke access</button>
-        <button class="hire-btn ghost" id="closeBtn">Close</button>
-      </div>`;
+    activateSection = `<div class="success-box"><p>Agent activated${state.onchain && state.txHash ? " on-chain" : ""}</p><div class="detail">Spend cap: $${state.cap || 0}<br>Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none"}<br>Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d") : "OFF"}<br>Expires in ${state.expiry} days<br>${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError || "Waiting…")) : "Mode: local mock"}${state.x402 ? `<div>x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected"}</div>` : ""}</div></div><div class="modal-actions"><button class="hire-btn ghost" id="revokeBtn">Revoke access</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
   }
-
-  modalBody.innerHTML = `
-    <div class="modal-head">
-      <div>
-        <h2>${a.name}</h2>
-        <div class="cat-tag">${a.cat} · <span class="tier-tag" style="border:none;padding:0;">${TIER_LABEL[a.tier]}</span></div>
-        <div class="synced">${fakeSyncTime()}</div>
-      </div>
-      <button class="modal-close" id="xClose">×</button>
-    </div>
-    <p class="modal-desc">${a.desc}</p>
-    <div class="modal-stats">
-      <div class="stat"><b>${fmtUsd(a.tvl)}</b><span>TVL managed</span></div>
-      <div class="stat"><b>${a.uptimeDays}d</b><span>Track record</span></div>
-      <div class="stat"><b>${a.successRate}%</b><span>Success rate</span></div>
-      <div class="stat"><b>${a.keyValue}</b><span>${a.keyLabel}</span></div>
-    </div>
-    ${breakdown}
-    ${activateSection}`;
-
+  modalBody.innerHTML = `<div class="modal-head"><div><h2>${a.name}</h2><div class="cat-tag">${a.cat} · ${TIER_LABEL[a.tier]}</div><div class="synced">${syncTime()}</div></div><button class="modal-close" id="xClose">×</button></div><p class="modal-desc">${a.desc}</p><div class="modal-stats"><div class="stat"><b>${fmtUsd(a.tvl)}</b><span>TVL managed</span></div><div class="stat"><b>${a.uptimeDays}d</b><span>Track record</span></div><div class="stat"><b>${a.successRate}%</b><span>Success rate</span></div><div class="stat"><b>${a.keyValue}</b><span>${a.keyLabel}</span></div></div>${breakdown}${activateSection}`;
   modalBody.querySelector("#xClose").addEventListener("click", closeModal);
   const closeBtn = modalBody.querySelector("#closeBtn");
   if(closeBtn) closeBtn.addEventListener("click", closeModal);
-
   const goSetup = modalBody.querySelector("#goSetup");
   if(goSetup) goSetup.addEventListener("click", () => { state.stage = "setup"; renderModal(name); });
-
   const x402Pay = modalBody.querySelector("#x402Pay");
-  if(x402Pay){
-    x402Pay.addEventListener("change", () => {
-      state.x402 = x402Pay.checked;
-      const row = modalBody.querySelector("#x402PriceRow");
-      if(row) row.style.display = x402Pay.checked ? "" : "none";
-    });
-  }
-
+  if(x402Pay){ x402Pay.addEventListener("change", () => { state.x402 = x402Pay.checked; const row = modalBody.querySelector("#x402PriceRow"); if(row) row.style.display = x402Pay.checked ? "" : "none"; }); }
   const shadowMode = modalBody.querySelector("#shadowMode");
-  if(shadowMode){
-    shadowMode.addEventListener("change", () => {
-      state.shadow = shadowMode.checked;
-      const row = modalBody.querySelector("#shadowDaysRow");
-      if(row) row.style.display = shadowMode.checked ? "" : "none";
-      const bl = modalBody.querySelector("#blastShadow");
-      if(bl) bl.textContent = shadowMode.checked ? "Shadow ON — live execution delayed" : "Shadow OFF — live as soon as session is active";
-    });
-  }
+  if(shadowMode){ shadowMode.addEventListener("change", () => { state.shadow = shadowMode.checked; const row = modalBody.querySelector("#shadowDaysRow"); if(row) row.style.display = shadowMode.checked ? "" : "none"; const bl = modalBody.querySelector("#blastShadow"); if(bl) bl.textContent = shadowMode.checked ? "Shadow ON" : "Shadow OFF"; }); }
   const capInputLive = modalBody.querySelector("#capInput");
-  if(capInputLive){
-    capInputLive.addEventListener("input", () => {
-      const el = modalBody.querySelector("#blastCap");
-      if(el) el.textContent = "$" + (capInputLive.value || "0");
-    });
-  }
-
+  if(capInputLive){ capInputLive.addEventListener("input", () => { const el = modalBody.querySelector("#blastCap"); if(el) el.textContent = "$" + (capInputLive.value || "0"); }); }
   const confirm = modalBody.querySelector("#confirmActivate");
   if(confirm) confirm.addEventListener("click", async () => {
     const capInput = modalBody.querySelector("#capInput");
@@ -365,74 +249,38 @@ function renderModal(name){
     state.txHash = null;
     state.explorer = null;
     state.altanaError = null;
-
-    if(state.onchain && !(window.StiviumAltana && typeof window.StiviumAltana.grantAgentSession === "function")){
-      state.altanaError = "Altana SDK not ready — using local mock boundaries";
-      state.onchain = false;
-    }
-
     if(state.onchain && window.StiviumAltana && typeof window.StiviumAltana.grantAgentSession === "function"){
       confirm.disabled = true;
       confirm.textContent = "Signing session…";
       try {
-        const res = await window.StiviumAltana.grantAgentSession({
-          agentName: name,
-          category: a.cat,
-          capUsd: state.cap,
-          expiryDays: state.expiry,
-          allowlistLabels: state.allowlist,
-        });
-        if(res.ok && !res.mock){
-          state.txHash = res.txHash || null;
-          state.explorer = res.explorer || null;
-          state.walletAddress = res.wallet || null;
-          state.walletMode = res.walletMode || null;
-          state.altanaWarning = res.warning || null;
-        } else {
-          state.altanaError = res.error || "grant failed — kept as mock boundaries";
-          state.onchain = false;
-        }
-      } catch(e){
-        state.altanaError = e.message || String(e);
-        state.onchain = false;
-      }
+        const res = await window.StiviumAltana.grantAgentSession({ agentName: name, category: a.cat, capUsd: state.cap, expiryDays: state.expiry, allowlistLabels: state.allowlist });
+        if(res.ok && !res.mock){ state.txHash = res.txHash || null; state.explorer = res.explorer || null; state.walletAddress = res.wallet || null; state.walletMode = res.walletMode || null; state.altanaWarning = res.warning || null; }
+        else { state.altanaError = res.error || "grant failed"; state.onchain = false; }
+      } catch(e){ state.altanaError = e.message || String(e); state.onchain = false; }
       confirm.disabled = false;
     }
-
-    if(state.x402){
-      confirm.disabled = true;
-      confirm.textContent = "x402: authorizing…";
-      await new Promise(r => setTimeout(r, 600));
-      state.x402Paid = true;
-      state.x402Ref = "x402-mock-" + Date.now().toString(36);
-      confirm.disabled = false;
-    }
-
+    if(state.x402){ state.x402Paid = true; state.x402Ref = "x402-mock-" + Date.now().toString(36); }
     state.stage = "done";
+    persistActivations();
     renderModal(name);
     render();
   });
-
   const revoke = modalBody.querySelector("#revokeBtn");
   if(revoke) revoke.addEventListener("click", async () => {
     if(state.onchain && window.StiviumAltana && typeof window.StiviumAltana.revokeAgentSession === "function"){
-      revoke.disabled = true;
       try { await window.StiviumAltana.revokeAgentSession(name); } catch(e){ console.warn(e); }
     }
     activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, shadow:true, shadowDays:"3"};
+    persistActivations();
     renderModal(name);
     render();
   });
 }
-
 function barRow(label, frac, valText){
   const pct = Math.max(0, Math.min(1, frac)) * 100;
   return `<div class="bar-row"><span>${label}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span class="val">${valText}</span></div>`;
 }
 function clamp01(v){ return Math.max(0, Math.min(1, v)); }
-
-// ---------- init ----------
-renderDiversity();
-renderCats();
-renderTicker();
-render();
+function refreshAll(){ renderDiversity(); renderCats(); renderTicker(); render(); }
+window.StiviumApp = { refresh: refreshAll, persistActivations };
+refreshAll();
