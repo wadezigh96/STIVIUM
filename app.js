@@ -260,8 +260,9 @@ function renderModal(name){
       confirm.disabled = false;
     }
     if(state.x402){ state.x402Paid = true; state.x402Ref = "x402-mock-" + Date.now().toString(36); }
-    state.stage = "done";
-    persistActivations();
+    const activationFailed = !!state.altanaError && state.onchain;
+    state.stage = activationFailed ? "setup" : "done";
+    if (!activationFailed) persistActivations();
     renderModal(name);
     render();
   });
