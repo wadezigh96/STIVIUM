@@ -34,12 +34,26 @@ async function loadSdk() {
 }
 
 function rpId() {
-  return location.hostname === "localhost" ? "localhost" : location.hostname;
+  const host = location.hostname.toLowerCase();
+  if (host === "localhost" || host === "127.0.0.1") return "localhost";
+  // WebAuthn RP ID must be the effective domain (or a registrable
+  // parent domain), never a URL, port, path, or Vercel preview host.
+  return host;
+}
+
+function assertWebAuthnReady() {
+  if (!window.isSecureContext) {
+    throw new Error("Altana Passkey requires HTTPS. Open https://stivium.vercel.app in Chrome.");
+  }
+  if (!window.PublicKeyCredential || !navigator.credentials?.create) {
+    throw new Error("This browser does not expose WebAuthn/passkeys. Use current Chrome on Android with a screen lock/passkey provider enabled.");
+  }
 }
 
 async function ensureClient() {
   if (client && wallet) return { client, wallet };
 
+  assertWebAuthnReady();
   const sdk = await loadSdk();
   if (!sdk.BNB_TESTNET) {
     throw new Error("Altana SDK did not expose BNB_TESTNET.");
