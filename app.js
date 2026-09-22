@@ -203,7 +203,7 @@ function renderModal(name){
   } else if(state.stage === "setup"){
     activateSection = `<div class="activate-box">
         <h4 style="font-size:11px;color:var(--text-dim);letter-spacing:.3px;margin:0 0 12px;">Set the boundaries before this agent can act</h4>
-        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="altanaOnchain" ${state.onchain?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;">On-chain Altana session — <strong style="color:var(--coral)">BNB testnet only</strong>. Unchecked = local mock.</span></label>
+        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="altanaOnchain" ${state.onchain !== false ? "checked" : ""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;">On-chain Altana session — <strong style="color:var(--coral)">BNB testnet only</strong>. Live mode is the default.</span></label>
         <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="x402Pay" ${state.x402?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Pay hire with x402</strong> — demo mock 0.10 USDT.</span></label>
         <div class="field" id="x402PriceRow" style="${state.x402?'':'display:none'}"><label>Hire fee (x402)</label><div style="font-size:13px;color:var(--gold);font-family:'IBM Plex Mono',monospace;">0.10 USDT · eip155:97</div></div>
         <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="shadowMode" ${state.shadow!==false?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Shadow mode first</strong></span></label>
@@ -237,7 +237,7 @@ function renderModal(name){
     state.cap = capInput.value || "0";
     state.expiry = expirySelect.value;
     state.allowlist = [...modalBody.querySelectorAll(".chk input[data-opt]:checked")].map(c => c.dataset.opt);
-    state.onchain = !!(onchainEl && onchainEl.checked);
+    state.onchain = onchainEl ? onchainEl.checked : true;
     const shadowEl = modalBody.querySelector("#shadowMode");
     const shadowDaysEl = modalBody.querySelector("#shadowDays");
     state.shadow = shadowEl ? shadowEl.checked : true;
@@ -255,8 +255,8 @@ function renderModal(name){
       try {
         const res = await window.StiviumAltana.grantAgentSession({ agentName: name, category: a.cat, capUsd: state.cap, expiryDays: state.expiry, allowlistLabels: state.allowlist });
         if(res.ok && !res.mock){ state.txHash = res.txHash || null; state.explorer = res.explorer || null; state.walletAddress = res.wallet || null; state.walletMode = res.walletMode || null; state.altanaWarning = res.warning || null; }
-        else { state.altanaError = res.error || "grant failed"; state.onchain = false; }
-      } catch(e){ state.altanaError = e.message || String(e); state.onchain = false; }
+        else { state.altanaError = res.error || "REAL Altana grant failed"; state.onchain = true; }
+      } catch(e){ state.altanaError = e.message || String(e); state.onchain = true; }
       confirm.disabled = false;
     }
     if(state.x402){ state.x402Paid = true; state.x402Ref = "x402-mock-" + Date.now().toString(36); }
