@@ -202,7 +202,7 @@ function renderSwapPanel(){
   root.querySelector("#swapExecute").addEventListener("click",async()=>{
     const result=root.querySelector("#swapResult"),btn=root.querySelector("#swapExecute");btn.disabled=true;btn.textContent="Preparing…";
     try{
-      await ensureBsc();const wallet=(await rpc("eth_accounts"))[0]||await connectWallet(),from=tokenById(s.from),to=tokenById(s.to),q=await quoteLive(s.amount,from,to),minOut=minOutFromQuote(q.amountOut,Number(s.slippage)),deadline=Math.floor(Date.now()/1000)+600;
+      await ensureBsc();const wallet=window.__stiviumPrivy?.walletAddress||(await rpc("eth_accounts"))[0]||await connectWallet(),from=tokenById(s.from),to=tokenById(s.to),q=await quoteLive(s.amount,from,to),minOut=minOutFromQuote(q.amountOut,Number(s.slippage)),deadline=Math.floor(Date.now()/1000)+600;
       if(from.native){
         const hash=await sendTx({from:wallet,to:PANCAKE_BSC.router,value:"0x"+q.rawIn.toString(16),data:encodeSwapExactETHForTokens(minOut,q.path,wallet,deadline)});
         result.innerHTML='Swap submitted · <a href="'+bscTx(hash)+'" target="_blank" rel="noopener">View on BscScan</a>';btn.textContent="Confirming…";await waitForReceipt(hash);result.innerHTML='<b style="color:var(--teal)">Swap confirmed</b> · <a href="'+bscTx(hash)+'" target="_blank" rel="noopener">'+shortAddress(hash)+'</a>';
