@@ -1,4 +1,4 @@
-# Contributing
+# Contributing to Stivium
 
 ```bash
 git clone https://github.com/wadezigh96/STIVIUM
