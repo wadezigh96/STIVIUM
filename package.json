@@ -1,7 +1,7 @@
 {
   "name": "stivium",
   "version": "0.1.0",
-  "description": "Stivium — BNB Chain AI Agent Marketplace (Smart Money Era)",
+  "description": "Stivium — BNB Chain AI Agent Marketplace",
   "private": true,
   "scripts": {
     "compile": "hardhat compile",
