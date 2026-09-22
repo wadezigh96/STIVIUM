@@ -15,6 +15,7 @@ function StiviumPrivyBridge(){
     bridge.ready = ready;
     bridge.authenticated = authenticated;
     bridge.walletAddress = wallet?.address || null;
+    bridge.providerType = wallet ? (wallet.walletClientType || "privy") : null;
 
     // Keep the bridge object stable so swap-ui.js does not lose its onStateChange handler.
     bridge.login = async () => {
@@ -40,6 +41,9 @@ function StiviumPrivyBridge(){
 
     window.__stiviumPrivy = bridge;
     if (window.__swapState) window.__swapState.wallet = wallet?.address || null;
+    window.dispatchEvent(new CustomEvent("stivium:privy-state", {
+      detail: { walletAddress: wallet?.address || null, authenticated, ready }
+    }));
 
     if (typeof bridge.onStateChange === "function") {
       bridge.onStateChange({walletAddress: wallet?.address || null, authenticated, ready});
