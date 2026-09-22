@@ -227,9 +227,25 @@ module.exports = async function handler(req, res) {
   }
 
   const query = spec.query(req.query || {});
-  // IMPORTANT: this exact path, including its raw query string, is signed
-  // and then sent unchanged to Binance.
-  const requestPath = spec.path + (query ? "?" + query : "");
+
+  // Binance signs the exact request path + raw query string that is sent.
+  // Rebuilding a query can change URL encoding and cause 40102.
+  // The proxy-only "action" parameter is removed before forwarding.
+  function rawForwardedQuery(url) {
+    const raw = String(url || "").split("?")[1] || "";
+    return raw.split("&").filter(Boolean).filter(pair => {
+      const key = pair.split("=")[0];
+      try {
+        return decodeURIComponent(key.replace(/\\+/g, " ")) !== "action";
+      } catch {
+        return key !== "action";
+      }
+    }).join("&");
+  }
+
+  const rawForwarded = rawForwardedQuery(req.url);
+  const signedQuery = spec.method === "GET" && rawForwarded ? rawForwarded : query;
+  const requestPath = spec.path + (signedQuery ? "?" + signedQuery : "");
 
   const body = spec.method === "POST"
     ? (typeof req.body === "string"
@@ -259,8 +275,8 @@ module.exports = async function handler(req, res) {
     "X-OC-APIKEY": API_KEY,
     "X-OC-TIMESTAMP": timestamp,
     "X-OC-SIGN": signature,
+    // NONCE is optional; omit it while validating the base authentication path.
     "X-OC-RECV-WINDOW": "60000",
-    "X-OC-NONCE": crypto.randomBytes(16).toString("hex"),
   };
 
   if (spec.method === "POST") {
