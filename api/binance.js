@@ -1,4 +1,4 @@
-// Binance Web3 API serverless proxy for STIVIUM.
+// Binance Web3 API serverless proxy for Stivium.
 // Secrets are server-side only. Never expose them to the browser.
 
 const crypto = require("crypto");
