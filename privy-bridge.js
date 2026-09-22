@@ -1,12 +1,12 @@
 import React, { useEffect } from "https://esm.sh/react@18.3.1";
 import { createRoot } from "https://esm.sh/react-dom@18.3.1/client";
-import { PrivyProvider, usePrivy, useWallets } from "https://esm.sh/@privy-io/react-auth@1.98.4?deps=react@18.3.1,react-dom@18.3.1";
+import { PrivyProvider, usePrivy, useWallets } from "https://esm.sh/@privy-io/react-auth@3.45.0?deps=react@18.3.1,react-dom@18.3.1";
 
 const PRIVY_APP_ID = "cmucttpbs02380djmk1jxh9j0";
 const BSC_CHAIN_ID = "0x38";
 
 function StiviumPrivyBridge(){
-  const { ready, authenticated, login } = usePrivy();
+  const { ready, authenticated, connectOrCreateWallet } = usePrivy();
   const { wallets } = useWallets();
 
   const wallet = wallets?.find(w => w.walletClientType === "privy") || wallets?.[0] || null;
@@ -18,7 +18,7 @@ function StiviumPrivyBridge(){
       walletAddress: wallet?.address || null,
       login: async () => {
         if (!ready) throw new Error("Privy is still loading. Please try again.");
-        await login();
+        await connectOrCreateWallet();
       },
       sendTransaction: async ({to, data="0x", value=0n, chainId=56}) => {
         if (!wallet) throw new Error("No Privy wallet is available. Finish wallet setup first.");
@@ -39,7 +39,7 @@ function StiviumPrivyBridge(){
     if (typeof window.__stiviumPrivy.onStateChange === "function") {
       window.__stiviumPrivy.onStateChange({walletAddress: wallet?.address || null, authenticated, ready});
     }
-  }, [ready, authenticated, wallet, login]);
+  }, [ready, authenticated, wallet, connectOrCreateWallet]);
 
   return null;
 }
