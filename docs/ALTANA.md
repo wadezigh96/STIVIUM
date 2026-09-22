@@ -1,11 +1,11 @@
-# Altana session keys
+# Stivium × Altana Network
 
-Stivium can grant **on-chain** Altana sessions when you tick **On-chain Altana session** in the activate panel.
+Stivium already has a real Altana Network session-grant integration. The current UI intentionally uses **BNB Smart Chain Testnet (chain 97)** for safe verification; it is not a mainnet spending path.
 
 ## What happens
 
-1. Load `@altananetwork/sdk` from esm.sh
-2. Create a passkey (or ephemeral) wallet on **BNB testnet** (chain 97)
+1. Load `@altananetwork/sdk@0.9.0` from esm.sh
+2. Create/recover a passkey wallet on **BNB testnet** (chain 97)
 3. `grantSession` with:
    - spend cap (mapped from USD field)
    - call allowlist (Pancake / Venus-style targets by category)
@@ -16,7 +16,7 @@ Stivium can grant **on-chain** Altana sessions when you tick **On-chain Altana s
 
 ## For the Altana track
 
-Judges look for live on-chain txs in the Altana explorer (testnet counts).
+The Altana SDK is live on BNB Chain mainnet and testnet. For Stivium's current public demo, the integration stays on testnet so activation cannot move real funds. citeturn3search0
 
 Checklist:
 
@@ -28,7 +28,13 @@ Checklist:
 
 Faucet: https://testnet.bnbchain.org/faucet-smart
 
-If the SDK or network fails, the UI falls back to local mock boundaries so the main-track demo still works.
+If the Altana SDK/network fails, the on-chain activation is rejected and no fake transaction hash is returned.
+
+## Production path
+
+For a real-money deployment, change the client chain from `BNB_TESTNET` to `BNB` and re-audit the permission targets, spend token, relay costs, and UI warnings before enabling it. Do **not** switch this public demo to mainnet without an explicit product decision.
+
+The official SDK currently documents `BNB` for BNB Smart Chain mainnet and `BNB_TESTNET` for chain 97. citeturn3search0
 
 ## Files
 
@@ -46,4 +52,4 @@ Stivium ships two example skills under `skills/`:
 
 An agent with a Stivium-granted session should load the matching skill and only `execute` through that session.
 
-Public catalog: https://skills.altana.network/
+Public skills catalog: https://skills.altana.network/
