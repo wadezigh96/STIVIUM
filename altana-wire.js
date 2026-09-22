@@ -12,6 +12,7 @@ const TESTNET_RPC = "https://bsc-testnet-rpc.publicnode.com";
 const EXPLORER_TX = "https://testnet.bscscan.com/tx/";
 const FAUCET_URL = "https://testnet.bnbchain.org/faucet-smart";
 const CHAIN_ID = 97;
+const EXECUTION_RECIPIENT = "0x000000000000000000000000000000000000dEaD";
 
 // Category → allowed contract targets. These are permission boundaries only;
 // the grant itself is executed on Altana's BNB testnet stack.
@@ -127,7 +128,7 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
     // Native tBNB spend cap. The Altana relay also consumes fees from this cap,
     // so the user must fund the smart wallet with test BNB before confirming.
     const permissions = {
-      calls: targets.map(to => ({ to })),
+      calls: [...targets.map(to => ({ to })), { to: EXECUTION_RECIPIENT }],
       spend: [{ limit: nativeLimit, period: "day" }],
     };
 
@@ -187,6 +188,54 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
   }
 }
 
+/**
+ * Execute a real, deliberately tiny Altana session-key transaction.
+ * This is a BNB testnet proof-of-execution: 1 wei is sent to a fixed
+ * test-only recipient after the scoped session has been granted.
+ */
+export async function executeAgentSession(agentName) {
+  const rec = window.__stiviumSessions?.[agentName];
+  if (!rec?._session || !client) {
+    return { ok: false, mock: false, error: "No live Altana session is available in this browser tab." };
+  }
+  try {
+    const result = await client.execute({
+      session: rec._session,
+      calls: {
+        to: EXECUTION_RECIPIENT,
+        value: 1n,
+        data: "0x",
+      },
+    });
+    const txHash = result?.transactionHash || null;
+    if (!txHash) {
+      return {
+        ok: false,
+        mock: false,
+        status: result?.status || "PENDING",
+        callsId: result?.callsId || null,
+        error: "Altana execute returned no transaction hash.",
+      };
+    }
+    rec.executeTxHash = txHash;
+    rec.executeResult = result;
+    return {
+      ok: true,
+      mock: false,
+      status: result.status,
+      callsId: result.callsId,
+      txHash,
+      explorer: EXPLORER_TX + txHash,
+      recipient: EXECUTION_RECIPIENT,
+      valueWei: "1",
+      warning: "Real Altana session execution confirmed on BNB testnet. 1 wei test transfer only.",
+    };
+  } catch (err) {
+    console.error("[Stivium] Real Altana execute failed", err);
+    return { ok: false, mock: false, error: err?.message || String(err) };
+  }
+}
+
 export async function revokeAgentSession(agentName) {
   const rec = window.__stiviumSessions?.[agentName];
   if (!rec?._session || !client || !wallet) {
@@ -207,4 +256,4 @@ export async function revokeAgentSession(agentName) {
   }
 }
 
-window.StiviumAltana = { grantAgentSession, revokeAgentSession, ensureClient };
+window.StiviumAltana = { grantAgentSession, executeAgentSession, revokeAgentSession, ensureClient };
