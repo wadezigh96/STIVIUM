@@ -21,21 +21,43 @@ const ROUTER = {
 function pad64(hex){ return String(hex).replace(/^0x/,"").padStart(64,"0"); }
 function addressWord(address){ return pad64(address.toLowerCase()); }
 function uintWord(value){ return pad64(BigInt(value).toString(16)); }
-function encodeAddressArray(addresses){
-  return uintWord(0x40) + uintWord(addresses.length) + addresses.map(addressWord).join("");
+function encodeAddressArray(addresses,offset=0x40){
+  return uintWord(offset) + uintWord(addresses.length) + addresses.map(addressWord).join("");
 }
-function encodeGetAmountsOut(amountIn,path){ return ROUTER.getAmountsOut + uintWord(amountIn) + encodeAddressArray(path); }
+function encodeGetAmountsOut(amountIn,path){ return ROUTER.getAmountsOut + uintWord(amountIn) + encodeAddressArray(path,0x40); }
 function encodeBalanceOf(owner){ return ERC20.balanceOf + addressWord(owner); }
 function encodeAllowance(owner,spender){ return ERC20.allowance + addressWord(owner) + addressWord(spender); }
 function encodeApprove(spender,amount){ return ERC20.approve + addressWord(spender) + uintWord(amount); }
+// PancakeSwap V2 swap ABI: static head first, then the dynamic path tail.
+// For these 4-argument functions, path (the 3rd ABI argument) starts at 0x80.
 function encodeSwapExactETHForTokens(amountOutMin,path,to,deadline){
-  return ROUTER.swapExactETHForTokens + uintWord(amountOutMin) + encodeAddressArray(path) + addressWord(to) + uintWord(deadline);
+  return ROUTER.swapExactETHForTokens
+    + uintWord(amountOutMin)
+    + uintWord(0x80)
+    + addressWord(to)
+    + uintWord(deadline)
+    + uintWord(path.length)
+    + path.map(addressWord).join("");
 }
 function encodeSwapExactTokensForETH(amountIn,amountOutMin,path,to,deadline){
-  return ROUTER.swapExactTokensForETH + uintWord(amountIn) + uintWord(amountOutMin) + encodeAddressArray(path) + addressWord(to) + uintWord(deadline);
+  return ROUTER.swapExactTokensForETH
+    + uintWord(amountIn)
+    + uintWord(amountOutMin)
+    + uintWord(0x80)
+    + addressWord(to)
+    + uintWord(deadline)
+    + uintWord(path.length)
+    + path.map(addressWord).join("");
 }
 function encodeSwapExactTokensForTokens(amountIn,amountOutMin,path,to,deadline){
-  return ROUTER.swapExactTokensForTokens + uintWord(amountIn) + uintWord(amountOutMin) + encodeAddressArray(path) + addressWord(to) + uintWord(deadline);
+  return ROUTER.swapExactTokensForTokens
+    + uintWord(amountIn)
+    + uintWord(amountOutMin)
+    + uintWord(0x80)
+    + addressWord(to)
+    + uintWord(deadline)
+    + uintWord(path.length)
+    + path.map(addressWord).join("");
 }
 function parseUnits(value,decimals){
   const s=String(value||"").trim();
