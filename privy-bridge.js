@@ -19,14 +19,14 @@ function StiviumPrivyBridge(){
     // Keep the bridge object stable so swap-ui.js does not lose its onStateChange handler.
     bridge.login = async () => {
       if (!ready) throw new Error("Privy is still loading. Please try again.");
-      // Already connected: do not open Privy login/connect again.
-      if (authenticated && wallet?.address) return wallet.address;
+      // If an embedded wallet already exists, never reopen the Privy connect flow.
+      if (wallet?.address) return wallet.address;
       await connectOrCreateWallet();
-      return wallet?.address || null;
+      return true;
     };
 
     bridge.sendTransaction = async ({to, data="0x", value=0n, chainId=56}) => {
-      if (!wallet) throw new Error("No Privy wallet is available. Finish wallet setup first.");
+      if (!wallet?.address) throw new Error("No Privy wallet is available. Connect the wallet first.");
       const provider = await wallet.getEthereumProvider();
       const chainHex = "0x" + Number(chainId).toString(16);
       const current = await provider.request({method:"eth_chainId"});
