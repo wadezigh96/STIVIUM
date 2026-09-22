@@ -44,7 +44,7 @@ Finding agents on BNB is still mostly names and social proof. Stivium surfaces s
 - 🛡️ **Restraint · blast radius · shadow mode** — discipline and worst-case capital before live hire.
 - 🔑 **Optional Altana session keys** — on-chain grant on BNB testnet (see `docs/ALTANA.md`).
 - 💳 **Optional x402 hire mock** — HTTP 402 / B402 story on BSC (see `docs/X402.md`).
-- 🔄 **Swap mock** — Pancake-style crypto + **bStocks** RWA (see `docs/SWAP.md`).
+- 🔄 **Live PancakeSwap** — non-custodial BNB Chain wallet, live router quotes, approvals, and on-chain swaps for verified crypto tokens; bStocks remain discovery-only (see `docs/SWAP.md`).
 
 ### The principle
 
@@ -81,7 +81,7 @@ flowchart TB
         H --> X[Optional x402 mock]
         H --> ALT[Optional Altana grantSession]
         H --> R[Revoke session]
-        SW[Swap panel] --> Q[Mock quote crypto + bStocks]
+        SW[Swap panel] --> Q[Live wallet + PancakeSwap V2]
     end
 
     DATA[Seeded agents-data.js] -.-> C
@@ -130,7 +130,7 @@ No blank-check activation. Optional on-chain Altana sessions stay on **BNB testn
 | Data | Seeded `agents-data.js` — live-ready (see `docs/LIVE-DATA.md`) |
 | Session keys | Optional **Altana** (BNB testnet) |
 | Payments | Optional **x402** hire mock |
-| Swap | Mock Pancake-style + **bStocks** |
+| Swap | Live PancakeSwap V2 + verified crypto tokens |
 
 Open [`index.html`](./index.html) locally — **no build step**.
 
