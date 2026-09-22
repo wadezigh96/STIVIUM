@@ -215,7 +215,7 @@ function renderModal(name){
       </div>
       <div class="modal-actions"><button class="hire-btn" id="confirmActivate">Confirm & activate</button><button class="hire-btn ghost" id="closeBtn">Cancel</button></div>`;
   } else {
-    activateSection = `<div class="success-box"><p>Agent activated${state.onchain && state.txHash ? " on-chain" : ""}</p><div class="detail">Spend cap: $${state.cap || 0}<br>Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none"}<br>Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d") : "OFF"}<br>Expires in ${state.expiry} days<br>${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError || "Waiting…")) : "Mode: local mock"}${state.x402 ? `<div>x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected"}</div>` : ""}</div></div><div class="modal-actions"><button class="hire-btn ghost" id="revokeBtn">Revoke access</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
+    activateSection = `<div class="success-box"><p>Agent activated${state.onchain && state.txHash ? " on-chain" : ""}</p><div class="detail">Spend cap: $${state.cap || 0}<br>Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none"}<br>Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d") : "OFF"}<br>Expires in ${state.expiry} days<br>${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError || "Waiting…")) : "Mode: local mock"}${state.onchain && state.txHash ? `<br><button class="hire-btn" id="executeAltanaBtn" style="margin-top:10px;">Execute 1 wei test</button>${state.executeTxHash ? `<br>Execute tx: <a href="${state.executeExplorer||('https://testnet.bscscan.com/tx/'+state.executeTxHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.executeTxHash).slice(0,10)}…</a>` : ""}${state.executeError ? `<br><span style="color:var(--coral)">${state.executeError}</span>` : ""}` : ""}}${state.x402 ? `<div>x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected"}</div>` : ""}</div></div><div class="modal-actions"><button class="hire-btn ghost" id="revokeBtn">Revoke access</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
   }
   modalBody.innerHTML = `<div class="modal-head"><div><h2>${a.name}</h2><div class="cat-tag">${a.cat} · ${TIER_LABEL[a.tier]}</div><div class="synced">${syncTime()}</div></div><button class="modal-close" id="xClose">×</button></div><p class="modal-desc">${a.desc}</p><div class="modal-stats"><div class="stat"><b>${fmtUsd(a.tvl)}</b><span>TVL managed</span></div><div class="stat"><b>${a.uptimeDays}d</b><span>Track record</span></div><div class="stat"><b>${a.successRate}%</b><span>Success rate</span></div><div class="stat"><b>${a.keyValue}</b><span>${a.keyLabel}</span></div></div>${breakdown}${activateSection}`;
   modalBody.querySelector("#xClose").addEventListener("click", closeModal);
@@ -264,6 +264,17 @@ function renderModal(name){
     persistActivations();
     renderModal(name);
     render();
+  });
+  const executeAltanaBtn = modalBody.querySelector("#executeAltanaBtn");
+  if(executeAltanaBtn) executeAltanaBtn.addEventListener("click", async () => {
+    if(!window.StiviumAltana || typeof window.StiviumAltana.executeAgentSession !== "function") return;
+    executeAltanaBtn.disabled = true; executeAltanaBtn.textContent = "Executing 1 wei…";
+    try {
+      const res = await window.StiviumAltana.executeAgentSession(name);
+      if(res.ok && !res.mock){ state.executeTxHash=res.txHash; state.executeExplorer=res.explorer; state.executeError=null; }
+      else { state.executeError=res.error || "Altana execute failed"; }
+    } catch(e){ state.executeError=e.message || String(e); }
+    renderModal(name);
   });
   const revoke = modalBody.querySelector("#revokeBtn");
   if(revoke) revoke.addEventListener("click", async () => {
