@@ -63,7 +63,15 @@ async function rpc(method,params=[]){
   if(data.error) throw new Error(data.error.message||"BNB Chain RPC error");
   return data.result;
 }
+async function getWalletProvider(){
+  if(window.__stiviumPrivy?.walletAddress){
+    const wallet=window.__stiviumPrivy;
+    if(wallet.getProvider) return wallet.getProvider();
+  }
+  return getInjectedProvider();
+}
 async function ensureBsc(){
+  if(window.__stiviumPrivy?.walletAddress)return;
   const provider=getInjectedProvider(),current=await provider.request({method:"eth_chainId"});
   if(current===PANCAKE_BSC.chainId)return;
   try{ await provider.request({method:"wallet_switchEthereumChain",params:[{chainId:PANCAKE_BSC.chainId}]}); }
