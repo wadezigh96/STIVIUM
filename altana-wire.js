@@ -12,7 +12,18 @@ const TESTNET_RPC = "https://bsc-testnet-rpc.publicnode.com";
 const EXPLORER_TX = "https://testnet.bscscan.com/tx/";
 const FAUCET_URL = "https://testnet.bnbchain.org/faucet-smart";
 const CHAIN_ID = 97;
-const EXECUTION_RECIPIENT = "0x000000000000000000000000000000000000dEaD";
+const EXECUTION_RECIPIENT = "0x000000000000000000000000000000000000dEaD";\n\nconst KEYSTORE_ABI = [{
+  name: "isValidKey",
+  type: "function",
+  stateMutability: "view",
+  inputs: [
+    { name: "user", type: "address" },
+    { name: "keyId", type: "bytes32" },
+  ],
+  outputs: [{ type: "bool" }],
+}];
+
+const KEYSTORE_TESTNET = "0x6b8361C29d05D498b1a12B54A37310f94171E94A";
 
 // Category → allowed contract targets. These are permission boundaries only;
 // the grant itself is executed on Altana's BNB testnet stack.
@@ -297,4 +308,4 @@ export async function revokeAgentSession(agentName) {
   }
 }
 
-window.StiviumAltana = { grantAgentSession, executeAgentSession, revokeAgentSession, ensureClient };
+window.StiviumAltana = { grantAgentSession, executeAgentSession, revokeAgentSession, ensureClient, verifyAgentAuthority };
