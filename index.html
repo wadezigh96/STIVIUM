@@ -357,6 +357,7 @@ select.expiry{
   </main>
 </div>
 <div class="overlay" id="overlay"><div class="modal" id="modalBody"></div></div>
+<div id="privy-root" aria-hidden="true"></div>
 <footer>
   <b>Stivium</b> — BNB Chain AI agent marketplace prototype.
   Catalog keeps the 16 judging agents and overlays live <a href="https://8004scan.io" target="_blank" rel="noopener" style="color:var(--gold)">8004scan</a> samples + live swap prices.
@@ -378,6 +379,7 @@ window.StiviumBinance = {
 <script src="./swap-data.js"></script>
 <script src="./app.js"></script>
 <script src="./swap-ui.js"></script>
+<script type="module" src="./privy-bridge.js"></script>
 <script src="./live-data.js"></script>
 <script type="module" src="./altana-wire.js"></script>
 </body>
