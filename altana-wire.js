@@ -27,14 +27,17 @@ const KEYSTORE_TESTNET = "0x6b8361C29d05D498b1a12B54A37310f94171E94A";
 
 // Category → allowed contract targets. These are permission boundaries only;
 // the grant itself is executed on Altana's BNB testnet stack.
+// Only use contracts that are actually deployed for the selected Altana network.
+// BNB testnet PancakeSwap V2 router: 0x9ac64cc6e4415144c455bd8e4837fea55603e5c3.
+// The previous mainnet addresses are deliberately not reused on chain 97.
+// Aave-like targets are not enabled until a verified BNB testnet deployment is
+// identified; this prevents granting authority to an unverified address.
+const PANCAKE_V2_TESTNET = "0x9ac64cc6e4415144c455bd8e4837fea55603e5c3";
 const CATEGORY_TARGETS = {
-  "Rebalancing": ["0x10ED43C718714eb63d5aA57B78B54704E256024E"],
-  "Grid Trading": ["0x10ED43C718714eb63d5aA57B78B54704E256024E"],
-  "Yield Optimisation": [
-    "0xfd36e2c2a6789db23113685031d7f16329158384",
-    "0x10ED43C718714eb63d5aA57B78B54704E256024E",
-  ],
-  "Health Factor Monitoring": ["0xfd36e2c2a6789db23113685031d7f16329158384"],
+  "Rebalancing": [PANCAKE_V2_TESTNET],
+  "Grid Trading": [PANCAKE_V2_TESTNET],
+  "Yield Optimisation": [PANCAKE_V2_TESTNET],
+  "Health Factor Monitoring": [],
 };
 
 let client = null;
