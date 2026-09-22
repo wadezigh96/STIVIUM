@@ -52,8 +52,9 @@ function formatUnits(value,decimals,precision=6){
 function tokenById(id){ return SWAP_TOKENS.find(t=>t.id===id); }
 function isLiveToken(t){ return !!(t&&t.kind==="crypto"&&(t.native||t.address)); }
 function getInjectedProvider(){
-  if(window.ethereum) return window.ethereum;
-  throw new Error("No injected wallet found. Open Stivium in MetaMask or another EIP-1193 wallet.");
+  const p=window.ethereum;
+  if(p) return p;
+  throw new Error("Wallet belum terdeteksi. Jika memakai Android Chrome, buka Stivium dari browser bawaan MetaMask/Trust Wallet atau gunakan wallet yang menyediakan EIP-1193. Tombol ini tidak bisa meminta seed phrase/private key.");
 }
 async function rpc(method,params=[]){ return getInjectedProvider().request({method,params}); }
 async function ensureBsc(){
@@ -145,9 +146,11 @@ function renderSwapPanel(){
   if(!window.__swapState)window.__swapState={from:"BNB",to:"USDT",amount:"0.01",slippage:"50",wallet:null,quote:null};
   const s=window.__swapState,from=tokenById(s.from),to=tokenById(s.to);
   root.innerHTML='<div class="swap-card"><div class="swap-head"><div><h3>Live Swap</h3><p class="sub">Non-custodial wallet → PancakeSwap V2 Router → BNB Chain. Quotes and transactions are sent through your wallet provider.</p></div><button type="button" class="swap-connect" id="swapConnect">'+(s.wallet?shortAddress(s.wallet):"Connect Wallet")+'</button></div><div class="live-badge">LIVE · BNB Chain</div><div class="swap-leg"><div class="row"><label>From</label><select id="swapFrom">'+liveTokenOptions(s.from)+'</select></div><input type="number" id="swapAmount" min="0" step="any" value="'+s.amount+'" placeholder="0.0"></div><button type="button" class="swap-flip" id="swapFlip">⇅</button><div class="swap-leg"><div class="row"><label>To</label><select id="swapTo">'+liveTokenOptions(s.to)+'</select></div><input type="text" id="swapOut" readonly value="'+(s.quote?s.quote.displayOut:"")+'" placeholder="Live quote"></div><div class="swap-meta" id="swapMeta">'+(s.quote?("Live quote · 1 "+from.symbol+" ≈ "+s.quote.rate+" "+to.symbol+"<br>Minimum received "+s.quote.minOutDisplay+" "+to.symbol+" · Slippage "+(Number(s.slippage)/100)+"%"):"Connect your wallet, then request a live quote.")+'</div><div class="field"><label>Slippage tolerance</label><select id="swapSlippage" class="expiry"><option value="25" '+(s.slippage==="25"?"selected":"")+'>0.25%</option><option value="50" '+(s.slippage==="50"?"selected":"")+'>0.50%</option><option value="100" '+(s.slippage==="100"?"selected":"")+'>1.00%</option><option value="200" '+(s.slippage==="200"?"selected":"")+'>2.00%</option></select></div><button type="button" class="swap-btn" id="swapQuote" '+(!s.wallet?"disabled":"")+'>Get live quote</button><button type="button" class="swap-btn" id="swapExecute" style="margin-top:8px" '+(!s.wallet||!s.quote?"disabled":"")+'>Swap in wallet</button><p class="swap-note" id="swapResult"></p><p class="swap-note">Live execution is limited to verified crypto contracts. bStocks/RWA remain discovery-only until an exact contract and liquidity route are verified.</p><div class="token-chips">'+allTokenChips()+"</div></div>";
-  root.querySelector("#swapConnect").addEventListener("click",async()=>{
-    const btn=root.querySelector("#swapConnect");btn.disabled=true;
-    try{s.wallet=await connectWallet();renderSwapPanel();}catch(e){btn.disabled=false;root.querySelector("#swapResult").textContent=e?.message||String(e);}
+  root.querySelector("#swapConnect").addEventListener("click",async(e)=>{
+    e.preventDefault();
+    const btn=root.querySelector("#swapConnect"),result=root.querySelector("#swapResult");
+    btn.disabled=true;btn.textContent="Connecting…";result.textContent="Connecting to your wallet…";
+    try{s.wallet=await connectWallet();result.textContent="Wallet connected.";renderSwapPanel();}catch(e){btn.disabled=false;btn.textContent="Connect Wallet";result.textContent=e?.message||String(e);}
   });
   root.querySelector("#swapFrom").addEventListener("change",e=>{s.from=e.target.value;if(s.from===s.to)s.to=SWAP_TOKENS.find(t=>t.id!==s.from&&isLiveToken(t)).id;s.quote=null;renderSwapPanel();});
   root.querySelector("#swapTo").addEventListener("change",e=>{s.to=e.target.value;s.quote=null;renderSwapPanel();});
