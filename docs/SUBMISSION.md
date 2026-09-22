@@ -20,7 +20,7 @@ Find, compare, and hire BNB AI agents by rarity and risk metrics — then activa
 **Project description**
 
 ```
-Stivium is a BNB Chain AI agent marketplace built for the Smart Money Era hackathon.
+Stivium is a BNB Chain AI agent marketplace built for the BNB Chain hackathon.
 
 Utility for the user:
 1. Filter four categories at equal depth — rebalancing, grid trading, yield optimisation, health-factor monitoring.
