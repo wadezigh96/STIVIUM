@@ -80,24 +80,40 @@ async function connectWallet(){
 function shortAddress(a){ return a?a.slice(0,6)+"…"+a.slice(-4):""; }
 function bscTx(h){ return PANCAKE_BSC.explorer+h; }
 function minOutFromQuote(amountOut,slippageBps){ return amountOut*BigInt(10000-slippageBps)/10000n; }
-function buildPath(from,to){
+function buildCandidatePaths(from,to){
   const w=tokenById("WBNB");
-  if(from.native)return [w.address,to.address];
-  if(to.native)return [from.address,w.address];
-  return [from.address,to.address];
+  if(from.native)return [[w.address,to.address]];
+  if(to.native)return [[from.address,w.address]];
+  const direct=[from.address,to.address];
+  if(from.address.toLowerCase()===w.address.toLowerCase()||to.address.toLowerCase()===w.address.toLowerCase())return [direct];
+  return [direct,[from.address,w.address,to.address]];
 }
 async function quoteLive(amountIn,from,to){
   if(!isLiveToken(from)||!isLiveToken(to)||from.id===to.id)throw new Error("Choose two supported live BNB Chain tokens.");
   const rawIn=parseUnits(amountIn,from.decimals);
   if(rawIn<=0n)throw new Error("Enter an amount greater than zero.");
-  const path=buildPath(from,to);
-  const result=await rpc("eth_call",[{to:PANCAKE_BSC.router,data:encodeGetAmountsOut(rawIn,path)},"latest"]);
-  if(!result||result==="0x")throw new Error("No PancakeSwap V2 route found.");
-  const hex=result.replace(/^0x/,"");
-  if(hex.length<64)throw new Error("Invalid router quote response.");
-  const amountOut=BigInt("0x"+hex.slice(-64));
-  if(amountOut<=0n)throw new Error("No liquidity for this route.");
-  return {rawIn,amountOut,path};
+  const candidates=buildCandidatePaths(from,to);
+  const quotes=[];
+  for(const path of candidates){
+    try{
+      const result=await rpc("eth_call",[{to:PANCAKE_BSC.router,data:encodeGetAmountsOut(rawIn,path)},"latest"]);
+      if(!result||result==="0x")continue;
+      const hex=result.replace(/^0x/,"");
+      if(hex.length<64)continue;
+      const amountOut=BigInt("0x"+hex.slice(-64));
+      if(amountOut>0n)quotes.push({rawIn,amountOut,path});
+    }catch(_e){}
+  }
+  if(!quotes.length)throw new Error("No PancakeSwap V2 route found for this pair.");
+  quotes.sort((a,b)=>a.amountOut>b.amountOut?-1:a.amountOut<b.amountOut?1:0);
+  return quotes[0];
+}
+function formatRate(rawIn,amountOut,fromDecimals,toDecimals){
+  const scale=10n**BigInt(toDecimals);
+  const normalizedOut=Number(amountOut)/Number(scale);
+  const normalizedIn=Number(rawIn)/(10**fromDecimals);
+  if(!Number.isFinite(normalizedOut)||!Number.isFinite(normalizedIn)||normalizedIn<=0)return "—";
+  return (normalizedOut/normalizedIn).toLocaleString(undefined,{maximumFractionDigits:8});
 }
 async function tokenBalance(token,wallet){
   if(token.native)return BigInt(await rpc("eth_getBalance",[wallet,"latest"]));
@@ -128,7 +144,7 @@ function renderSwapPanel(){
   if(!root||typeof SWAP_TOKENS==="undefined")return;
   if(!window.__swapState)window.__swapState={from:"BNB",to:"USDT",amount:"0.01",slippage:"50",wallet:null,quote:null};
   const s=window.__swapState,from=tokenById(s.from),to=tokenById(s.to);
-  root.innerHTML='<div class="swap-card"><div class="swap-head"><div><h3>Live Swap</h3><p class="sub">Non-custodial wallet → PancakeSwap V2 Router → BNB Chain. Quotes and transactions are sent through your wallet provider.</p></div><button type="button" class="swap-connect" id="swapConnect">'+(s.wallet?shortAddress(s.wallet):"Connect Wallet")+'</button></div><div class="live-badge">LIVE · BNB Chain</div><div class="swap-leg"><div class="row"><label>From</label><select id="swapFrom">'+liveTokenOptions(s.from)+'</select></div><input type="number" id="swapAmount" min="0" step="any" value="'+s.amount+'" placeholder="0.0"></div><button type="button" class="swap-flip" id="swapFlip">⇅</button><div class="swap-leg"><div class="row"><label>To</label><select id="swapTo">'+liveTokenOptions(s.to)+'</select></div><input type="text" id="swapOut" readonly value="'+(s.quote?s.quote.displayOut:"")+'" placeholder="Live quote"></div><div class="swap-meta" id="swapMeta">'+(s.quote?("Live quote · 1 "+from.symbol+" ≈ "+s.quote.rate+" "+to.symbol+"<br>Minimum received "+s.quote.minOut+" "+to.symbol+" · Slippage "+(Number(s.slippage)/100)+"%"):"Connect your wallet, then request a live quote.")+'</div><div class="field"><label>Slippage tolerance</label><select id="swapSlippage" class="expiry"><option value="25" '+(s.slippage==="25"?"selected":"")+'>0.25%</option><option value="50" '+(s.slippage==="50"?"selected":"")+'>0.50%</option><option value="100" '+(s.slippage==="100"?"selected":"")+'>1.00%</option><option value="200" '+(s.slippage==="200"?"selected":"")+'>2.00%</option></select></div><button type="button" class="swap-btn" id="swapQuote" '+(!s.wallet?"disabled":"")+'>Get live quote</button><button type="button" class="swap-btn" id="swapExecute" style="margin-top:8px" '+(!s.wallet||!s.quote?"disabled":"")+'>Swap in wallet</button><p class="swap-note" id="swapResult"></p><p class="swap-note">Live execution is limited to verified crypto contracts. bStocks/RWA remain discovery-only until an exact contract and liquidity route are verified.</p><div class="token-chips">'+allTokenChips()+"</div></div>";
+  root.innerHTML='<div class="swap-card"><div class="swap-head"><div><h3>Live Swap</h3><p class="sub">Non-custodial wallet → PancakeSwap V2 Router → BNB Chain. Quotes and transactions are sent through your wallet provider.</p></div><button type="button" class="swap-connect" id="swapConnect">'+(s.wallet?shortAddress(s.wallet):"Connect Wallet")+'</button></div><div class="live-badge">LIVE · BNB Chain</div><div class="swap-leg"><div class="row"><label>From</label><select id="swapFrom">'+liveTokenOptions(s.from)+'</select></div><input type="number" id="swapAmount" min="0" step="any" value="'+s.amount+'" placeholder="0.0"></div><button type="button" class="swap-flip" id="swapFlip">⇅</button><div class="swap-leg"><div class="row"><label>To</label><select id="swapTo">'+liveTokenOptions(s.to)+'</select></div><input type="text" id="swapOut" readonly value="'+(s.quote?s.quote.displayOut:"")+'" placeholder="Live quote"></div><div class="swap-meta" id="swapMeta">'+(s.quote?("Live quote · 1 "+from.symbol+" ≈ "+s.quote.rate+" "+to.symbol+"<br>Minimum received "+s.quote.minOutDisplay+" "+to.symbol+" · Slippage "+(Number(s.slippage)/100)+"%"):"Connect your wallet, then request a live quote.")+'</div><div class="field"><label>Slippage tolerance</label><select id="swapSlippage" class="expiry"><option value="25" '+(s.slippage==="25"?"selected":"")+'>0.25%</option><option value="50" '+(s.slippage==="50"?"selected":"")+'>0.50%</option><option value="100" '+(s.slippage==="100"?"selected":"")+'>1.00%</option><option value="200" '+(s.slippage==="200"?"selected":"")+'>2.00%</option></select></div><button type="button" class="swap-btn" id="swapQuote" '+(!s.wallet?"disabled":"")+'>Get live quote</button><button type="button" class="swap-btn" id="swapExecute" style="margin-top:8px" '+(!s.wallet||!s.quote?"disabled":"")+'>Swap in wallet</button><p class="swap-note" id="swapResult"></p><p class="swap-note">Live execution is limited to verified crypto contracts. bStocks/RWA remain discovery-only until an exact contract and liquidity route are verified.</p><div class="token-chips">'+allTokenChips()+"</div></div>";
   root.querySelector("#swapConnect").addEventListener("click",async()=>{
     const btn=root.querySelector("#swapConnect");btn.disabled=true;
     try{s.wallet=await connectWallet();renderSwapPanel();}catch(e){btn.disabled=false;root.querySelector("#swapResult").textContent=e?.message||String(e);}
@@ -140,7 +156,7 @@ function renderSwapPanel(){
   root.querySelector("#swapFlip").addEventListener("click",()=>{const x=s.from;s.from=s.to;s.to=x;s.quote=null;renderSwapPanel();});
   root.querySelector("#swapQuote").addEventListener("click",async()=>{
     const result=root.querySelector("#swapResult"),btn=root.querySelector("#swapQuote");btn.disabled=true;btn.textContent="Quoting…";
-    try{await ensureBsc();const from=tokenById(s.from),to=tokenById(s.to),q=await quoteLive(s.amount,from,to),minOut=minOutFromQuote(q.amountOut,Number(s.slippage));s.quote={...q,minOut,displayOut:formatUnits(q.amountOut,to.decimals),minOut:formatUnits(minOut,to.decimals),rate:formatUnits(q.amountOut,to.decimals)};result.textContent="Live quote received from PancakeSwap V2 Router.";}
+    try{await ensureBsc();const from=tokenById(s.from),to=tokenById(s.to),q=await quoteLive(s.amount,from,to),minOut=minOutFromQuote(q.amountOut,Number(s.slippage));s.quote={...q,minOutRaw:minOut,displayOut:formatUnits(q.amountOut,to.decimals),minOutDisplay:formatUnits(minOut,to.decimals),rate:formatRate(q.rawIn,q.amountOut,from.decimals,to.decimals)};result.textContent="Live quote received from PancakeSwap V2 Router.";}
     catch(e){s.quote=null;result.textContent=e?.message||String(e);} renderSwapPanel();
   });
   root.querySelector("#swapExecute").addEventListener("click",async()=>{
