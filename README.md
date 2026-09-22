@@ -4,7 +4,7 @@
 
 **BNB Chain AI Agent Marketplace**
 
-[![BNB Chain](https://img.shields.io/badge/BNB_Chain-Smart_Money_Era-F0B90B?style=for-the-badge&logo=binance&logoColor=white)](https://www.bnbchain.org/en/hackathons/smart-money-era)
+[![BNB Chain](https://img.shields.io/badge/BNB_Chain-Build_the_Era-F0B90B?style=for-the-badge&logo=binance&logoColor=white)](https://www.bnbchain.org/en/hackathons/smart-money-era)
 [![Static](https://img.shields.io/badge/Stack-HTML_%2B_JS-000000?style=for-the-badge)](./index.html)
 [![Altana](https://img.shields.io/badge/Altana-Session_Keys-7C3AED?style=for-the-badge)](docs/ALTANA.md)
 [![x402](https://img.shields.io/badge/x402-Hire_Mock-00C853?style=for-the-badge)](docs/X402.md)
@@ -110,7 +110,7 @@ rarity = 0.35 * scarcity
 ## Safety model
 
 | Control | What it does |
-|---------|----------------|
+|---------|---------------|
 | **Spend cap** | Max capital the activated agent may move |
 | **Call allowlist** | Only category-scoped actions |
 | **Expiry** | Time-bounded session |
@@ -160,6 +160,7 @@ STIVIUM/
 ├── agents-data.js      # seeded agents
 ├── swap-ui.js / swap-data.js
 ├── altana-wire.js      # optional session keys
+├── api/                # server-side integrations
 ├── docs/               # submission + feature writeups
 ├── contracts/          # optional registry sketch
 └── README.md
@@ -169,7 +170,7 @@ STIVIUM/
 
 ## Hackathon
 
-**Smart Money Era — Build the Era** (BNB Chain).
+**Build the Era — BNB Chain**
 
 | Focus | Where |
 |-------|--------|
@@ -181,7 +182,7 @@ STIVIUM/
 
 <div align="center">
 
-**Built for Smart Money Era · BNB Chain**  
+**Built on BNB Chain**  
 *Compare the risk. Cap the spend. Never hire blind.*
 
 [Live](https://wadezigh96.github.io/STIVIUM/) · [GitHub](https://github.com/wadezigh96/STIVIUM) · [Submission](docs/SUBMISSION.md)
