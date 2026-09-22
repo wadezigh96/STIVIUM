@@ -213,4 +213,4 @@ See also: `docs/evidence/JUDGE-PATH.md`
 
 ---
 
-*Prepared for TermiX independent judging under the BNB Chain Smart Money Era — Build the Era hackathon.*
+*Prepared for TermiX independent judging under the BNB Chain Build the Era hackathon.*
