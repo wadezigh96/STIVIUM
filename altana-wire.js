@@ -12,7 +12,9 @@ const TESTNET_RPC = "https://bsc-testnet-rpc.publicnode.com";
 const EXPLORER_TX = "https://testnet.bscscan.com/tx/";
 const FAUCET_URL = "https://testnet.bnbchain.org/faucet-smart";
 const CHAIN_ID = 97;
-const EXECUTION_RECIPIENT = "0x000000000000000000000000000000000000dEaD";\n\nconst KEYSTORE_ABI = [{
+const EXECUTION_RECIPIENT = "0x000000000000000000000000000000000000dEaD";
+
+const KEYSTORE_ABI = [{
   name: "isValidKey",
   type: "function",
   stateMutability: "view",
@@ -241,6 +243,15 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
  * test-only recipient after the scoped session has been granted.
  */
 export async function executeAgentSession(agentName) {
+  const authority = await verifyAgentAuthority(agentName);
+  if (!authority.ok || !authority.authorized) {
+    return {
+      ok: false,
+      mock: false,
+      error: authority.error || "Altana session authority is not valid on-chain.",
+      authority,
+    };
+  }
   const rec = window.__stiviumSessions?.[agentName];
   if (!rec?._session || !client) {
     return { ok: false, mock: false, error: "No live Altana session is available in this browser tab." };
