@@ -1,89 +1,59 @@
 # Wiring live agent data
 
-Current prototype uses a seeded `AGENTS` array so judges can open `index.html` with zero setup.  
-Below is the concrete path to real data.
+The judging catalog stays the seeded 16 agents in `agents-data.js` so the TermiX / judge path never disappears. Live signals are an overlay.
 
-## 1. 8004scan Public API (recommended discovery layer)
+## What ships now
+
+| Signal | Source | Where |
+|--------|--------|--------|
+| 16 curated agents | `agents-data.js` | Cards / scoring |
+| 1 live sample per category | `live-snapshot.json` from 8004scan semantic search | Extra cards |
+| Registry size | 8004scan `GET /agents?chain_id=56` | Data chip |
+| Last synced | Snapshot time + live price fetch | Modal + chip |
+| Crypto mids for Swap | Binance Vision `ticker/price` (CORS `*`) | `MOCK_PRICE_USDT` |
+| 8004scan from the browser | `api/agents.js` on Vercel | Optional index refresh |
+
+GitHub Pages cannot call `api.8004scan.io` directly (no `Access-Control-Allow-Origin`). The committed snapshot keeps Pages honest without a proxy.
+
+## Refresh the snapshot
+
+```bash
+python3 scripts/refresh-live.py
+# then commit live-snapshot.json
+```
+
+## 8004scan Public API
 
 Base URL: `https://api.8004scan.io/api/v1`
 
-Useful endpoints:
-
 ```bash
-# List agents on BSC mainnet (chain_id 56) or testnet (97)
 curl "https://api.8004scan.io/api/v1/agents?chain_id=56&limit=50"
-
-# Semantic search
 curl "https://api.8004scan.io/api/v1/agents/search/semantic?q=health+factor+monitoring"
-
-# Single agent
-curl "https://api.8004scan.io/api/v1/agents/56/{tokenId}"
 ```
 
-Response fields useful for Stivium scoring:
+Useful fields: `name`, `description`, `owner_address`, `total_score`, `is_verified`, `x402_supported`, `created_at`, `agent_id`.
 
-- `name`, `description`, `owner_address`
-- `total_score` / feedback / reputation signals
-- service endpoints (A2A / MCP)
-- creation / activity timestamps → uptimeDays proxy
-
-**Browser note:** Prefer a tiny proxy or serverless function so the API key (if used) never ships to the client. Anonymous rate limits exist for public demos.
-
-## 2. BNB Agent Studio / bnbagent-sdk
-
-- Register & discover via ERC-8004 Identity Registry.
-- Python & TypeScript SDKs: https://github.com/bnb-chain/bnbagent-sdk
-- Agent metadata (name, description, services) lives in the agentURI JSON.
-
-## 3. Mapping live fields → Stivium scores
+## Mapping live fields → Stivium scores
 
 | Stivium field | Live source idea |
 |---------------|------------------|
-| `peerCount` | Count of agents with similar capability tags / category |
-| `uptimeDays` | `now - registration timestamp` |
-| `successRate` | Feedback score / completed jobs ratio (when available) |
-| `tvl` | On-chain balance / reported managed value (subgraph or agent self-report) |
-| `verified` | ReputationRegistry / ValidationRegistry / audited flag |
-| `h24n / h7n` | Hire / job events from ERC-8183 AgenticCommerce indexer |
-| `hist7` | Daily hire counts from same indexer |
-| `keyMetric` | Category-specific: parse from agent description or capability endpoint |
+| `peerCount` | Inverse of score / similar-capability count |
+| `uptimeDays` | `now - created_at` |
+| `successRate` | `total_score` scaled into 55–97 until job stats exist |
+| `tvl` | Still estimated — needs subgraph / self-report |
+| `verified` | `is_verified` |
+| `h24n / h7n` | Hire events when an ERC-8183 indexer exists |
+| `keyMetric` | Category skill text until capability endpoints are stable |
 
-Keep the **same** `scoreRarity` / `scoreTrending` formulas so the UI and judging story stay consistent.
+Keep the same `scoreRarity` / `scoreTrending` formulas.
 
-## 4. Altana session keys (activation)
+## Altana session keys
 
-Activation UI already mirrors:
+Activation UI already mirrors spend cap, allowlist, expiry, revoke. On-chain path: `altana-wire.js` on BNB testnet.
 
-- spend cap
-- call allowlist
-- expiry
-- revoke
+## Fallback order
 
-Wire with `@altananetwork/sdk`:
-
-```ts
-import { createClient, BNB } from "@altananetwork/sdk";
-
-const client = createClient({ chains: [BNB] });
-// grantSession({ wallet, signer, permissions: { calls, spend }, expiry })
-// revokeSession(...)
-```
-
-Then surface the resulting session in the product and link the on-chain tx in Altana explorer.
-
-## 5. Minimal integration sketch (optional later)
-
-```js
-// pseudo – keep mock fallback for offline demo
-async function loadAgents() {
-  try {
-    const res = await fetch('/api/agents'); // your proxy
-    const live = await res.json();
-    return mapToStiviumShape(live);
-  } catch {
-    return SEED_AGENTS; // current array
-  }
-}
-```
-
-Priority for the remaining build window: keep the demo rock-solid, then swap the seed when a stable proxy is ready.
+1. Seed catalog (always)
+2. `live-snapshot.json` (Pages + offline)
+3. Live prices from Binance Vision
+4. `/api/agents` when hosted on Vercel

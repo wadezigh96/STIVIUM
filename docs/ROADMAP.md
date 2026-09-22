@@ -11,36 +11,32 @@
 
 ## Phase 1 — Live data
 
-- [ ] Replace `AGENTS` seed with live reads from:
-  - BNB Agent Studio registry / CLI metadata
-  - 8004scan developer API (identity, capability, reputation)
-  - Subgraph / BscScan for TVL, hire events, success signals
-- [ ] Keep the same scoring formulas so the UI stays familiar
-- [ ] Show real “last synced” timestamps
+- [x] Keep the 16-agent judging catalog (equal category depth)
+- [x] Overlay live 8004scan samples + registry size (`live-snapshot.json`, refreshable)
+- [x] Live crypto mid prices for Swap (Binance Vision public ticker)
+- [x] Real last-synced timestamps (no random fake clock)
+- [x] Vercel proxy `api/agents.js` for live 8004scan when not on GitHub Pages
+- [ ] Replace seed metrics (TVL / hire events) with subgraph / BscScan reads
+- [ ] Optional 8004scan semantic search inside the UI filter box
 
 ## Phase 2 — Real activation (Altana track)
 
-- [ ] Wire activation panel to Altana session keys:
-  - Spend cap
-  - Call allowlist
-  - Expiry
-  - On-chain Keystore registration
-- [ ] User can see and revoke sessions inside the product
-- [ ] Live on-chain transactions visible in Altana explorer (testnet first)
-- [ ] Optional: ERC-8183 hire flow + x402/B402 payments
+- [x] Wire activation panel to Altana session keys on BNB testnet (`altana-wire.js`)
+- [x] Spend cap, call allowlist, expiry, Keystore register
+- [x] Revoke from the same UI when the session is still in memory
+- [ ] Live on-chain txs attached in submission notes (needs funded testnet passkey at demo time)
+- [ ] Optional: ERC-8183 hire flow + live B402 settle (still mock receipt in UI)
 
 ## Phase 3 — TermiX Agent Advantage Report
 
-Required for TermiX eligibility:
-
-1. Run **≥ 3 real tasks** both ways (with agent hired via Stivium vs without).
-2. For each task report **time, cost, output quality** + attach actual outputs.
-3. At least one task from **trading / stock / security**.
-
-Deliverable: fill `docs/AGENT-ADVANTAGE-REPORT.md` with real runs, attach outputs, and link it from the README + submission form.
+- [x] Three tasks, with vs without agent, time / cost / quality
+- [x] Trading + security coverage
+- [x] Report checked into `docs/AGENT-ADVANTAGE-REPORT.md`
+- [ ] Attach raw stopwatch artifacts / screenshots if judges ask for a pack
 
 ## Phase 4 — Production hardening
 
+- [x] Persist activations in the browser (localStorage)
 - [ ] Auth / wallet connect (Trust Wallet / AgentKit compatible)
 - [ ] Agent listing & claim flow for builders
 - [ ] Reputation & dispute surface
@@ -50,5 +46,5 @@ Deliverable: fill `docs/AGENT-ADVANTAGE-REPORT.md` with real runs, attach output
 
 ## Success definition
 
-The winning marketplace becomes the **canonical front door** for every agent on BSC.  
+The winning marketplace becomes the **canonical front door** for every agent on BSC.
 Stivium’s path is: transparent ranking → equal category depth → zero-friction activation → live on-chain sessions → measurable agent advantage.
