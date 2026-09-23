@@ -7,7 +7,7 @@ The judging catalog stays the seeded 16 agents in `agents-data.js` so the TermiX
 | Signal | Source | Where |
 |--------|--------|--------|
 | 16 curated agents | `agents-data.js` | Cards / scoring |
-| 1 live sample per category | `live-snapshot.json` from 8004scan semantic search | Extra cards |
+| 1 live sample per category | `live-snapshot.json` from 8004scan semantic search | Extra cards marked LIVE |
 | Registry size | 8004scan `GET /agents?chain_id=56` | Data chip |
 | Last synced | Snapshot time + live price fetch | Modal + chip |
 | Crypto mids for Swap | Binance Vision `ticker/price` (CORS `*`) | `MOCK_PRICE_USDT` |
@@ -53,7 +53,10 @@ Activation UI already mirrors spend cap, allowlist, expiry, revoke. On-chain pat
 
 ## Fallback order
 
-1. Seed catalog (always)
-2. `live-snapshot.json` (Pages + offline)
-3. Live prices from Binance Vision
-4. `/api/agents` when hosted on Vercel
+1. Seed catalog (always — 16 judging agents)
+2. Builder-listed cards from `localStorage` (`stivium-listed-v1`)
+3. `live-snapshot.json` (Pages + offline)
+4. Live prices from Binance Vision
+5. `/api/agents` when hosted on Vercel
+
+Search filters seed + live + listed cards client-side. It does not call 8004scan from GitHub Pages.

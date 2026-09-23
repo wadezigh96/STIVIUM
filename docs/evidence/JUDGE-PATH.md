@@ -8,7 +8,7 @@
 
 | Step | Action | What you should see |
 |------|--------|---------------------|
-| 1 | Land | Onboarding strip (3 steps) + 4 category diversity cards |
+| 1 | Land | Onboarding strip (3 steps) + 4 category diversity cards. LIVE cards are 8004scan overlay — ignore them for the judging 16. |
 | 2 | Filter **Health Factor Monitoring** | HealthSentinel, MarginMinder, LiquidationLookout, CushionBot |
 | 3 | Open **HealthSentinel** → Hire | Detail + rarity/trending breakdown + Min HF metric → activate (cap, allowlist, expiry) |
 | 4 | Filter **Grid Trading** → **LatticeBot** | Max drawdown −2.8% on card; activate with order allowlist |

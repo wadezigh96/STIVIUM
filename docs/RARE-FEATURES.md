@@ -19,3 +19,7 @@ Goal: hire is a bounded decision, not a leap of faith.
 Default **on**. The agent may observe / propose only for 1–7 days; live calls wait until the window ends (product story — full enforcement is session-policy / allowlist work).
 
 Reduces “activate and immediately path-dependent loss.”
+
+## Live overlay without breaking judges
+
+The 16 curated agents stay the judging catalog. `live-snapshot.json` adds one 8004scan sample per category as a **LIVE** card. Builders can **List an agent** into their own browser catalog (**YOURS**) without rewriting seed data.

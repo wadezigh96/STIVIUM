@@ -8,6 +8,7 @@ Land → find by category → understand the agent → activate, without needing
 
 - Onboarding strip on first load
 - Sidebar filters + counts per category
+- Catalog search (name, category, metric) plus optional builder-list cards marked YOURS
 - Sort by rarity / trending / TVL / success rate
 - Detail modal with plain-language description
 - Activation: spend cap, category allowlist, expiry, confirm, then visible activated state + revoke
@@ -21,7 +22,7 @@ More than hire counts:
 - Trending broken into 24h growth, 7d growth, acceleration
 - 7-day sparkline on every card
 - One category-specific metric per agent
-- "Synced … ago" marker on detail views (placeholder for live feeds)
+- "Synced … ago" marker on detail views (live snapshot + Binance Vision prices)
 
 Formulas are in the README.
 
@@ -40,4 +41,4 @@ Same card structure and activation quality across all four.
 
 ## Honesty about the prototype
 
-Metrics are seeded. Activation updates local state only. Scoring, filtering, and the full journey are real and run in the browser. Path to live data is in `LIVE-DATA.md`.
+The 16 judging agents stay seeded so the path never disappears. Live 8004scan samples overlay as LIVE cards; activation can stay local or grant an Altana session on BNB testnet. Scoring, filtering, search, and the full journey run in the browser. Path to live data is in `LIVE-DATA.md`.
