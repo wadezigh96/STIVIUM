@@ -17,6 +17,7 @@ function growth(now, prior){
 }
 
 function computeScores(list){
+  list = Array.isArray(list) ? list : [];
   const scarcityNorm = normalize(list, a => 1 / a.peerCount);
   const trackNorm = normalize(list, a => a.uptimeDays);
   const successNorm = normalize(list, a => a.successRate);
