@@ -174,7 +174,7 @@ main{padding:20px 28px 60px}
 .trend{font-family:'IBM Plex Mono',monospace;font-size:12.5px}
 .trend.hot{color:var(--gold)}.trend.rising{color:var(--teal)}.trend.flat{color:var(--text-dim)}.trend.cooling{color:var(--coral)}
 .hire-btn{
-  all:unset;cursor:pointer;font-size:12px;font-weight:900;
+  all:unset;cursor:pointer;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:rgba(240,185,11,.2);position:relative;z-index:2;font-size:12px;font-weight:900;
   padding:9px 14px;border-radius:10px;background:var(--gold);color:#1a1607;
 }
 .hire-btn:hover{filter:brightness(1.06)}
@@ -225,7 +225,7 @@ select.expiry{
   background:#14110c;border:1px solid #352c1e;color:var(--text);
   padding:12px;border-radius:11px;font-family:'IBM Plex Mono',monospace;font-size:13px;
 }
-.modal-actions{display:flex;gap:10px;margin-top:16px}
+.modal-actions{display:flex;gap:10px;margin-top:16px;position:relative;z-index:3;pointer-events:auto}
 .success-box{
   margin-top:18px;padding:14px 16px;border-radius:13px;
   background:rgba(47,191,143,.08);border:1px solid rgba(47,191,143,.35);
