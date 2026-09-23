@@ -222,7 +222,15 @@ function renderModal(name){
   const closeBtn = modalBody.querySelector("#closeBtn");
   if(closeBtn) closeBtn.addEventListener("click", closeModal);
   const goSetup = modalBody.querySelector("#goSetup");
-  if(goSetup) goSetup.addEventListener("click", () => { state.stage = "setup"; renderModal(name); });
+  if(goSetup){
+    goSetup.type = "button";
+    goSetup.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      state.stage = "setup";
+      renderModal(name);
+    });
+  }
   const x402Pay = modalBody.querySelector("#x402Pay");
   if(x402Pay){ x402Pay.addEventListener("change", () => { state.x402 = x402Pay.checked; const row = modalBody.querySelector("#x402PriceRow"); if(row) row.style.display = x402Pay.checked ? "" : "none"; }); }
   const shadowMode = modalBody.querySelector("#shadowMode");
