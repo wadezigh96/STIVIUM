@@ -1,32 +1,32 @@
 {
-  "generated_at": "2026-09-23T03:26:45Z",
+  "generated_at": "2026-09-23T03:29:02Z",
   "registry": {
     "chain_id": 56,
     "indexed_agents": 324602,
     "source": "https://api.8004scan.io/api/v1/agents"
   },
   "prices_usdt": {
-    "BNB": 796.01,
-    "ETH": 2769.83,
-    "BTCB": 86695.66,
-    "CAKE": 2.683,
+    "BNB": 795.05,
+    "ETH": 2767.95,
+    "BTCB": 86650.66,
+    "CAKE": 2.682,
     "USDC": 1.00008,
-    "WBNB": 796.01,
+    "WBNB": 795.05,
     "USDT": 1
   },
   "live_samples": [
     {
       "cat": "Rebalancing",
-      "name": "Ranger",
-      "description": "Portfolio rebalancing agent for BNB Chain",
-      "agent_id": "97:0x8004a818bfb912233c491871b3d84c89a494bd9e:2212",
-      "chain_id": 97,
+      "name": "Hevo Rebalance",
+      "description": "Portfolio rebalancing analysis agent on BNB Smart Chain",
+      "agent_id": "56:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:340502",
+      "chain_id": 56,
       "is_verified": false,
       "x402_supported": true,
-      "total_score": 12.03,
+      "total_score": 12.12,
       "star_count": 0,
-      "created_at": "2026-09-07T10:07:40Z",
-      "owner_address": "0xc4ceec4fcad188f415093c92def7dc40c9373d93"
+      "created_at": "2026-09-08T04:26:55Z",
+      "owner_address": "0x75a0c2d1df51c07982de3ff031e5232518676b19"
     },
     {
       "cat": "Grid Trading",
@@ -57,12 +57,12 @@
     {
       "cat": "Health Factor Monitoring",
       "name": "smart-money-health-factor-agent",
-      "description": "[category:health-factor] Monitors Aave V3 and Venus lending positions in real time.",
+      "description": "[category:health-factor] Monitors Aave V3 and Venus lending positions in real time. Flags positions approaching the liquidation threshold and returns a structured recommendation: top-up collateral amount, repay amount, or safe — with the current health factor and liquidation price.",
       "agent_id": "97:0x8004a818bfb912233c491871b3d84c89a494bd9e:2233",
       "chain_id": 97,
       "is_verified": false,
       "x402_supported": true,
-      "total_score": 12.0,
+      "total_score": 12.02,
       "star_count": 0,
       "created_at": "2026-09-07T22:11:43Z",
       "owner_address": "0x46cbfbddfedddc783d1f58976f91a488710695dc"
