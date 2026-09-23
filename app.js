@@ -171,6 +171,21 @@ function openModal(name, jumpToSetup){
   if(jumpToSetup && activations[name].stage === "overview") activations[name].stage = "setup";
   overlay.classList.add("open");
   renderModal(name);
+  requestAnimationFrame(() => {
+    const setupBtn = modalBody.querySelector("#goSetup");
+    if(setupBtn){
+      setupBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        stateSafeOpenSetup(name);
+      };
+    }
+  });
+}
+function stateSafeOpenSetup(name){
+  if(!activations[name]) return;
+  activations[name].stage = "setup";
+  renderModal(name);
 }
 function closeModal(){
   overlay.classList.remove("open");
@@ -224,12 +239,12 @@ function renderModal(name){
   const goSetup = modalBody.querySelector("#goSetup");
   if(goSetup){
     goSetup.type = "button";
-    goSetup.addEventListener("click", (e) => {
+    goSetup.onclick = (e) => {
       e.preventDefault();
       e.stopPropagation();
       state.stage = "setup";
       renderModal(name);
-    });
+    };
   }
   const x402Pay = modalBody.querySelector("#x402Pay");
   if(x402Pay){ x402Pay.addEventListener("change", () => { state.x402 = x402Pay.checked; const row = modalBody.querySelector("#x402PriceRow"); if(row) row.style.display = x402Pay.checked ? "" : "none"; }); }
