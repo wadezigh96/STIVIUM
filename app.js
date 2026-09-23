@@ -214,7 +214,7 @@ function renderModal(name){
     </div>`;
   let activateSection = "";
   if(state.stage === "overview"){
-    activateSection = `<div class="modal-actions"><button type="button" class="hire-btn" id="goSetup" onclick="window.__stiviumActivate&&window.__stiviumActivate(this.dataset.agent);return false;" data-agent="${a.name}">Activate agent</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
+    activateSection = `<div class="modal-actions"><button type="button" class="hire-btn" id="goSetup" data-agent="${a.name}" onpointerup="window.__stiviumActivate&&window.__stiviumActivate(this.dataset.agent);return false;" ontouchend="window.__stiviumActivate&&window.__stiviumActivate(this.dataset.agent);return false;" onclick="window.__stiviumActivate&&window.__stiviumActivate(this.dataset.agent);return false;">Activate agent</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
   } else if(state.stage === "setup"){
     activateSection = `<div class="activate-box">
         <h4 style="font-size:11px;color:var(--text-dim);letter-spacing:.3px;margin:0 0 12px;">Set the boundaries before this agent can act</h4>
