@@ -5,6 +5,7 @@ function getAgentCatalog(){
 }
 
 function normalize(list, get){
+  list = Array.isArray(list) ? list : [];
   const vals = list.map(get);
   const min = Math.min(...vals), max = Math.max(...vals);
   return v => max === min ? 0.5 : (v - min) / (max - min);
