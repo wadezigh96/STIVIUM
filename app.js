@@ -222,7 +222,7 @@ function renderModal(name){
     </div>`;
   let activateSection = "";
   if(state.stage === "overview"){
-    activateSection = `<div class="modal-actions"><button type="button" class="hire-btn" id="goSetup" data-agent="${a.name}" onpointerup="window.__stiviumActivate&&window.__stiviumActivate(this.dataset.agent);return false;" ontouchend="window.__stiviumActivate&&window.__stiviumActivate(this.dataset.agent);return false;" onclick="window.__stiviumActivate&&window.__stiviumActivate(this.dataset.agent);return false;">Activate agent</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
+    activateSection = `<div class="modal-actions"><button type="button" class="hire-btn" id="goSetup" data-agent="${a.name}">Activate agent</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
   } else if(state.stage === "setup"){
     activateSection = `<div class="activate-box">
         <h4 style="font-size:11px;color:var(--text-dim);letter-spacing:.3px;margin:0 0 12px;">Set the boundaries before this agent can act</h4>
@@ -307,14 +307,7 @@ function renderModal(name){
     if (!activationFailed) persistActivations();
     renderModal(name);
     render();
-  };  const confirm = modalBody.querySelector("#confirmActivate");
-  if(confirm){
-    confirm.addEventListener("pointerup", () => {
-      confirm.dataset.stiviumPointer = "1";
-      confirm.textContent = "Starting activation…";
-    }, {capture:true});
-  }
-  const executeAltanaBtn = modalBody.querySelector("#executeAltanaBtn");
+  };  const executeAltanaBtn = modalBody.querySelector("#executeAltanaBtn");
   if(executeAltanaBtn) executeAltanaBtn.addEventListener("click", async () => {
     if(!window.StiviumAltana || typeof window.StiviumAltana.executeAgentSession !== "function") return;
     executeAltanaBtn.disabled = true; executeAltanaBtn.textContent = "Executing 1 wei…";
@@ -342,43 +335,6 @@ function barRow(label, frac, valText){
 }
 function clamp01(v){ return Math.max(0, Math.min(1, v)); }
 function refreshAll(){ renderDiversity(); renderCats(); renderTicker(); render(); }
-
-// Mobile-safe activation delegation: bind at document level so dynamically rendered modal buttons
-// still work even if a browser delays/replaces the button node.
-document.addEventListener("click", (e) => {
-  const btn = e.target && e.target.closest ? e.target.closest("#goSetup") : null;
-  if (!btn) return;
-  e.preventDefault();
-  e.stopPropagation();
-  const nameEl = modalBody && modalBody.querySelector(".modal-head h2");
-  const name = nameEl ? nameEl.textContent : "";
-  if (name && activations[name]) {
-    activations[name].stage = "setup";
-    renderModal(name);
-  }
-}, true);
-document.addEventListener("click", (e) => {
-  const btn = e.target && e.target.closest ? e.target.closest("#confirmActivate") : null;
-  if (!btn) return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  if (typeof btn.onclick === "function") {
-    try { btn.onclick(e); } catch (err) { console.error("[Stivium] confirm activation dispatch failed", err); }
-  }
-}, true);
-
-document.addEventListener("touchend", (e) => {
-  const btn = e.target && e.target.closest ? e.target.closest("#goSetup") : null;
-  if (!btn) return;
-  e.preventDefault();
-  e.stopPropagation();
-  const nameEl = modalBody && modalBody.querySelector(".modal-head h2");
-  const name = nameEl ? nameEl.textContent : "";
-  if (name && activations[name]) {
-    activations[name].stage = "setup";
-    renderModal(name);
-  }
-}, {passive:false, capture:true});
 
 window.__stiviumActivate = function(agentName){
   try {
