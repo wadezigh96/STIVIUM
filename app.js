@@ -317,5 +317,31 @@ function barRow(label, frac, valText){
 }
 function clamp01(v){ return Math.max(0, Math.min(1, v)); }
 function refreshAll(){ renderDiversity(); renderCats(); renderTicker(); render(); }
+
+// Mobile-safe activation delegation: bind at document level so dynamically rendered modal buttons
+// still work even if a browser delays/replaces the button node.
+document.addEventListener("click", (e) => {
+  const btn = e.target && e.target.closest ? e.target.closest("#goSetup") : null;
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const name = modalBody?.querySelector(".modal-head h2")?.textContent;
+  if (name && activations[name]) {
+    activations[name].stage = "setup";
+    renderModal(name);
+  }
+}, true);
+document.addEventListener("touchend", (e) => {
+  const btn = e.target && e.target.closest ? e.target.closest("#goSetup") : null;
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const name = modalBody?.querySelector(".modal-head h2")?.textContent;
+  if (name && activations[name]) {
+    activations[name].stage = "setup";
+    renderModal(name);
+  }
+}, {passive:false, capture:true});
+
 window.StiviumApp = { refresh: refreshAll, persistActivations };
 refreshAll();
