@@ -8,7 +8,7 @@ const BSC_CHAIN_ID = "0x38";
 function StiviumPrivyBridge(){
   const { ready, authenticated, connectOrCreateWallet } = usePrivy();
   const { wallets } = useWallets();
-  const wallet = (wallets && wallets.find(w => w.walletClientType === "privy") || (wallets && wallets[0]) || null;
+  const wallet = (wallets && wallets.find(w => w.walletClientType === "privy")) || (wallets && wallets[0]) || null;
 
   useEffect(() => {
     const bridge = window.__stiviumPrivy || {};
