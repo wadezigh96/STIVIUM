@@ -8,33 +8,33 @@ const BSC_CHAIN_ID = "0x38";
 function StiviumPrivyBridge(){
   const { ready, authenticated, connectOrCreateWallet } = usePrivy();
   const { wallets } = useWallets();
-  const wallet = wallets?.find(w => w.walletClientType === "privy") || wallets?.[0] || null;
+  const wallet = (wallets && wallets.find(w => w.walletClientType === "privy") || (wallets && wallets[0]) || null;
 
   useEffect(() => {
     const bridge = window.__stiviumPrivy || {};
     bridge.ready = ready;
     bridge.authenticated = authenticated;
-    bridge.walletAddress = wallet?.address || null;
+    bridge.walletAddress = (wallet && wallet.address) || null;
     bridge.providerType = wallet ? (wallet.walletClientType || "privy") : null;
 
     // Keep the bridge object stable so swap-ui.js does not lose its onStateChange handler.
     bridge.login = async () => {
       if (!ready) throw new Error("Privy is still loading. Please try again.");
       // If an embedded wallet already exists, never reopen the Privy connect flow.
-      if (wallet?.address) return wallet.address;
+      if ((wallet && wallet.address)) return wallet.address;
       await connectOrCreateWallet();
       return true;
     };
 
     bridge.ensureBsc = async () => {
-      if (!wallet?.address) throw new Error("No Privy wallet is available. Connect the wallet first.");
+      if (!(wallet && wallet.address)) throw new Error("No Privy wallet is available. Connect the wallet first.");
       const provider = await wallet.getEthereumProvider();
       const current = await provider.request({method:"eth_chainId"});
       if (current !== BSC_CHAIN_ID) {
         try {
           await provider.request({method:"wallet_switchEthereumChain", params:[{chainId:BSC_CHAIN_ID}]});
         } catch (e) {
-          if (e?.code === 4902) {
+          if ((e && e.code) === 4902) {
             await provider.request({method:"wallet_addEthereumChain", params:[{
               chainId:BSC_CHAIN_ID,
               chainName:"BNB Smart Chain",
@@ -49,7 +49,7 @@ function StiviumPrivyBridge(){
     };
 
     bridge.sendTransaction = async ({to, data="0x", value=0n, chainId=56}) => {
-      if (!wallet?.address) throw new Error("No Privy wallet is available. Connect the wallet first.");
+      if (!(wallet && wallet.address)) throw new Error("No Privy wallet is available. Connect the wallet first.");
       const provider = await wallet.getEthereumProvider();
       const chainHex = "0x" + Number(chainId).toString(16);
       const current = await provider.request({method:"eth_chainId"});
@@ -62,13 +62,13 @@ function StiviumPrivyBridge(){
     };
 
     window.__stiviumPrivy = bridge;
-    if (window.__swapState) window.__swapState.wallet = wallet?.address || null;
+    if (window.__swapState) window.__swapState.wallet = (wallet && wallet.address) || null;
     window.dispatchEvent(new CustomEvent("stivium:privy-state", {
-      detail: { walletAddress: wallet?.address || null, authenticated, ready }
+      detail: { walletAddress: (wallet && wallet.address) || null, authenticated, ready }
     }));
 
     if (typeof bridge.onStateChange === "function") {
-      bridge.onStateChange({walletAddress: wallet?.address || null, authenticated, ready});
+      bridge.onStateChange({walletAddress: (wallet && wallet.address) || null, authenticated, ready});
     }
   }, [ready, authenticated, wallet, connectOrCreateWallet]);
 
