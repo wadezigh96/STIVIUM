@@ -293,11 +293,14 @@ function renderModal(name){
           await Promise.race([loadPromise, timeout]);
         }
         confirm.textContent = "Signing session…";
+      const altanaStatusHandler = (ev) => { if (ev?.detail?.status && confirm.disabled) confirm.textContent = ev.detail.status; };
+      window.addEventListener("stivium-altana-status", altanaStatusHandler);
         if (!window.StiviumAltana || typeof window.StiviumAltana.grantAgentSession !== "function") throw new Error("Altana module failed to load. Please refresh and try again.");
         const res = await window.StiviumAltana.grantAgentSession({ agentName: name, category: a.cat, capUsd: state.cap, expiryDays: state.expiry, allowlistLabels: state.allowlist });
         if(res.ok && !res.mock){ state.txHash = res.txHash || null; state.explorer = res.explorer || null; state.walletAddress = res.wallet || null; state.walletMode = res.walletMode || null; state.altanaWarning = res.warning || null; if(window.StiviumAltana && typeof window.StiviumAltana.verifyAgentAuthority === "function"){ const auth = await window.StiviumAltana.verifyAgentAuthority(name); state.authorityVerified = !!(auth.ok && auth.authorized); state.authority = auth; if(!state.authorityVerified) state.altanaError = auth.error || "Altana authority was not verified on-chain."; } }
         else { state.altanaError = res.error || "REAL Altana grant failed"; state.onchain = true; }
       } catch(e){ state.altanaError = e.message || String(e); state.onchain = true; }
+      window.removeEventListener("stivium-altana-status", altanaStatusHandler);
       confirm.disabled = false;
       confirm.textContent = originalConfirmText || "Confirm & activate";
     }
