@@ -175,7 +175,7 @@ document.getElementById("dismissOnboard").addEventListener("click", () => {
 const overlay = document.getElementById("overlay");
 const modalBody = document.getElementById("modalBody");
 function openModal(name, jumpToSetup){
-  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, shadow:true, shadowDays:"3", authorityVerified:false, authority:null};
+  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:true, x402:false, x402Paid:false, x402Ref:null, shadow:true, shadowDays:"3", authorityVerified:false, authority:null};
   if(jumpToSetup && activations[name].stage === "overview") activations[name].stage = "setup";
   overlay.classList.add("open");
   renderModal(name);
@@ -261,7 +261,7 @@ function renderModal(name){
   const capInputLive = modalBody.querySelector("#capInput");
   if(capInputLive){ capInputLive.addEventListener("input", () => { const el = modalBody.querySelector("#blastCap"); if(el) el.textContent = "$" + (capInputLive.value || "0"); }); }
   const confirm = modalBody.querySelector("#confirmActivate");
-  if(confirm) confirm.addEventListener("click", async (event) => {
+  if(confirm) confirm.onclick = async (event) => {
     event.preventDefault();
     event.stopPropagation();
     const originalConfirmText = confirm.textContent;
@@ -307,8 +307,7 @@ function renderModal(name){
     if (!activationFailed) persistActivations();
     renderModal(name);
     render();
-  });
-  const executeAltanaBtn = modalBody.querySelector("#executeAltanaBtn");
+  };  const executeAltanaBtn = modalBody.querySelector("#executeAltanaBtn");
   if(executeAltanaBtn) executeAltanaBtn.addEventListener("click", async () => {
     if(!window.StiviumAltana || typeof window.StiviumAltana.executeAgentSession !== "function") return;
     executeAltanaBtn.disabled = true; executeAltanaBtn.textContent = "Executing 1 wei…";
