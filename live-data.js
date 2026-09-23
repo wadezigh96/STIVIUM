@@ -115,8 +115,8 @@
     const chip = document.querySelector(".data-source-chip");
     if (!chip) return;
     const liveBit = state.liveCount ? state.liveCount + " live cards" : "catalog";
-    const idx = state.indexed != null ? " · " + Number(state.indexed).toLocaleString() + " on 8004scan" : "";
-    chip.textContent = "DATA: " + state.source + " · " + liveBit + idx;
+    const idx = state.indexed != null ? " \u00b7 " + Number(state.indexed).toLocaleString() + " on 8004scan" : "";
+    chip.textContent = "DATA: " + state.source + " \u00b7 " + liveBit + idx;
     chip.title = [
       "Curated seed catalog kept for judging.",
       state.indexed != null ? "8004scan index: " + state.indexed : "",
@@ -126,6 +126,14 @@
     ]
       .filter(Boolean)
       .join(" ");
+  }
+
+  function loadCatalogExtras() {
+    if (document.querySelector("script[data-stivium-catalog]")) return;
+    const script = document.createElement("script");
+    script.src = "./catalog-extras.js";
+    script.dataset.stiviumCatalog = "1";
+    document.head.appendChild(script);
   }
 
   window.StiviumLive = {
@@ -180,6 +188,7 @@
       }
 
       paintChip();
+      loadCatalogExtras();
       if (window.StiviumApp && typeof window.StiviumApp.refresh === "function") {
         window.StiviumApp.refresh();
       }
