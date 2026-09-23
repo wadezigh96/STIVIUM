@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+services:
+  - type: web
+    name: stivium-erc8183-provider
+    runtime: python
+    plan: free
+    rootDir: erc8183-provider
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn agent:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /erc8183/health
+    autoDeploy: true
+    envVars:
+      - key: NETWORK
+        value: bsc-testnet
+      - key: ERC8183_AGENT_URL
+        fromService:
+          type: web
+          name: stivium-erc8183-provider
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: ERC8183_SERVICE_PRICE
+        value: "1000000000000000000"
+      - key: ERC8183_FUNDED_POLL_INTERVAL
+        value: "30"
+      - key: WALLET_PASSWORD
+        sync: false
+      - key: PRIVATE_KEY
+        sync: false
