@@ -162,14 +162,25 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
       spend: [{ limit: nativeLimit, period: "day" }],
     };
 
-    const session = await c.grantSession({
+    window.__stiviumAltanaStatus = "Submitting session grant…";
+    window.dispatchEvent(new CustomEvent("stivium-altana-status", { detail: { status: "Submitting session grant…" } }));
+    const grantPromise = c.grantSession({
       wallet: w,
       signer: w.signer,
       permissions,
       expiry,
       register: true,
       chainId: CHAIN_ID,
+      onStatus: (status, chain) => {
+        const label = chain?.chainId ? `${status} (chain ${chain.chainId})` : String(status);
+        window.__stiviumAltanaStatus = label;
+        window.dispatchEvent(new CustomEvent("stivium-altana-status", { detail: { status: label } }));
+      },
     });
+    const grantTimeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Altana session grant is still pending after 90 seconds. The Passkey was accepted, but the Altana relay did not finish. Check the testnet wallet balance/network and try again once.")), 90000)
+    );
+    const session = await Promise.race([grantPromise, grantTimeout]);
 
     // @altananetwork/sdk >= 0.9 returns grantSession metadata in `legs`;
     // transactionHash lives on the confirmed account/registry leg, not on the
