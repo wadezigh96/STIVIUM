@@ -308,7 +308,7 @@ function renderModal(name){
     if(state.onchain){
       confirm.disabled = true;
       confirm.textContent = "Loading Altana…";
-      const altanaStatusHandler = (ev) => { if (ev?.detail?.status && confirm.disabled) confirm.textContent = ev.detail.status; };
+      const altanaStatusHandler = (ev) => { if ((ev && ev.detail && ev.detail.status) && confirm.disabled) confirm.textContent = ev.detail.status; };
       window.addEventListener("stivium-altana-status", altanaStatusHandler);
       try {
         if (!window.StiviumAltana && window.__stiviumLoad) {
