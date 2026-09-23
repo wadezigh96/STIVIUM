@@ -73,6 +73,8 @@
       liveId: sample.agent_id || "",
       chainId: sample.chain_id,
       x402: !!sample.x402_supported,
+      dataSource: "8004scan-index",
+      indexScore: score,
     };
   }
 
@@ -118,7 +120,7 @@
     const idx = state.indexed != null ? " \u00b7 " + Number(state.indexed).toLocaleString() + " on 8004scan" : "";
     chip.textContent = "DATA: " + state.source + " \u00b7 " + liveBit + idx;
     chip.title = [
-      "Curated seed catalog kept for judging.",
+      "Curated demo metrics are clearly labeled; live cards use 8004scan index signals.",
       state.indexed != null ? "8004scan index: " + state.indexed : "",
       state.snapshotAt ? "Snapshot " + state.snapshotAt : "",
       state.pricesAt ? "Prices " + state.pricesAt : "",
