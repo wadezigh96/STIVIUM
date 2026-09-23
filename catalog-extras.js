@@ -62,7 +62,7 @@
     });
   }
   function escapeHtml(value) {
-    return String(value ?? "").replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """);
+    return String(value == null ? "" : value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
   function matchesSearch(a, q) {
     if (!q) return true;
