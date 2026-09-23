@@ -121,7 +121,7 @@ function render(){
       <svg class="spark" width="100" height="26" viewBox="0 0 100 26"><polyline fill="none" stroke="#f0b90b" stroke-width="1.5" points="${sparklinePath(a.hist7)}"/></svg>
       <div class="card-bottom"><span class="trend ${a.trendBadge}">${badge}</span>
         <span class="restraint-pill" title="Share of signals the agent declined for risk">${a.restraint}% restraint</span>
-        <button class="hire-btn" data-open="${a.name}">${act?.stage==='done'?'View activation':'Hire agent'}</button></div>
+        <button class="hire-btn" data-open="${a.name}">${(act && act.stage==='done')?'View activation':'Hire agent'}</button></div>
     </div>`;
   }).join("");
   grid.querySelectorAll(".card").forEach(card => {
@@ -325,7 +325,8 @@ document.addEventListener("click", (e) => {
   if (!btn) return;
   e.preventDefault();
   e.stopPropagation();
-  const name = modalBody?.querySelector(".modal-head h2")?.textContent;
+  const nameEl = modalBody && modalBody.querySelector(".modal-head h2");
+  const name = nameEl ? nameEl.textContent : "";
   if (name && activations[name]) {
     activations[name].stage = "setup";
     renderModal(name);
