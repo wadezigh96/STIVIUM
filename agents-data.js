@@ -51,7 +51,7 @@ const AGENTS = [
   {name:"CushionBot", cat:"Health Factor Monitoring", peerCount:16, uptimeDays:15, successRate:72, tvl:6_000, verified:false, h24n:6, h24p:1, h7n:24, h7p:7, hist7:[1,2,3,3,4,5,6],
    keyLabel:"Min HF maintained", keyValue:"1.11",
    desc:"A new, thin-margin health-factor agent — still early, watch its track record grow before trusting it with a large position."},
-];
+].map(a => ({...a, dataSource:"curated-demo"}));
 
 const CATEGORIES = ["All", "Rebalancing", "Grid Trading", "Yield Optimisation", "Health Factor Monitoring"];
 const ALLOWLIST_OPTIONS = {
