@@ -236,7 +236,7 @@ function renderModal(name){
         <div class="field"><label>Allowed actions</label><div class="checks">${allow.map(opt => `<label class="chk"><input type="checkbox" data-opt="${opt}" ${state.allowlist.includes(opt)?"checked":""}> ${opt}</label>`).join("")}</div></div>
         <div class="field"><label>Expiry</label><select class="expiry" id="expirySelect"><option value="1" ${state.expiry==="1"?"selected":""}>1 day</option><option value="7" ${state.expiry==="7"?"selected":""}>7 days</option><option value="30" ${state.expiry==="30"?"selected":""}>30 days</option></select></div>
       </div>
-      <div class="modal-actions"><button type="button" class="hire-btn" id="confirmActivate">Confirm & activate</button><button type="button" class="hire-btn ghost" id="closeBtn">Cancel</button></div>`;
+      <div class="modal-actions"><button type="button" class="hire-btn" id="confirmActivate" onpointerdown="this.dataset.stiviumPressed=\"1\";this.textContent=\"Click received…\";">Confirm & activate</button><button type="button" class="hire-btn ghost" id="closeBtn">Cancel</button></div>`;
   } else {
     activateSection = `<div class="success-box"><p>Agent activated${state.onchain && state.txHash ? " on-chain" : ""}</p><div class="detail">Spend cap: $${state.cap || 0}<br>Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none"}<br>Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d") : "OFF"}<br>Expires in ${state.expiry} days<br>${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError || "Waiting…")) : "Mode: local mock"}${state.onchain && state.txHash ? `<br><button class="hire-btn" id="executeAltanaBtn" style="margin-top:10px;">Execute 1 wei test</button>${state.executeTxHash ? `<br>Execute tx: <a href="${state.executeExplorer||('https://testnet.bscscan.com/tx/'+state.executeTxHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.executeTxHash).slice(0,10)}…</a>` : ""}${state.executeError ? `<br><span style="color:var(--coral)">${state.executeError}</span>` : ""}` : ""}${state.x402 ? `<div>x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected"}</div>` : ""}</div></div><div class="modal-actions"><button class="hire-btn ghost" id="revokeBtn">Revoke access</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
   }
@@ -349,6 +349,12 @@ document.addEventListener("click", (e) => {
     activations[name].stage = "setup";
     renderModal(name);
   }
+}, true);
+document.addEventListener("pointerdown", (e) => {
+  const btn = e.target && e.target.closest ? e.target.closest("#confirmActivate") : null;
+  if (!btn) return;
+  btn.dataset.stiviumPressed = "1";
+  btn.textContent = "Click received…";
 }, true);
 document.addEventListener("click", (e) => {
   const btn = e.target && e.target.closest ? e.target.closest("#confirmActivate") : null;
