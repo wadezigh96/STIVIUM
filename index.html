@@ -393,10 +393,24 @@ window.StiviumBinance = {
 </script>
 <script src="./agents-data.js?v=stivium-b47cb477"></script>
 <script src="./swap-data.js?v=stivium-b47cb477"></script>
+<script>
+(function(){
+  var loaded={};
+  window.__stiviumLoad=function(src,type){
+    if(loaded[src]) return loaded[src];
+    loaded[src]=new Promise(function(resolve,reject){
+      var s=document.createElement("script");
+      if(type==="module") s.type="module";
+      s.src=src+(src.indexOf("?")>=0?"&":"?")+"v=stivium-lazy2";
+      s.onload=function(){resolve(true);};
+      s.onerror=function(){reject(new Error("Failed to load "+src));};
+      document.head.appendChild(s);
+    });
+    return loaded[src];
+  };
+})();
+</script>
 <script src="./app.js?v=stivium-b47cb477"></script>
-<script src="./swap-ui.js?v=stivium-b47cb477"></script>
-<script type="module" src="./privy-bridge.js?v=stivium-b47cb477"></script>
 <script src="./live-data.js?v=stivium-b47cb477"></script>
-<script type="module" src="./altana-wire.js?v=stivium-b47cb477"></script>
 </body>
 </html>
