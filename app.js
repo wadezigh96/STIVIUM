@@ -1,3 +1,9 @@
+function getAgentCatalog(){
+  if (typeof AGENTS !== "undefined" && Array.isArray(AGENTS)) return AGENTS;
+  if (Array.isArray(window.AGENTS)) return window.AGENTS;
+  return [];
+}
+
 function normalize(list, get){
   const vals = list.map(get);
   const min = Math.min(...vals), max = Math.max(...vals);
@@ -88,7 +94,7 @@ function syncTime(){
   return "seed catalog";
 }
 function renderDiversity(){
-  const scored = computeScores(AGENTS);
+  const scored = computeScores(getAgentCatalog());
   const root = document.getElementById("diversity");
   const cats = ["Rebalancing","Grid Trading","Yield Optimisation","Health Factor Monitoring"];
   root.innerHTML = cats.map(cat => {
@@ -98,7 +104,7 @@ function renderDiversity(){
   }).join("");
 }
 function render(){
-  const scored = computeScores(AGENTS);
+  const scored = computeScores(getAgentCatalog());
   let list = activeCat === "All" ? scored : scored.filter(a => a.cat === activeCat);
   if(activeSort === "rarity") list = [...list].sort((a,b)=>b.rarity-a.rarity);
   else if(activeSort === "trending") list = [...list].sort((a,b)=>b.trending-a.trending);
@@ -139,7 +145,7 @@ function render(){
 }
 function renderCats(){
   const root = document.getElementById("catList");
-  const scored = computeScores(AGENTS);
+  const scored = computeScores(getAgentCatalog());
   root.innerHTML = CATEGORIES.map(c => {
     const n = c === "All" ? scored.length : scored.filter(a => a.cat === c).length;
     return `<button class="cat-btn ${activeCat===c?'active':''}" data-cat="${c}">${c}<span class="n">${n}</span></button>`;
@@ -156,7 +162,7 @@ document.getElementById("sortList").querySelectorAll(".sort-btn").forEach(btn =>
   });
 });
 function renderTicker(){
-  const scored = computeScores(AGENTS);
+  const scored = computeScores(getAgentCatalog());
   const items = [...scored].sort((a,b)=>b.trending-a.trending).slice(0,8);
   const html = items.map(a => `<span class="item"><b>${a.name}</b> ${a.g24>=0?'<span class="up">▲</span>':'<span class="down">▼</span>'} ${(a.g24*100).toFixed(0)}%</span>`).join("");
   document.getElementById("ticker").innerHTML = html + html;
@@ -193,7 +199,7 @@ function closeModal(){
 }
 overlay.addEventListener("click", (e) => { if(e.target === overlay) closeModal(); });
 function renderModal(name){
-  const scored = computeScores(AGENTS);
+  const scored = computeScores(getAgentCatalog());
   const a = scored.find(x => x.name === name);
   const state = activations[name];
   const allow = ALLOWLIST_OPTIONS[a.cat];
