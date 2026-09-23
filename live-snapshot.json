@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-09-22T11:25:58Z",
+  "generated_at": "2026-09-23T03:26:45Z",
   "registry": {
     "chain_id": 56,
-    "indexed_agents": 324345,
+    "indexed_agents": 324602,
     "source": "https://api.8004scan.io/api/v1/agents"
   },
   "prices_usdt": {
-    "BNB": 787.07,
-    "WBNB": 787.07,
-    "ETH": 2744.53,
-    "BTCB": 86047.0,
-    "CAKE": 2.507,
-    "USDT": 1,
-    "USDC": 1.00028
+    "BNB": 796.01,
+    "ETH": 2769.83,
+    "BTCB": 86695.66,
+    "CAKE": 2.683,
+    "USDC": 1.00008,
+    "WBNB": 796.01,
+    "USDT": 1
   },
   "live_samples": [
     {
@@ -57,7 +57,7 @@
     {
       "cat": "Health Factor Monitoring",
       "name": "smart-money-health-factor-agent",
-      "description": "[category:health-factor] Monitors Aave V3 and Venus lending positions in real time. Flags positions approaching the liquidation threshold and returns a structured recommendation: top-up collateral amount, repay amount, or safe.",
+      "description": "[category:health-factor] Monitors Aave V3 and Venus lending positions in real time.",
       "agent_id": "97:0x8004a818bfb912233c491871b3d84c89a494bd9e:2233",
       "chain_id": 97,
       "is_verified": false,

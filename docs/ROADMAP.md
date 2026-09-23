@@ -17,7 +17,7 @@
 - [x] Real last-synced timestamps (no random fake clock)
 - [x] Vercel proxy `api/agents.js` for live 8004scan when not on GitHub Pages
 - [ ] Replace seed metrics (TVL / hire events) with subgraph / BscScan reads
-- [ ] Optional 8004scan semantic search inside the UI filter box
+- [x] Client search box over catalog + live overlay cards
 
 ## Phase 2 — Real activation (Altana track)
 
@@ -37,7 +37,7 @@
 ## Phase 4 — Production hardening
 
 - [x] Persist activations in the browser (localStorage)
-- [ ] Auth / wallet connect (Trust Wallet / AgentKit compatible)
+- [x] Wallet connect via Privy (`privy-bridge.js`) for Swap / send
 - [ ] Agent listing & claim flow for builders
 - [ ] Reputation & dispute surface
 - [ ] Multi-chain readiness (opBNB, Greenfield storage for agent artifacts)
