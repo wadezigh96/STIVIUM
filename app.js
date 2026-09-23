@@ -350,6 +350,16 @@ document.addEventListener("click", (e) => {
     renderModal(name);
   }
 }, true);
+document.addEventListener("click", (e) => {
+  const btn = e.target && e.target.closest ? e.target.closest("#confirmActivate") : null;
+  if (!btn) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  if (typeof btn.onclick === "function") {
+    try { btn.onclick(e); } catch (err) { console.error("[Stivium] confirm activation dispatch failed", err); }
+  }
+}, true);
+
 document.addEventListener("touchend", (e) => {
   const btn = e.target && e.target.closest ? e.target.closest("#goSetup") : null;
   if (!btn) return;
