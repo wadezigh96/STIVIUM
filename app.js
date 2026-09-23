@@ -236,7 +236,7 @@ function renderModal(name){
         <div class="field"><label>Allowed actions</label><div class="checks">${allow.map(opt => `<label class="chk"><input type="checkbox" data-opt="${opt}" ${state.allowlist.includes(opt)?"checked":""}> ${opt}</label>`).join("")}</div></div>
         <div class="field"><label>Expiry</label><select class="expiry" id="expirySelect"><option value="1" ${state.expiry==="1"?"selected":""}>1 day</option><option value="7" ${state.expiry==="7"?"selected":""}>7 days</option><option value="30" ${state.expiry==="30"?"selected":""}>30 days</option></select></div>
       </div>
-      <div class="modal-actions"><button class="hire-btn" id="confirmActivate">Confirm & activate</button><button class="hire-btn ghost" id="closeBtn">Cancel</button></div>`;
+      <div class="modal-actions"><button type="button" class="hire-btn" id="confirmActivate">Confirm & activate</button><button type="button" class="hire-btn ghost" id="closeBtn">Cancel</button></div>`;
   } else {
     activateSection = `<div class="success-box"><p>Agent activated${state.onchain && state.txHash ? " on-chain" : ""}</p><div class="detail">Spend cap: $${state.cap || 0}<br>Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none"}<br>Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d") : "OFF"}<br>Expires in ${state.expiry} days<br>${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError || "Waiting…")) : "Mode: local mock"}${state.onchain && state.txHash ? `<br><button class="hire-btn" id="executeAltanaBtn" style="margin-top:10px;">Execute 1 wei test</button>${state.executeTxHash ? `<br>Execute tx: <a href="${state.executeExplorer||('https://testnet.bscscan.com/tx/'+state.executeTxHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.executeTxHash).slice(0,10)}…</a>` : ""}${state.executeError ? `<br><span style="color:var(--coral)">${state.executeError}</span>` : ""}` : ""}${state.x402 ? `<div>x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected"}</div>` : ""}</div></div><div class="modal-actions"><button class="hire-btn ghost" id="revokeBtn">Revoke access</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
   }
@@ -261,7 +261,10 @@ function renderModal(name){
   const capInputLive = modalBody.querySelector("#capInput");
   if(capInputLive){ capInputLive.addEventListener("input", () => { const el = modalBody.querySelector("#blastCap"); if(el) el.textContent = "$" + (capInputLive.value || "0"); }); }
   const confirm = modalBody.querySelector("#confirmActivate");
-  if(confirm) confirm.addEventListener("click", async () => {
+  if(confirm) confirm.addEventListener("click", async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const originalConfirmText = confirm.textContent;
     const capInput = modalBody.querySelector("#capInput");
     const expirySelect = modalBody.querySelector("#expirySelect");
     const onchainEl = modalBody.querySelector("#altanaOnchain");
@@ -282,15 +285,21 @@ function renderModal(name){
     state.altanaError = null;
     if(state.onchain){
       confirm.disabled = true;
-      confirm.textContent = "Signing session…";
+      confirm.textContent = "Loading Altana…";
       try {
-        if (!window.StiviumAltana && window.__stiviumLoad) await window.__stiviumLoad("./altana-wire.js","module");
+        if (!window.StiviumAltana && window.__stiviumLoad) {
+          const loadPromise = window.__stiviumLoad("./altana-wire.js","module");
+          const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Altana module took too long to load. Check your internet connection and try again.")), 15000));
+          await Promise.race([loadPromise, timeout]);
+        }
+        confirm.textContent = "Signing session…";
         if (!window.StiviumAltana || typeof window.StiviumAltana.grantAgentSession !== "function") throw new Error("Altana module failed to load. Please refresh and try again.");
         const res = await window.StiviumAltana.grantAgentSession({ agentName: name, category: a.cat, capUsd: state.cap, expiryDays: state.expiry, allowlistLabels: state.allowlist });
         if(res.ok && !res.mock){ state.txHash = res.txHash || null; state.explorer = res.explorer || null; state.walletAddress = res.wallet || null; state.walletMode = res.walletMode || null; state.altanaWarning = res.warning || null; if(window.StiviumAltana && typeof window.StiviumAltana.verifyAgentAuthority === "function"){ const auth = await window.StiviumAltana.verifyAgentAuthority(name); state.authorityVerified = !!(auth.ok && auth.authorized); state.authority = auth; if(!state.authorityVerified) state.altanaError = auth.error || "Altana authority was not verified on-chain."; } }
         else { state.altanaError = res.error || "REAL Altana grant failed"; state.onchain = true; }
       } catch(e){ state.altanaError = e.message || String(e); state.onchain = true; }
       confirm.disabled = false;
+      confirm.textContent = originalConfirmText || "Confirm & activate";
     }
     if(state.x402){ state.x402Paid = true; state.x402Ref = "x402-mock-" + Date.now().toString(36); }
     const activationFailed = (!!state.altanaError && state.onchain) || (state.onchain && state.authorityVerified === false);
