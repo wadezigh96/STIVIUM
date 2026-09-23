@@ -238,6 +238,54 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
 }
 
 /**
+ * Verify the session key against Altana's public on-chain KeyStore.
+ * This is read-only and free; no wallet signature is required.
+ */
+export async function verifyAgentAuthority(agentName) {
+  try {
+    const rec = window.__stiviumSessions?.[agentName];
+    if (!rec) throw new Error("No Altana session is available in this browser tab.");
+    const session = rec._session;
+    const publicKey = rec.publicKey || session?.publicKey;
+    const walletAddress = rec.walletAddress || session?.walletAddress || wallet?.address;
+    if (!publicKey) throw new Error("Altana session public key is missing.");
+    if (!walletAddress) throw new Error("Altana wallet address is missing.");
+
+    const viem = await import("https://esm.sh/viem@2.37.3");
+    const sdk = await loadSdk();
+    const network = sdk.BNB_TESTNET;
+    const keyStore = network?.keyStore || KEYSTORE_TESTNET;
+    const rpcUrl = network?.publicRpcUrl || TESTNET_RPC;
+    const keyId = viem.keccak256(publicKey);
+    const publicClient = viem.createPublicClient({
+      chain: network,
+      transport: viem.http(rpcUrl),
+    });
+    const authorized = await publicClient.readContract({
+      address: keyStore,
+      abi: KEYSTORE_ABI,
+      functionName: "isValidKey",
+      args: [walletAddress, keyId],
+    });
+    const result = {
+      ok: true,
+      authorized: !!authorized,
+      wallet: walletAddress,
+      keyId,
+      publicKey,
+      keyStore,
+      chainId: CHAIN_ID,
+      verifiedAt: new Date().toISOString(),
+    };
+    rec.authority = result;
+    return result;
+  } catch (err) {
+    console.error("[Stivium] Altana authority verification failed", err);
+    return { ok: false, authorized: false, error: err?.message || String(err) };
+  }
+}
+
+/**
  * Execute a real, deliberately tiny Altana session-key transaction.
  * This is a BNB testnet proof-of-execution: 1 wei is sent to a fixed
  * test-only recipient after the scoped session has been granted.
