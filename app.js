@@ -337,7 +337,8 @@ document.addEventListener("touchend", (e) => {
   if (!btn) return;
   e.preventDefault();
   e.stopPropagation();
-  const name = modalBody?.querySelector(".modal-head h2")?.textContent;
+  const nameEl = modalBody && modalBody.querySelector(".modal-head h2");
+  const name = nameEl ? nameEl.textContent : "";
   if (name && activations[name]) {
     activations[name].stage = "setup";
     renderModal(name);
