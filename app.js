@@ -79,6 +79,30 @@ function fmtUsd(v){
   if(v >= 1_000) return "$" + (v/1_000).toFixed(0) + "K";
   return "$" + v;
 }
+function sourceLabel(a){
+  return a.dataSource === "8004scan-index" ? "8004SCAN INDEX" : "CURATED DEMO";
+}
+function sourceNote(a){
+  return a.dataSource === "8004scan-index"
+    ? "Live registry signal; not a performance or TVL claim."
+    : "Curated demo/catalog metrics; not live performance.";
+}
+function displayStats(a){
+  if(a.dataSource === "8004scan-index"){
+    return [
+      ["Index " + (Number.isFinite(Number(a.indexScore)) ? Number(a.indexScore).toFixed(1) : "—"), "Registry score"],
+      [a.uptimeDays + "d", "Indexed age"],
+      [a.verified ? "Yes" : "No", "Verified"],
+      [a.keyValue, a.keyLabel + " · index-derived"]
+    ];
+  }
+  return [
+    [fmtUsd(a.tvl), "Catalog TVL"],
+    [a.uptimeDays + "d", "Catalog track record"],
+    [a.successRate + "%", "Catalog success rate"],
+    [a.keyValue, a.keyLabel + " · catalog"]
+  ];
+}
 function sparklinePath(hist){
   const w = 100, h = 26, pad = 2;
   const min = Math.min(...hist), max = Math.max(...hist);
@@ -101,8 +125,9 @@ function renderDiversity(){
   const cats = ["Rebalancing","Grid Trading","Yield Optimisation","Health Factor Monitoring"];
   root.innerHTML = cats.map(cat => {
     const items = scored.filter(a => a.cat === cat);
-    const avgSuccess = Math.round(items.reduce((s,a)=>s+a.successRate,0)/items.length);
-    return `<div class="div-card"><div class="cat-name">${cat}</div><div class="cat-metrics"><span>${items.length} agents</span><span>${avgSuccess}% avg success</span></div><div class="div-bar"><i style="width:${avgSuccess}%"></i></div></div>`;
+    const liveCount = items.filter(a => a.dataSource === "8004scan-index").length;
+    const curatedCount = items.length - liveCount;
+    return `<div class="div-card"><div class="cat-name">${cat}</div><div class="cat-metrics"><span>${items.length} agents</span><span>${curatedCount} curated · ${liveCount} live</span></div><div class="div-bar"><i style="width:${Math.min(100, items.length * 25)}%"></i></div></div>`;
   }).join("");
 }
 function render(){
@@ -118,14 +143,10 @@ function render(){
   grid.innerHTML = list.map(a => {
     const badge = TREND_LABEL[a.trendBadge] || "—";
     const act = activations[a.name];
+    const stats = displayStats(a);
     return `<div class="card tier-${a.tier}" data-name="${a.name}">
-      <div class="card-top"><div><h3>${a.name}</h3><div class="cat-tag">${a.cat}</div></div><span class="tier-tag">${TIER_LABEL[a.tier]}</span></div>
-      <div class="stats">
-        <div class="stat"><b>${fmtUsd(a.tvl)}</b><span>TVL managed</span></div>
-        <div class="stat"><b>${a.uptimeDays}d</b><span>Track record</span></div>
-        <div class="stat"><b>${a.successRate}%</b><span>Success rate</span></div>
-        <div class="stat"><b>${a.keyValue}</b><span>${a.keyLabel}</span></div>
-      </div>
+      <div class="card-top"><div><h3>${a.name}</h3><div class="cat-tag">${a.cat}</div><div class="cat-tag" title="${sourceNote(a)}">${sourceLabel(a)}</div></div><span class="tier-tag">${TIER_LABEL[a.tier]}</span></div>
+      <div class="stats">${stats.map(([value,label]) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`).join("")}</div>
       <svg class="spark" width="100" height="26" viewBox="0 0 100 26"><polyline fill="none" stroke="#f0b90b" stroke-width="1.5" points="${sparklinePath(a.hist7)}"/></svg>
       <div class="card-bottom"><span class="trend ${a.trendBadge}">${badge}</span>
         <span class="restraint-pill" title="Share of signals the agent declined for risk">${a.restraint}% restraint</span>
@@ -240,7 +261,8 @@ function renderModal(name){
   } else {
     activateSection = `<div class="success-box"><p>Agent activated${state.onchain && state.txHash ? " on-chain" : ""}</p><div class="detail">Spend cap: $${state.cap || 0}<br>Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none"}<br>Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d") : "OFF"}<br>Expires in ${state.expiry} days<br>${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError || "Waiting…")) : "Mode: local mock"}${state.onchain && state.txHash ? `<br><button class="hire-btn" id="executeAltanaBtn" style="margin-top:10px;">Execute 1 wei test</button>${state.executeTxHash ? `<br>Execute tx: <a href="${state.executeExplorer||('https://testnet.bscscan.com/tx/'+state.executeTxHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.executeTxHash).slice(0,10)}…</a>` : ""}${state.executeError ? `<br><span style="color:var(--coral)">${state.executeError}</span>` : ""}` : ""}${state.x402 ? `<div>x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected"}</div>` : ""}</div></div><div class="modal-actions"><button class="hire-btn ghost" id="revokeBtn">Revoke access</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
   }
-  modalBody.innerHTML = `<div class="modal-head"><div><h2>${a.name}</h2><div class="cat-tag">${a.cat} · ${TIER_LABEL[a.tier]}</div><div class="synced">${syncTime()}</div></div><button class="modal-close" id="xClose">×</button></div><p class="modal-desc">${a.desc}</p><div class="modal-stats"><div class="stat"><b>${fmtUsd(a.tvl)}</b><span>TVL managed</span></div><div class="stat"><b>${a.uptimeDays}d</b><span>Track record</span></div><div class="stat"><b>${a.successRate}%</b><span>Success rate</span></div><div class="stat"><b>${a.keyValue}</b><span>${a.keyLabel}</span></div></div>${breakdown}${activateSection}`;
+  const modalStats = displayStats(a);
+  modalBody.innerHTML = `<div class="modal-head"><div><h2>${a.name}</h2><div class="cat-tag">${a.cat} · ${TIER_LABEL[a.tier]}</div><div class="cat-tag" title="${sourceNote(a)}">${sourceLabel(a)}</div><div class="synced">${syncTime()}</div></div><button class="modal-close" id="xClose">×</button></div><p class="modal-desc">${a.desc}</p><div class="source-note">${sourceNote(a)}</div><div class="modal-stats">${modalStats.map(([value,label]) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`).join("")}</div>${breakdown}${activateSection}`;
   modalBody.querySelector("#xClose").addEventListener("click", closeModal);
   const closeBtn = modalBody.querySelector("#closeBtn");
   if(closeBtn) closeBtn.addEventListener("click", closeModal);
