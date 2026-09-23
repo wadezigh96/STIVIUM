@@ -77,24 +77,36 @@ async function ensureClient() {
 
   client = sdk.createClient({ chains: [sdk.BNB_TESTNET] });
 
-  // Recover an existing passkey wallet when possible; otherwise create one.
-  // This avoids generating a new wallet on every visit.
-  try {
-    if (typeof client.recoverFromPasskey === "function") {
-      wallet = await client.recoverFromPasskey({ rpId: rpId() });
+  // Do not auto-recover before first creation: recovery itself opens the
+  // discoverable-passkey picker. On a first visit that can consume the
+  // biometric prompt and then fall through into a second create prompt.
+  const createdMarker = "1" === localStorage.getItem("stivium_altana_wallet_created");
+  if (createdMarker && typeof client.recoverFromPasskey === "function") {
+    try {
+      wallet = await client.recoverFromPasskey({ rpId: rpId(), chainId: CHAIN_ID });
+    } catch (recoverError) {
+      console.info("[Stivium] Existing Altana passkey could not be recovered; creating a fresh wallet.", recoverError);
+      wallet = null;
+      localStorage.removeItem("stivium_altana_wallet_created");
     }
-  } catch (recoverError) {
-    console.info("[Stivium] No recoverable Altana passkey yet; creating one.", recoverError);
   }
 
   if (!wallet) {
     if (typeof client.createPasskeyWallet !== "function") {
       throw new Error("This browser/SDK cannot create an Altana passkey wallet.");
     }
-    wallet = await client.createPasskeyWallet({
-      name: "Stivium",
-      rpId: rpId(),
-    });
+    window.__stiviumAltanaStatus = "Creating Altana wallet…";
+    window.dispatchEvent(new CustomEvent("stivium-altana-status", { detail: { status: "Creating Altana wallet…" } }));
+    try {
+      wallet = await client.createPasskeyWallet({
+        name: "Stivium Altana Wallet",
+        rpId: rpId(),
+      });
+      localStorage.setItem("stivium_altana_wallet_created", "1");
+    } catch (createError) {
+      localStorage.removeItem("stivium_altana_wallet_created");
+      throw createError;
+    }
   }
 
   if (!wallet?.address || !wallet?.signer) {
@@ -170,7 +182,7 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
       permissions,
       expiry,
       register: true,
-      chainId: CHAIN_ID,
+      chainIds: [CHAIN_ID],
       onStatus: (status, chain) => {
         const label = chain?.chainId ? `${status} (chain ${chain.chainId})` : String(status);
         window.__stiviumAltanaStatus = label;
