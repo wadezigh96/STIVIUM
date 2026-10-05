@@ -1,68 +1,55 @@
 # STIVIUM ERC-8183 Provider
 
-This is the standalone Python provider for the STIVIUM marketplace. It is separated from the Vercel frontend because the BNB Agent SDK provider server runs as a long-lived web process and can watch for funded ERC-8183 jobs. The official SDK provides `create_erc8183_app()` and routes such as `/erc8183/health`, `/erc8183/status`, `/erc8183/negotiate`, and job endpoints.
+Standalone Python provider for the STIVIUM marketplace.
 
-## Render-ready
+Targets BNB Agent SDK 0.5.0 with ERC-8183 commerce, ERC-8004-compatible identity metadata, A2A, and the STIVIUM deterministic task engine.
 
-The repository root contains `render.yaml`, so the provider can be deployed as a Render Blueprint.
+The provider is intentionally separated from the STIVIUM Vercel frontend because the ERC-8183 provider is a long-lived Python web process.
 
-Render supplies a public `RENDER_EXTERNAL_URL` for web services. The Blueprint maps that URL into `ERC8183_AGENT_URL`, which the SDK needs when using its local storage provider.
+## ERC-8183
 
-### Deploy from Android
+GET /erc8183/health
+GET /erc8183/status
+POST /erc8183/negotiate
+GET /erc8183/job/{job_id}
+GET /erc8183/job/{job_id}/response
+GET /erc8183/job/{job_id}/verify
 
-1. Open Render (https://render.com/) and sign in.
-2. Choose **New → Blueprint**.
-3. Connect GitHub and select **wadezigh96/STIVIUM**.
-4. Render should detect `render.yaml`.
-5. Keep the service name `stivium-erc8183-provider` and **Free** plan.
-6. When Render asks for secrets, enter:
-   - `PRIVATE_KEY` — a dedicated **BSC Testnet** wallet private key.
-   - `WALLET_PASSWORD` — a new password used by the provider keystore.
-7. Do **not** put either value in GitHub, Vercel frontend code, or chat.
-8. Deploy.
+## A2A
 
-The provider is configured for **BSC Testnet** only. The SDK documentation confirms that the standalone app creates the HTTP routes and automatically polls for FUNDED jobs.
+GET /.well-known/agent-card.json
+POST /a2a
 
-### After deployment
+## ERC-8004
 
-Copy the provider's Render URL, for example:
+The BNB Agent SDK includes ERC-8004 registration primitives. On-chain registration is intentionally a separate operator-controlled step.
 
-`https://stivium-erc8183-provider.onrender.com`
+## Task engine
 
-The Blueprint already exposes that URL to the provider as `ERC8183_AGENT_URL`. The URL used by STIVIUM itself must include the `/erc8183` suffix:
+The deterministic task engine supports grid trading calculations, health-factor calculations, and yield/risk ranking.
 
-`https://stivium-erc8183-provider.onrender.com/erc8183`
+## Configuration
 
-Then set the STIVIUM Vercel environment variable:
+NETWORK=bsc-testnet
+PRIVATE_KEY=<local secret>
+WALLET_PASSWORD=<local secret>
+ERC8183_AGENT_URL=https://YOUR_PROVIDER_HOST/erc8183
+ERC8183_SERVICE_PRICE=1000000000000000000
 
-`ERC8183_AGENT_URL=https://stivium-erc8183-provider.onrender.com/erc8183`
+Never commit private keys, wallet files, passwords, or .env files.
 
-Redeploy STIVIUM and use **Agent Commerce · ERC-8183 → Check provider**.
+## Local development
 
-### What to verify
-
-- `GET /erc8183/health` → provider responds.
-- `GET /erc8183/status` → provider status responds.
-- STIVIUM's **Check provider** button shows **PROVIDER READY**.
-- Only after that should we enable real create/fund/submit/settle flows.
-
-No fake transaction or fake settlement is included.
-
-## Local run
-
-Python 3.11 is pinned for the Render service.
-
-```bash
 pip install -r requirements.txt
 uvicorn agent:app --host 0.0.0.0 --port 8003
-```
+python -m unittest test_task_engine.py
 
-For local development, copy `.env.example` to `.env` and use a dedicated testnet wallet.
+## Deployment
 
-## Wallet safety
+A render.yaml is included for optional Render deployment. Render is not required for repository testing.
 
-Use a dedicated testnet wallet. Keep `PRIVATE_KEY` and `WALLET_PASSWORD` only in the provider environment. The SDK can encrypt an imported key into its local keystore. Never commit wallet files or secrets. citeturn0search2turn0search4
+After deployment, verify /erc8183/health, /erc8183/status, and /.well-known/agent-card.json.
 
-## Render limitation
+## Safety
 
-A free Render web service is suitable for a hackathon/testnet demo, but a sleeping/free instance can add wake-up latency. Do not treat it as a high-availability production provider. For the first STIVIUM integration, we will verify health/status and then test the ERC-8183 lifecycle deliberately.
+Real blockchain transactions require deliberate operator action. No private key is stored in this repository.
