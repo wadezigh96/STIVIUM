@@ -15,6 +15,12 @@
 | 5 | Filter **Yield Optimisation** → **CompoundKeeper** | Net APY 22.7%; Legendary tier; activate with deposit/withdraw/claim |
 | 6 | Confirm activate → Revoke | Activated state visible; revoke returns to overview |
 
+## TermiX requirement — important
+
+TermiX does **not** require a direct TermiX API/MCP integration. BNB's Build the Era brief says TermiX will hire from the submitted marketplace itself. Eligibility for the TermiX bounty depends on the Agent Advantage Report: at least 3 real tasks, each run with an agent hired through the marketplace and without an agent, with time, cost, output quality, and actual outputs attached.
+
+The current catalog contains a curated/demo layer plus live 8004scan samples. Do not present seeded metrics as production agent track records.
+
 ## Why this matches TermiX
 
 - ≥3 tasks covered in the Advantage Report (security + trading + yield)
