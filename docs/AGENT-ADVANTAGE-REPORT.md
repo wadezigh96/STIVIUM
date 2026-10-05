@@ -1,5 +1,7 @@
 # Agent Advantage Report — TermiX Track
 
+> **Evidence status:** marketplace walkthrough is implemented, but TermiX bounty eligibility still requires three real task pairs with actual agent outputs attached. The current seeded catalog and local activation flow must not be presented as production agent execution.
+
 **Project:** Stivium  
 **Track:** BNB Chain "Build the Era" — TermiX sponsor track ($10,000 USDT)  
 **Repo:** https://github.com/wadezigh96/STIVIUM  
@@ -151,7 +153,7 @@ Allocate a stablecoin sleeve to the highest *reasonable* net yield across Venus-
 | 2 | Grid design | Trading | Yes | 35 min | 4 min | ~31 min | 3 → 5 |
 | 3 | Yield route | Yield | Medium | 22 min | 3 min | ~19 min | 4 → 5 |
 
-**Claim:** For these three tasks, the Stivium path (find by category → read decision metric + rarity/trending → activate with limits) produced **equal or better output in a fraction of the time** versus unaided work.
+**Current prototype claim:** For the three benchmark scenarios below, the Stivium path (find by category → read decision metric + rarity/trending → activate with limits) produced **equal or better output in a fraction of the time** versus unaided work.
 
 **What the marketplace adds beyond a directory**
 
@@ -185,7 +187,11 @@ Allocate a stablecoin sleeve to the highest *reasonable* net yield across Venus-
 | This report | `docs/AGENT-ADVANTAGE-REPORT.md` |
 | Judge path (2 min) | `docs/evidence/JUDGE-PATH.md` |
 
-### Evidence pack (ready for judges)
+### Evidence pack
+
+The judge path is ready for marketplace inspection. The actual-output evidence sheet is `docs/evidence/TERMIX-OUTPUTS.md`; it must be populated from real runs before claiming full TermiX evidence compliance.
+
+### Evidence pack (marketplace walkthrough)
 
 **Live verification (2 minutes — preferred):**
 
