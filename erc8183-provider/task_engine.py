@@ -83,6 +83,52 @@ def _yield(description: str, data: dict[str, Any]) -> dict[str, Any]:
     return {"status": "ok", "ranking": rows}
 
 
+def _rebalancing(description: str, data: dict[str, Any]) -> dict[str, Any]:
+    target = data.get("target")
+    current = data.get("current")
+
+    if not isinstance(target, dict) or not isinstance(current, dict) or not target:
+        return {
+            "status": "needs_input",
+            "required": "JSON fields target and current: {asset: percentage}",
+        }
+
+    assets = sorted(set(target) | set(current))
+    target_total = sum(float(target.get(asset, 0)) for asset in assets)
+    current_total = sum(float(current.get(asset, 0)) for asset in assets)
+
+    if abs(target_total - 100) > 0.0001 or abs(current_total - 100) > 0.0001:
+        return {
+            "status": "needs_input",
+            "required": "target and current weights must each total 100",
+        }
+
+    actions = []
+    for asset in assets:
+        target_pct = float(target.get(asset, 0))
+        current_pct = float(current.get(asset, 0))
+        delta_pct = round(target_pct - current_pct, 6)
+
+        if delta_pct != 0:
+            actions.append(
+                {
+                    "asset": asset,
+                    "current_pct": current_pct,
+                    "target_pct": target_pct,
+                    "delta_pct": delta_pct,
+                    "action": "increase" if delta_pct > 0 else "decrease",
+                }
+            )
+
+    actions.sort(key=lambda item: abs(item["delta_pct"]), reverse=True)
+
+    return {
+        "status": "ok",
+        "actions": actions,
+        "execution": "analysis_only",
+    }
+
+
 def execute_task(description: str) -> dict[str, Any]:
     data = _json_from_description(description)
     lowered = description.lower()
@@ -92,6 +138,8 @@ def execute_task(description: str) -> dict[str, Any]:
         return {"task_type": "health_factor", "output": _health(description, data)}
     if any(word in lowered for word in ("yield", "apy", "apr", "lending")):
         return {"task_type": "yield_optimisation", "output": _yield(description, data)}
+    if any(word in lowered for word in ("rebalancing", "rebalance", "portfolio allocation")):
+        return {"task_type": "rebalancing", "output": _rebalancing(description, data)}
     return {
         "task_type": "general",
         "output": {

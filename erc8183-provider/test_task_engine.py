@@ -23,6 +23,15 @@ class TaskEngineTests(unittest.TestCase):
         result = execute_task("grid trading")
         self.assertEqual(result["output"]["status"], "needs_input")
 
+    def test_rebalancing(self):
+        result = execute_task(
+            'rebalancing {"target":{"BTC":50,"ETH":30,"USDT":20},"current":{"BTC":40,"ETH":40,"USDT":20}}'
+        )
+        self.assertEqual(result["task_type"], "rebalancing")
+        self.assertEqual(result["output"]["status"], "ok")
+        self.assertEqual(result["output"]["actions"][0]["asset"], "BTC")
+        self.assertEqual(result["output"]["actions"][0]["delta_pct"], 10.0)
+
 
 if __name__ == "__main__":
     unittest.main()
