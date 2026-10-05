@@ -26,7 +26,7 @@ The BNB Agent SDK includes ERC-8004 registration primitives. On-chain registrati
 
 ## Task engine
 
-The deterministic task engine supports grid trading calculations, health-factor calculations, and yield/risk ranking.
+The deterministic task engine supports four Build Era task categories: grid trading calculations, health-factor calculations, yield/risk ranking, and portfolio rebalancing analysis.
 
 ## Configuration
 
