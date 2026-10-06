@@ -46,7 +46,11 @@ python -m unittest test_task_engine.py
 
 ## Deployment
 
-A render.yaml is included for optional Render deployment. Render is not required for repository testing.
+The provider is deployment-platform agnostic. Run it as a Python web service with:
+
+uvicorn agent:app --host 0.0.0.0 --port $PORT
+
+The deployment environment must provide the required wallet and ERC-8183 configuration as secrets.
 
 After deployment, verify /erc8183/health, /erc8183/status, and /.well-known/agent-card.json.
 
