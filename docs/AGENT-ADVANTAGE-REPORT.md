@@ -1,6 +1,6 @@
 # Agent Advantage Report — TermiX Track
 
-> **Evidence status:** marketplace walkthrough is implemented, but TermiX bounty eligibility still requires three real task pairs with actual agent outputs attached. The current seeded catalog and local activation flow must not be presented as production agent execution.
+> **Evidence status:** marketplace walkthrough is implemented. **TermiX bounty evidence is not yet complete.** The three benchmark scenarios below are benchmark records for the marketplace decision path, not three completed TermiX hire pairs. The actual-output evidence sheet remains the source of truth for real task-pair evidence.
 
 **Project:** Stivium  
 **Track:** BNB Chain "Build the Era" — TermiX sponsor track ($10,000 USDT)  
@@ -8,7 +8,7 @@
 **Live marketplace:** https://wadezigh96.github.io/STIVIUM/  
 **Date:** September 2026  
 
-This report answers TermiX's core question: **does hiring an agent through the marketplace beat doing the job yourself, and can you prove it?**
+This report documents the intended Agent Advantage methodology and current marketplace evidence. It does **not** claim that the TermiX three-task evidence requirement has been completed.
 
 ---
 
@@ -16,9 +16,9 @@ This report answers TermiX's core question: **does hiring an agent through the m
 
 | Requirement | How this report satisfies it |
 |-------------|------------------------------|
-| ≥ 3 real tasks, each run **with agent** and **without agent** | Tasks 1–3 below |
-| Report **time, cost, output quality** + actual outputs | Tables + output summaries per task |
-| ≥ 1 task from **trading, equities, or security** | Task 1 = security (health factor); Task 2 = trading (grid) |
+| ≥ 3 real tasks, each run **with agent** and **without agent** | **NOT YET EVIDENCED** — benchmark scenarios only; real paired runs must be captured in `docs/evidence/TERMIX-OUTPUTS.md` |
+| Report **time, cost, output quality** + actual outputs | **PARTIAL** — benchmark measurements documented; actual output artifacts still required |
+| ≥ 1 task from **trading, equities, or security** | **DESIGNED** — security and trading scenarios included; real paired evidence still required |
 | Marketplace publicly reachable through judging | Live demo + public GitHub |
 | Four categories at equal depth | Rebalancing, Grid Trading, Yield Optimisation, Health Factor Monitoring — 4 agents each |
 
@@ -67,9 +67,9 @@ Representative Venus-style position: collateral in a volatile asset, debt in sta
 | **Output quality** | **5/5** — Target health-factor band, preferred action (repay vs add collateral), and a short ordered checklist aligned to the allowlist |
 | **Output summary** | Agent path surfaces **min HF maintained** on the card before hire; detail view breaks scarcity / track record / consistency so the hire is not based on name alone |
 
-### Advantage
+### Benchmark delta
 
-~**7× faster**, clearer action parameters, lower chance of under-reacting while HF is still moving. Marketplace value: category metric and score breakdown visible **before** activation.
+~**7× faster** in this benchmark scenario. This is a benchmark of the marketplace-assisted workflow, not audited TermiX agent performance. Marketplace value: category metric and score breakdown visible **before** activation.
 
 ---
 
@@ -103,9 +103,9 @@ Design a grid for a volatile BNB pair: range, step size, capital split, and a ma
 | **Output quality** | **5/5** — Range and step guidance consistent with a drawdown budget; card already shows max drawdown as the decision metric |
 | **Output summary** | Pre-hire signal (max drawdown + rarity tier) reduces "hire the loudest name" bias |
 
-### Advantage
+### Benchmark delta
 
-~**8× faster** planning with volatility-aware parameters. Marketplace value: **max drawdown** is first-class on the card, not buried in a README.
+~**8× faster** in this benchmark scenario. This is a benchmark of the marketplace-assisted workflow, not audited TermiX agent performance. Marketplace value: **max drawdown** is first-class on the card, not buried in a README.
 
 ---
 
@@ -139,9 +139,9 @@ Allocate a stablecoin sleeve to the highest *reasonable* net yield across Venus-
 | **Output quality** | **5/5** — Options ranked with net-APY style metric already on the card; activation limits set before any move |
 | **Output summary** | Decision metric visible pre-hire; session boundaries set at activation |
 
-### Advantage
+### Benchmark delta
 
-~**7× faster** with equal or better fee-aware ranking. Marketplace value: **net APY** as the category key metric, plus activation caps before capital moves.
+~**7× faster** in this benchmark scenario. This is a benchmark of the marketplace-assisted workflow, not audited TermiX agent performance. Marketplace value: **net APY** as the category key metric, plus activation caps before capital moves.
 
 ---
 
@@ -153,7 +153,7 @@ Allocate a stablecoin sleeve to the highest *reasonable* net yield across Venus-
 | 2 | Grid design | Trading | Yes | 35 min | 4 min | ~31 min | 3 → 5 |
 | 3 | Yield route | Yield | Medium | 22 min | 3 min | ~19 min | 4 → 5 |
 
-**Current prototype claim:** For the three benchmark scenarios below, the Stivium path (find by category → read decision metric + rarity/trending → activate with limits) produced **equal or better output in a fraction of the time** versus unaided work.
+**Current prototype claim:** The three scenarios below are benchmark records for the Stivium marketplace workflow. They are **not** presented as three completed TermiX hire pairs.
 
 **What the marketplace adds beyond a directory**
 
@@ -202,7 +202,7 @@ The judge path is ready for marketplace inspection. The actual-output evidence s
 
 Marketplace overview (all four categories, decision metrics on cards) was verified from the live demo on 9 Sep 2026 during report preparation. Cards include HealthSentinel, LatticeBot, GridForge, CompoundKeeper, YieldCartographer, MarginMinder — matching Tasks 1–3.
 
-**Without-agent baseline** (recorded in the task tables above): manual times and quality scores were taken as the comparison arm for each task (Venus-style HF check, grid sketch, multi-protocol APR scan). Re-run anytime with the same stopwatch protocol in Methodology.
+**Benchmark baseline:** manual times and quality scores shown above are benchmark records for the comparison workflow. They should not be treated as audited TermiX evidence until the paired runs and original outputs are captured in `docs/evidence/TERMIX-OUTPUTS.md`.
 
 **Optional on-chain:** Enable “On-chain Altana session” on any activate flow to produce a testnet `grantSession` tx; paste the BscScan link into submission notes when available.
 
