@@ -87,6 +87,30 @@ function sourceNote(a){
     ? "Live registry signal; not a performance or TVL claim."
     : "Curated demo/catalog metrics; not live performance.";
 }
+function buildOrchestrationPlan(agent, activation){
+  const category = String(agent?.category || "").trim();
+  const allowlist = Array.isArray(activation?.allowlist) ? activation.allowlist.slice() : [];
+  const providers = {
+    "Rebalancing": "erc8183",
+    "Grid Trading": "erc8183",
+    "Yield Optimisation": "pancakeswap",
+    "Health Factor Monitoring": "binance-agent-os"
+  };
+
+  return {
+    marketplace: "stivium",
+    agent: agent?.name || "",
+    category,
+    provider: providers[category] || "erc8183",
+    capability: category,
+    allowedActions: allowlist,
+    spendCap: activation?.cap || "",
+    expiryDays: activation?.expiry || "30",
+    executionMode: activation?.onchain === true ? "onchain-opt-in" : "local",
+    shadowMode: activation?.shadow !== false
+  };
+}
+
 function displayStats(a){
   if(a.dataSource === "8004scan-index"){
     return [
@@ -196,7 +220,7 @@ document.getElementById("dismissOnboard").addEventListener("click", () => {
 const overlay = document.getElementById("overlay");
 const modalBody = document.getElementById("modalBody");
 function openModal(name, jumpToSetup){
-  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:true, x402:false, x402Paid:false, x402Ref:null, shadow:true, shadowDays:"3", authorityVerified:false, authority:null};
+  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, shadow:true, shadowDays:"3", authorityVerified:false, authority:null};
   if(jumpToSetup && activations[name].stage === "overview") activations[name].stage = "setup";
   overlay.classList.add("open");
   renderModal(name);
@@ -247,7 +271,7 @@ function renderModal(name){
   } else if(state.stage === "setup"){
     activateSection = `<div class="activate-box">
         <h4 style="font-size:11px;color:var(--text-dim);letter-spacing:.3px;margin:0 0 12px;">Set the boundaries before this agent can act</h4>
-        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="altanaOnchain" ${state.onchain === true ? "checked" : ""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;">On-chain Altana session — <strong style="color:var(--coral)">BNB testnet only</strong>. Live mode is the default.</span></label>
+        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="altanaOnchain" ${state.onchain === true ? "checked" : ""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;">On-chain Altana session — <strong style="color:var(--coral)">BNB testnet only</strong>. Local mode is the default. On-chain activation is opt-in.</span></label>
         <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="x402Pay" ${state.x402?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Pay hire with x402</strong> — demo mock 0.10 USDT.</span></label>
         <div class="field" id="x402PriceRow" style="${state.x402?'':'display:none'}"><label>Hire fee (x402)</label><div style="font-size:13px;color:var(--gold);font-family:'IBM Plex Mono',monospace;">0.10 USDT · eip155:97</div></div>
         <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="shadowMode" ${state.shadow!==false?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Shadow mode first</strong></span></label>
@@ -259,7 +283,7 @@ function renderModal(name){
       </div>
       <div class="modal-actions"><button type="button" class="hire-btn" id="confirmActivate">Confirm & activate</button><button type="button" class="hire-btn ghost" id="closeBtn">Cancel</button></div>`;
   } else {
-    activateSection = `<div class="success-box"><p>Agent activated${state.onchain && state.txHash ? " on-chain" : ""}</p><div class="detail">Spend cap: $${state.cap || 0}<br>Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none"}<br>Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d") : "OFF"}<br>Expires in ${state.expiry} days<br>${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError || "Waiting…")) : "Mode: local mock"}${state.onchain && state.txHash ? `<br><button class="hire-btn" id="executeAltanaBtn" style="margin-top:10px;">Execute 1 wei test</button>${state.executeTxHash ? `<br>Execute tx: <a href="${state.executeExplorer||('https://testnet.bscscan.com/tx/'+state.executeTxHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.executeTxHash).slice(0,10)}…</a>` : ""}${state.executeError ? `<br><span style="color:var(--coral)">${state.executeError}</span>` : ""}` : ""}${state.x402 ? `<div>x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected"}</div>` : ""}</div></div><div class="modal-actions"><button class="hire-btn ghost" id="revokeBtn">Revoke access</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
+    activateSection = `<div class="success-box"><p>Agent activated${state.onchain && state.txHash ? " on-chain" : ""}</p><div class="detail">Spend cap: $${state.cap || 0}<br>Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none"}<br>Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d") : "OFF"}<br>Expires in ${state.expiry} days<br>${state.orchestrationPlan ? `Provider: ${state.orchestrationPlan.provider}<br>Capability: ${state.orchestrationPlan.capability}<br>` : ""}${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError || "Waiting…")) : "Mode: local mock"}${state.onchain && state.txHash ? `<br><button class="hire-btn" id="executeAltanaBtn" style="margin-top:10px;">Execute 1 wei test</button>${state.executeTxHash ? `<br>Execute tx: <a href="${state.executeExplorer||('https://testnet.bscscan.com/tx/'+state.executeTxHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.executeTxHash).slice(0,10)}…</a>` : ""}${state.executeError ? `<br><span style="color:var(--coral)">${state.executeError}</span>` : ""}` : ""}${state.x402 ? `<div>x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected"}</div>` : ""}</div></div><div class="modal-actions"><button class="hire-btn ghost" id="revokeBtn">Revoke access</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
   }
   const modalStats = displayStats(a);
   modalBody.innerHTML = `<div class="modal-head"><div><h2>${a.name}</h2><div class="cat-tag">${a.cat} · ${TIER_LABEL[a.tier]}</div><div class="cat-tag" title="${sourceNote(a)}">${sourceLabel(a)}</div><div class="synced">${syncTime()}</div></div><button class="modal-close" id="xClose">×</button></div><p class="modal-desc">${a.desc}</p><div class="source-note">${sourceNote(a)}</div><div class="modal-stats">${modalStats.map(([value,label]) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`).join("")}</div>${breakdown}${activateSection}`;
@@ -293,7 +317,7 @@ function renderModal(name){
     state.cap = capInput.value || "0";
     state.expiry = expirySelect.value;
     state.allowlist = [...modalBody.querySelectorAll(".chk input[data-opt]:checked")].map(c => c.dataset.opt);
-    state.onchain = onchainEl ? onchainEl.checked : true;
+    state.onchain = onchainEl ? onchainEl.checked : false;
     const shadowEl = modalBody.querySelector("#shadowMode");
     const shadowDaysEl = modalBody.querySelector("#shadowDays");
     state.shadow = shadowEl ? shadowEl.checked : true;
@@ -328,6 +352,10 @@ function renderModal(name){
     }
     if(state.x402){ state.x402Paid = true; state.x402Ref = "x402-mock-" + Date.now().toString(36); }
     const activationFailed = (!!state.altanaError && state.onchain) || (state.onchain && state.authorityVerified === false);
+    if (!activationFailed) {
+      const agent = getAgentCatalog().find(a => a.name === name);
+      state.orchestrationPlan = buildOrchestrationPlan(agent, state);
+    }
     state.stage = activationFailed ? "setup" : "done";
     if (!activationFailed) persistActivations();
     renderModal(name);
