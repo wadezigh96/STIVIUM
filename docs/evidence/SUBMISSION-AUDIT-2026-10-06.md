@@ -11,7 +11,7 @@ Final pre-submission documentation and production-readiness audit of STIVIUM at 
 | Production | PASS | Latest production deployment from c3ff94e is READY |
 | Orchestration | PASS | Marketplace category resolves correctly from catalog field cat |
 | x402/B402 | PASS | Clearly documented as mock; no live settlement claimed |
-| Altana | PARTIAL | Testnet integration exists; live transaction evidence not captured in this audit |
+| Altana | PASS | Live BNB Testnet session-key transaction verified; scoped call permission, spend cap, expiry, grant and execution proof captured in docs/evidence/ALTANA-ONCHAIN-PROOF-2026-10-06.json |
 | ERC-8183 provider | PARTIAL | Provider/task engine exists; no live third-party escrow settlement claimed |
 | TermiX evidence | NOT COMPLETE | Three real task pairs with actual outputs are not captured |
 | Seeded metrics | PASS WITH DISCLOSURE | Documentation labels catalog metrics as seeded/demo data |
@@ -35,7 +35,7 @@ The latest verified activation path produced:
 - x402: paid mock
 
 ## Safety
-No blockchain transaction, mainnet activation, TermiX hire, or live escrow settlement was performed by this audit.
+No mainnet activation, TermiX hire, or live escrow settlement was performed by this audit. Altana BNB Testnet grant and session-key execution were subsequently captured and verified in docs/evidence/ALTANA-ONCHAIN-PROOF-2026-10-06.json.
 
 ## Submission recommendation
-STIVIUM main marketplace is ready for presentation. TermiX, Altana, and other partner-track claims must be submitted only with the evidence actually captured for each track.
+STIVIUM main marketplace is ready for presentation. Altana has verified BNB Testnet onchain evidence; TermiX and other partner-track claims must be submitted only with the evidence actually captured for each track.
