@@ -55,7 +55,7 @@ https://github.com/wadezigh96/STIVIUM
 **Prototype stage**
 
 ```
-Interactive prototype. Full journey works in the browser: filter, compare, activate, revoke. Scoring is live client-side. Metrics seeded; activation ready for on-chain Altana session keys; x402 hire payment mocked in UI.
+Interactive prototype. Full journey works in the browser: filter, compare, activate, revoke. Scoring is live client-side. Metrics seeded; Altana session-key integration has a verified live BNB Testnet execution with scoped permissions, spend cap, expiry, and on-chain grant. x402 hire payment remains mocked in UI.
 ```
 
 **Additional notes**
@@ -64,6 +64,8 @@ Interactive prototype. Full journey works in the browser: filter, compare, activ
 Public MIT repo. Docs map to Functionality / Data Quality / Agent Diversity.
 TermiX: docs/AGENT-ADVANTAGE-REPORT.md + docs/evidence/JUDGE-PATH.md
 Altana: docs/ALTANA.md + altana-wire.js
+Altana live proof: docs/evidence/ALTANA-ONCHAIN-PROOF-2026-10-06.json
+BNB Testnet execution tx: 0x3465984ae35187a39bc1d8dd0da9449225470621d20b8a3263089072e800ac8d
 x402: docs/X402.md (hire payment mock; live B402 needs merchant API)
 ```
 
