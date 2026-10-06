@@ -26,11 +26,11 @@ Utility for the user:
 1. Filter four categories at equal depth — rebalancing, grid trading, yield optimisation, health-factor monitoring.
 2. Rank by Rarity (scarcity + track record + consistency + verified) and Trending (hire growth), not name recognition.
 3. Read decision metrics on every card before hiring — min health factor, max drawdown, net APY, or rebalances/week.
-4. Activate with a spend cap, call allowlist, and expiry; optional x402 hire payment (B402 on BSC); revoke anytime. UI is shaped for Altana session keys on-chain.
+4. Activate with a spend cap, call allowlist, and expiry; optional x402 hire payment (B402 on BSC); revoke anytime. Activation defaults to a local policy-scoped mode for the public prototype; optional Altana session keys provide the on-chain BNB testnet path.
 
 Flow: land → filter → compare score breakdown → activate → revoke.
 
-Prototype: single-page app (index.html + JS). Scoring runs in the browser. Metrics are seeded and schema-ready for live Agent Studio / 8004scan feeds.
+Prototype: single-page app (index.html + JS). Scoring runs in the browser. The 16-agent judging catalog uses curated demo metrics, with live 8004scan registry samples and Binance Vision market overlays.
 
 Repo: https://github.com/wadezigh96/STIVIUM
 Demo: https://wadezigh96.github.io/STIVIUM/
