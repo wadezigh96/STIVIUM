@@ -88,7 +88,7 @@ function sourceNote(a){
     : "Curated demo/catalog metrics; not live performance.";
 }
 function buildOrchestrationPlan(agent, activation){
-  const category = String(agent?.category || "").trim();
+  const category = String(agent?.category || agent?.cat || "").trim();
   const allowlist = Array.isArray(activation?.allowlist) ? activation.allowlist.slice() : [];
   const providers = {
     "Rebalancing": "erc8183",
