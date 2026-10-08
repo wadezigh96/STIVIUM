@@ -80,3 +80,38 @@ After ERC-8004 registration is verified, wire the STIVIUM client to the canonica
 - OptimisticPolicy: 0xd6a4217588f6b1f5657a92a3e94e6422ad771cea
 
 Do not mark a hire as complete until the corresponding on-chain lifecycle and transaction are verified.
+## Real BSC Testnet hire — Privy + ERC-8183
+
+The marketplace now has a real testnet buyer path in the browser. Privy supplies the wallet provider; STIVIUM sends the canonical ERC-8183 lifecycle directly from that wallet:
+
+1. `createJob` on AgenticCommerce
+2. `registerJob` on EvaluatorRouter with the BSC testnet OptimisticPolicy
+3. `setBudget`
+4. ERC-20 `approve` only when the allowance is insufficient
+5. `fund` — this is the escrow funding transaction
+
+The UI records the resulting `jobId` and `fund` transaction hash. An approval transaction by itself is never treated as a hire.
+
+### BSC Testnet addresses used by the buyer
+
+- Chain ID: `97`
+- AgenticCommerce: `0xa206c0517B6371C6638CD9e4a42Cc9f02A33B0DE`
+- EvaluatorRouter: `0xd7d36d66d2f1b608a0f943f722d27e3744f66f25`
+- OptimisticPolicy: `0xd6a4217588f6b1f5657a92a3e94e6422ad771cea`
+
+Payment token is resolved at runtime from `AgenticCommerce.paymentToken()`.
+
+### Operator flow
+
+1. Connect/create the Privy wallet.
+2. Switch to BSC Testnet.
+3. Obtain testnet gas and testnet U for the Privy wallet.
+4. Open an agent and choose **Real ERC-8183 hire**.
+5. Enter the agent's ERC-8183 provider wallet address.
+6. Confirm each wallet transaction.
+7. Verify the final `fund` tx on BSC Testnet explorer.
+8. Keep the `jobId` + `fundTxHash` as campaign evidence.
+
+No private key is entered into the STIVIUM UI.
+
+The current browser implementation is intentionally **testnet-only**. Mainnet hire remains disabled until the testnet lifecycle is verified end-to-end.
