@@ -272,7 +272,7 @@ function renderModal(name){
     activateSection = `<div class="activate-box">
         <h4 style="font-size:11px;color:var(--text-dim);letter-spacing:.3px;margin:0 0 12px;">Set the boundaries before this agent can act</h4>
         <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="altanaOnchain" ${state.onchain === true ? "checked" : ""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;">On-chain Altana session — <strong style="color:var(--coral)">BNB testnet only</strong>. Local mode is the default. On-chain activation is opt-in.</span></label>
-        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="erc8183Pay" ${state.erc8183?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Real ERC-8183 hire</strong> — BSC Testnet via Privy, 0.10 U escrow.</span></label><div class="field" id="erc8183ProviderRow" style="${state.erc8183?"":"display:none"}"><label>Provider address</label><input type="text" id="erc8183Provider" placeholder="0x… provider wallet" value="${state.erc8183Provider||""}" autocomplete="off"><div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Provider wallet only. Never paste a private key.</div></div>
+        <label class="chk" style="margin-bottom:10px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="erc8183Pay" ${state.erc8183?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Real ERC-8183 hire</strong> — BSC Testnet via Privy, 0.10 U escrow.</span></label><div id="erc8183TestnetWalletBox" style="display:${state.erc8183?"":"none"};margin:-2px 0 12px;padding:10px 12px;border:1px solid var(--accent-border);border-radius:11px;background:rgba(240,185,11,.04);"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><button type="button" class="hire-btn" id="connectErc8183Testnet">Connect Testnet Wallet</button><span id="erc8183ChainStatus" style="font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);">BSC Testnet · chain 97 required</span></div><div style="font-size:10px;color:var(--text-muted);margin-top:7px;">Hire uses BSC Testnet (chain 97). Swap continues to use BNB Mainnet.</div></div><div class="field" id="erc8183ProviderRow" style="${state.erc8183?"":"display:none"}"><label>Provider address</label><input type="text" id="erc8183Provider" placeholder="0x… provider wallet" value="${state.erc8183Provider||""}" autocomplete="off"><div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Provider wallet only. Never paste a private key.</div></div>
         <div class="field" id="x402PriceRow" style="${state.x402?'':'display:none'}"><label>Hire fee (x402)</label><div style="font-size:13px;color:var(--gold);font-family:'IBM Plex Mono',monospace;">0.10 USDT · eip155:97</div></div>
         <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="shadowMode" ${state.shadow!==false?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Shadow mode first</strong></span></label>
         <div class="field" id="shadowDaysRow" style="${state.shadow===false?'display:none':''}"><label>Shadow window</label><select class="expiry" id="shadowDays"><option value="1" ${state.shadowDays==="1"?"selected":""}>1 day observe</option><option value="3" ${!state.shadowDays||state.shadowDays==="3"?"selected":""}>3 days observe</option><option value="7" ${state.shadowDays==="7"?"selected":""}>7 days observe</option></select></div>
@@ -303,7 +303,24 @@ function renderModal(name){
   const x402Pay = modalBody.querySelector("#x402Pay");
   if(x402Pay){ x402Pay.addEventListener("change", () => { state.x402 = x402Pay.checked; const row = modalBody.querySelector("#x402PriceRow"); if(row) row.style.display = x402Pay.checked ? "" : "none"; }); }
   const erc8183Pay = modalBody.querySelector("#erc8183Pay");
-  if(erc8183Pay){ erc8183Pay.addEventListener("change", () => { state.erc8183 = erc8183Pay.checked; const row = modalBody.querySelector("#erc8183ProviderRow"); if(row) row.style.display = erc8183Pay.checked ? "" : "none"; }); }
+  const erc8183TestnetWalletBox = modalBody.querySelector("#erc8183TestnetWalletBox");
+  const erc8183ChainStatus = modalBody.querySelector("#erc8183ChainStatus");
+  const connectErc8183Testnet = modalBody.querySelector("#connectErc8183Testnet");
+  if(erc8183Pay){ erc8183Pay.addEventListener("change", () => { state.erc8183 = erc8183Pay.checked; const row = modalBody.querySelector("#erc8183ProviderRow"); if(row) row.style.display = erc8183Pay.checked ? "" : "none"; if(erc8183TestnetWalletBox) erc8183TestnetWalletBox.style.display = erc8183Pay.checked ? "" : "none"; }); }
+  if(connectErc8183Testnet){ connectErc8183Testnet.addEventListener("click", async () => {
+    connectErc8183Testnet.disabled = true; connectErc8183Testnet.textContent = "Switching to Testnet…";
+    try {
+      if(!window.__stiviumPrivy || typeof window.__stiviumPrivy.login !== "function") throw new Error("Privy is still loading. Please wait a moment.");
+      const address = await window.__stiviumPrivy.login();
+      if(typeof window.__stiviumPrivy.ensureBsc !== "function") throw new Error("Testnet wallet bridge is unavailable.");
+      await window.__stiviumPrivy.ensureBsc();
+      if(erc8183ChainStatus) erc8183ChainStatus.textContent = "BSC Testnet · chain 97 · " + (address ? String(address).slice(0,6)+"…"+String(address).slice(-4) : "connected");
+      connectErc8183Testnet.textContent = "Testnet Wallet Ready";
+    } catch(e) {
+      if(erc8183ChainStatus) erc8183ChainStatus.textContent = e.message || String(e);
+      connectErc8183Testnet.textContent = "Connect Testnet Wallet";
+    } finally { connectErc8183Testnet.disabled = false; }
+  }); }
   const shadowMode = modalBody.querySelector("#shadowMode");
   if(shadowMode){ shadowMode.addEventListener("change", () => { state.shadow = shadowMode.checked; const row = modalBody.querySelector("#shadowDaysRow"); if(row) row.style.display = shadowMode.checked ? "" : "none"; const bl = modalBody.querySelector("#blastShadow"); if(bl) bl.textContent = shadowMode.checked ? "Shadow ON" : "Shadow OFF"; }); }
   const capInputLive = modalBody.querySelector("#capInput");
