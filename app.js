@@ -87,6 +87,11 @@ function sourceNote(a){
     ? "Live registry signal; not a performance or TVL claim."
     : "Curated demo/catalog metrics; not live performance.";
 }
+function getErc8183Provider(agent, activation){
+  const p = String(agent?.erc8183Provider || activation?.erc8183Provider || "").trim();
+  return /^0x[a-fA-F0-9]{40}$/.test(p) ? p : "";
+}
+
 function buildOrchestrationPlan(agent, activation){
   const category = String(agent?.category || agent?.cat || "").trim();
   const allowlist = Array.isArray(activation?.allowlist) ? activation.allowlist.slice() : [];
@@ -102,7 +107,7 @@ function buildOrchestrationPlan(agent, activation){
   // hire appear as "local mock".
   const isRealErc8183 = activation?.erc8183 === true && !!activation?.erc8183FundTxHash;
   const isRealAltana = activation?.onchain === true && activation?.authorityVerified === true;
-  const provider = isRealErc8183 ? "erc8183" : (providers[category] || "erc8183");
+  const provider = isRealErc8183 ? (activation.erc8183Provider || "erc8183") : (providers[category] || "erc8183");
 
   return {
     marketplace: "stivium",
@@ -258,6 +263,7 @@ function renderModal(name){
   const scored = computeScores(getAgentCatalog());
   const a = scored.find(x => x.name === name);
   const state = activations[name];
+  if(!state.erc8183Provider && a?.erc8183Provider) state.erc8183Provider = a.erc8183Provider;
   const allow = ALLOWLIST_OPTIONS[a.cat];
   const breakdown = `
     <div class="breakdown">
@@ -281,8 +287,8 @@ function renderModal(name){
     activateSection = `<div class="activate-box">
         <h4 style="font-size:11px;color:var(--text-dim);letter-spacing:.3px;margin:0 0 12px;">Set the boundaries before this agent can act</h4>
         <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="altanaOnchain" ${state.onchain === true ? "checked" : ""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;">On-chain Altana session — <strong style="color:var(--coral)">BNB testnet only</strong>. Local mode is the default. On-chain activation is opt-in.</span></label>
-        <label class="chk" style="margin-bottom:10px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="erc8183Pay" ${state.erc8183?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Real ERC-8183 hire</strong> — BSC Testnet via Privy, 0.10 U escrow.</span></label><div id="erc8183TestnetWalletBox" style="display:${state.erc8183?"":"none"};margin:-2px 0 12px;padding:10px 12px;border:1px solid var(--accent-border);border-radius:11px;background:rgba(240,185,11,.04);"><div style="font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);">Uses the connected wallet above · switches to BSC Testnet (chain 97) when you confirm.</div><div id="erc8183ChainStatus" style="font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);margin-top:6px;">BSC Testnet · chain 97</div><div style="font-size:10px;color:var(--text-muted);margin-top:7px;">One wallet connection for the whole app. Swap switches to BNB Mainnet only when needed.</div></div></div><div class="field" id="erc8183ProviderRow" style="${state.erc8183?"":"display:none"}"><label>Provider address</label><input type="text" id="erc8183Provider" placeholder="0x… provider wallet" value="${state.erc8183Provider||""}" autocomplete="off"><div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Provider wallet only. Never paste a private key.</div></div>
-        <div class="field" id="x402PriceRow" style="${state.x402?'':'display:none'}"><label>Hire fee (x402)</label><div style="font-size:13px;color:var(--gold);font-family:'IBM Plex Mono',monospace;">0.10 USDT · eip155:97</div></div>
+        <label class="chk" style="margin-bottom:10px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="erc8183Pay" ${state.erc8183?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Real ERC-8183 hire</strong> — BSC Testnet via Privy, 0.10 U escrow.</span></label><div id="erc8183TestnetWalletBox" style="display:${state.erc8183?"":"none"};margin:-2px 0 12px;padding:10px 12px;border:1px solid var(--accent-border);border-radius:11px;background:rgba(240,185,11,.04);"><div style="font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);">Uses the connected wallet above · switches to BSC Testnet (chain 97) when you confirm.</div><div id="erc8183ChainStatus" style="font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);margin-top:6px;">BSC Testnet · chain 97</div><div style="font-size:10px;color:var(--text-muted);margin-top:7px;">One wallet connection for the whole app. Swap switches to BNB Mainnet only when needed.</div></div></div><div class="field" id="erc8183ProviderRow" style="${state.erc8183?"":"display:none"}"><label>Provider address</label><input type="text" id="erc8183Provider" placeholder="0x… provider wallet" value="${state.erc8183Provider || a.erc8183Provider || ""}" autocomplete="off"><div style="font-size:11px;color:var(--text-dim);margin-top:6px;">${a.erc8183Provider ? (a.erc8183ProviderLabel || "Verified testnet provider") : "No real provider is mapped to this catalog row."} Provider wallet only. Never paste a private key.</div></div>
+        <div class="field" id="x402PriceRow" style="${state.x402?'':'display:none'}"><label>Hire fee (x402)</label><div style="font-size:13px;color:var(--gold);font-family:'IBM Plex Mono',monospace;">x402 integration unavailable · no payment sent</div></div>
         <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="shadowMode" ${state.shadow!==false?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Shadow mode first</strong></span></label>
         <div class="field" id="shadowDaysRow" style="${state.shadow===false?'display:none':''}"><label>Shadow window</label><select class="expiry" id="shadowDays"><option value="1" ${state.shadowDays==="1"?"selected":""}>1 day observe</option><option value="3" ${!state.shadowDays||state.shadowDays==="3"?"selected":""}>3 days observe</option><option value="7" ${state.shadowDays==="7"?"selected":""}>7 days observe</option></select></div>
         <div class="field"><label>Spend cap (USD)</label><input type="number" id="capInput" placeholder="e.g. 500" value="${state.cap}"></div>
@@ -292,7 +298,7 @@ function renderModal(name){
       </div>
       <div class="modal-actions"><button type="button" class="hire-btn" id="confirmActivate">Confirm & activate</button><button type="button" class="hire-btn ghost" id="closeBtn">Cancel</button></div>`;
   } else {
-    activateSection = `<div class="success-box"><p>Agent activated${state.onchain && state.txHash ? " on-chain" : ""}</p><div class="detail">Spend cap: $${state.cap || 0}<br>Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none"}<br>Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d") : "OFF"}<br>Expires in ${state.expiry} days<br>${state.orchestrationPlan ? `Provider: ${state.orchestrationPlan.provider}<br>Capability: ${state.orchestrationPlan.capability}<br>` : ""}${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError || "Waiting…")) : "Mode: local mock"}${state.onchain && state.txHash ? `<br><button class="hire-btn" id="executeAltanaBtn" style="margin-top:10px;">Execute 1 wei test</button>${state.executeTxHash ? `<br>Execute tx: <a href="${state.executeExplorer||('https://testnet.bscscan.com/tx/'+state.executeTxHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.executeTxHash).slice(0,10)}…</a>` : ""}${state.executeError ? `<br><span style="color:var(--coral)">${state.executeError}</span>` : ""}` : ""}${state.x402 ? `<div>x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected"}</div>` : ""}${state.erc8183 ? `<div>ERC-8183: BSC Testnet · job ${state.erc8183JobId||"—"}${state.erc8183FundTxHash ? `<br>Fund tx: <a href="https://testnet.bscscan.com/tx/${state.erc8183FundTxHash}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.erc8183FundTxHash).slice(0,10)}…</a>` : ""}${state.erc8183Error ? `<br><span style="color:var(--coral)">${state.erc8183Error}</span>` : ""}</div>` : ""}${state.erc8183 ? `<div>ERC-8183: BSC Testnet · job ${state.erc8183JobId||"—"}${state.erc8183FundTxHash ? `<br>Fund tx: <a href="https://testnet.bscscan.com/tx/${state.erc8183FundTxHash}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.erc8183FundTxHash).slice(0,10)}…</a>` : ""}${state.erc8183Error ? `<br><span style="color:var(--coral)">${state.erc8183Error}</span>` : ""}</div>` : ""}</div></div><div class="modal-actions"><button class="hire-btn ghost" id="revokeBtn">Revoke access</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
+    activateSection = `<div class="success-box"><p>Agent activated${state.onchain && state.txHash ? " on-chain" : ""}</p><div class="detail">Spend cap: $${state.cap || 0}<br>Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none"}<br>Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d") : "OFF"}<br>Expires in ${state.expiry} days<br>${state.orchestrationPlan ? `Provider: ${state.orchestrationPlan.provider}<br>Capability: ${state.orchestrationPlan.capability}<br>` : ""}${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError || "Waiting…")) : (state.erc8183FundTxHash ? "Mode: ERC-8183 BSC Testnet" : "Mode: local mock"))}${state.onchain && state.txHash ? `<br><button class="hire-btn" id="executeAltanaBtn" style="margin-top:10px;">Execute 1 wei test</button>${state.executeTxHash ? `<br>Execute tx: <a href="${state.executeExplorer||('https://testnet.bscscan.com/tx/'+state.executeTxHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.executeTxHash).slice(0,10)}…</a>` : ""}${state.executeError ? `<br><span style="color:var(--coral)">${state.executeError}</span>` : ""}` : ""}${state.x402 ? `<div>x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected"}</div>` : ""}${state.erc8183 ? `<div>ERC-8183: BSC Testnet · job ${state.erc8183JobId||"—"}${state.erc8183FundTxHash ? `<br>Fund tx: <a href="https://testnet.bscscan.com/tx/${state.erc8183FundTxHash}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.erc8183FundTxHash).slice(0,10)}…</a>` : ""}${state.erc8183Error ? `<br><span style="color:var(--coral)">${state.erc8183Error}</span>` : ""}</div>` : ""}${state.erc8183 ? `<div>ERC-8183: BSC Testnet · job ${state.erc8183JobId||"—"}${state.erc8183FundTxHash ? `<br>Fund tx: <a href="https://testnet.bscscan.com/tx/${state.erc8183FundTxHash}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.erc8183FundTxHash).slice(0,10)}…</a>` : ""}${state.erc8183Error ? `<br><span style="color:var(--coral)">${state.erc8183Error}</span>` : ""}</div>` : ""}</div></div><div class="modal-actions"><button class="hire-btn ghost" id="revokeBtn">Revoke access</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
   }
   const modalStats = displayStats(a);
   modalBody.innerHTML = `<div class="modal-head"><div><h2>${a.name}</h2><div class="cat-tag">${a.cat} · ${TIER_LABEL[a.tier]}</div><div class="cat-tag" title="${sourceNote(a)}">${sourceLabel(a)}</div><div class="synced">${syncTime()}</div></div><button class="modal-close" id="xClose">×</button></div><p class="modal-desc">${a.desc}</p><div class="source-note">${sourceNote(a)}</div><div class="modal-stats">${modalStats.map(([value,label]) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`).join("")}</div>${breakdown}${activateSection}`;
@@ -341,6 +347,7 @@ function renderModal(name){
     const erc8183ProviderEl = modalBody.querySelector("#erc8183Provider");
     state.erc8183 = !!(erc8183El && erc8183El.checked);
     state.erc8183Provider = erc8183ProviderEl ? erc8183ProviderEl.value.trim() : (state.erc8183Provider || "");
+    if(state.erc8183 && !state.erc8183Provider) state.erc8183Provider = getErc8183Provider(a, state);
     state.erc8183JobId = null; state.erc8183FundTxHash = null; state.erc8183Error = null;
     state.x402Paid = false;
     state.x402Ref = null;
@@ -378,7 +385,8 @@ function renderModal(name){
       confirm.disabled = false;
       confirm.textContent = originalConfirmText || "Confirm & activate";
     }
-    if(state.x402){ state.x402Paid = true; state.x402Ref = "x402-mock-" + Date.now().toString(36); }
+    state.x402Paid = false;
+    state.x402Ref = null;
     const activationFailed = (!!state.altanaError && state.onchain) || (state.onchain && state.authorityVerified === false) || !!state.erc8183Error || (state.erc8183 && !state.erc8183FundTxHash);
     if (!activationFailed) {
       const agent = getAgentCatalog().find(a => a.name === name);
