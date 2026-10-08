@@ -38,7 +38,7 @@ const PANCAKE_V2_MAINNET = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
 const CATEGORY_TARGETS = {
   "Rebalancing": [PANCAKE_V2_MAINNET],
   "Grid Trading": [PANCAKE_V2_MAINNET],
-  "Yield Optimisation": [PANCAKE_V2_TESTNET],
+  "Yield Optimisation": [PANCAKE_V2_MAINNET],
   "Health Factor Monitoring": [],
 };
 
@@ -241,7 +241,7 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
       confirmed: !!receipt,
       warning: receipt
         ? "Real Altana session grant confirmed on BNB mainnet. Mainnet only."
-        : "Real Altana transaction was returned by the confirmed Altana grant. Testnet only.",
+        : "Real Altana transaction was returned by the confirmed Altana grant. mainnet only.",
       grantStatus,
       legs: legs.map(leg => ({
         chainId: leg?.chainId,
