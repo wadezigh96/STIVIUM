@@ -9,10 +9,10 @@ from fastapi.responses import JSONResponse
 from bnbagent.utils import RateLimitExceeded, SlidingWindowLimiter
 
 
-AGENT_NAME = os.getenv("AGENT_NAME", "STIVIUM ERC-8183 Provider")
+AGENT_NAME = os.getenv("AGENT_NAME", "STIVIUM Yield Guardian")
 AGENT_DESCRIPTION = os.getenv(
     "AGENT_DESCRIPTION",
-    "STIVIUM provider for ERC-8183 commerce tasks.",
+    "STIVIUM agent for bounded yield optimisation and on-chain ERC-8183 jobs.",
 )
 BASE_URL = os.getenv(
     "A2A_BASE_URL",
@@ -37,6 +37,8 @@ AGENT_CARD: dict[str, Any] = {
     },
     "defaultInputModes": ["application/json"],
     "defaultOutputModes": ["application/json"],
+    "category": "Yield Optimisation",
+    "protocols": ["A2A", "ERC-8183"],
     "skills": [
         {
             "id": "negotiate-erc8183-job",
@@ -45,6 +47,14 @@ AGENT_CARD: dict[str, Any] = {
                 "Return a wallet-signed ERC-8183 price quote."
             ),
             "tags": ["erc8183", "negotiation", "bnb-chain"],
+            "inputModes": ["application/json"],
+            "outputModes": ["application/json"],
+        },
+        {
+            "id": "yield-risk-ranking",
+            "name": "Rank yield opportunities by risk-adjusted score",
+            "description": "Compare supplied yield candidates using APY minus declared risk and return a deterministic ranking.",
+            "tags": ["yield", "apy", "risk", "bnb-chain"],
             "inputModes": ["application/json"],
             "outputModes": ["application/json"],
         },
