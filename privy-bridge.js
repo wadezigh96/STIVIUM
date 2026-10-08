@@ -20,6 +20,7 @@ const BSC_TESTNET_CHAIN = {
   testnet: true
 };
 const ERC8183_COMMERCE = "0xa206c0517B6371C6638CD9e4a42Cc9f02A33B0DE";
+const ERC8004_REGISTRY = "0x8004A818BFB912233c491871b3d84c89A494BD9e";
 const ERC8183_ROUTER = "0xd7d36d66d2f1b608a0f943f722d27e3744f66f25";
 const ERC8183_POLICY = "0xd6a4217588f6b1f5657a92a3e94e6422ad771cea";
 const ERC8183_EVENT_ABI = [{type:"event",name:"JobCreated",inputs:[{indexed:true,name:"jobId",type:"uint256"},{indexed:true,name:"client",type:"address"},{indexed:true,name:"provider",type:"address"},{indexed:false,name:"evaluator",type:"address"},{indexed:false,name:"expiredAt",type:"uint256"},{indexed:false,name:"hook",type:"address"}]}];
@@ -30,6 +31,9 @@ const ERC8183_COMMERCE_ABI = [
   {type:"function",name:"fund",stateMutability:"nonpayable",inputs:[{name:"jobId",type:"uint256"},{name:"expectedBudget",type:"uint256"},{name:"optParams",type:"bytes"}],outputs:[]}
 ];
 const ERC8183_ROUTER_ABI = [{type:"function",name:"registerJob",stateMutability:"nonpayable",inputs:[{name:"jobId",type:"uint256"},{name:"policy",type:"address"}],outputs:[]}];
+const ERC8004_REGISTRY_ABI = [
+  {type:"function",name:"register",stateMutability:"nonpayable",inputs:[{name:"agentURI",type:"string"}],outputs:[{name:"agentId",type:"uint256"}]}
+];
 const ERC20_ABI = [
   {type:"function",name:"decimals",stateMutability:"view",inputs:[],outputs:[{type:"uint8"}]},
   {type:"function",name:"symbol",stateMutability:"view",inputs:[],outputs:[{type:"string"}]},
@@ -165,6 +169,59 @@ function StiviumPrivyBridge(){
       const from = wallet.address;
       const tx = {from, to, data, value:"0x"+BigInt(value).toString(16)};
       return { hash: await provider.request({method:"eth_sendTransaction", params:[tx]}) };
+    };
+
+    bridge.registerErc8004Agent = async ({name, description, endpoints=[]}) => {
+      if (!(wallet && wallet.address)) throw new Error("Connect Privy before registering an agent.");
+      if (!name || !String(name).trim()) throw new Error("Agent name is required.");
+      if (!ready) throw new Error("Privy is still loading. Please try again.");
+
+      // ERC-8004 registration is a single explicit wallet transaction.
+      const provider = await wallet.getEthereumProvider();
+      const current = await provider.request({method:"eth_chainId"});
+      if (current !== BSC_CHAIN_ID) {
+        await bridge.ensureBsc();
+      }
+
+      const cleanEndpoints = Array.isArray(endpoints) ? endpoints.filter(Boolean).slice(0,8) : [];
+      const registration = {
+        type:"https://eips.ethereum.org/EIPS/eip-8004",
+        name:String(name).trim(),
+        description:String(description || "").trim(),
+        endpoints:cleanEndpoints,
+        version:"1.0"
+      };
+      const agentURI = "data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(registration))));
+      const data = encodeFunctionData({abi:ERC8004_REGISTRY_ABI,functionName:"register",args:[agentURI]});
+      const hash = await provider.request({method:"eth_sendTransaction",params:[{
+        from:wallet.address,
+        to:ERC8004_REGISTRY,
+        data,
+        value:"0x0"
+      }]});
+      const receipt = await waitReceipt(provider, hash);
+      let agentId = null;
+      try {
+        const logs = receipt.logs || [];
+        for (const log of logs) {
+          if (!log || String(log.address).toLowerCase() !== ERC8004_REGISTRY.toLowerCase()) continue;
+          const topics = log.topics || [];
+          if (topics.length >= 2) {
+            agentId = BigInt(topics[1]).toString();
+            break;
+          }
+        }
+      } catch (_) {}
+      return {
+        ok:true,
+        network:"bsc-testnet",
+        chainId:BSC_TESTNET,
+        agentId,
+        transactionHash:hash,
+        agentURI,
+        wallet:wallet.address,
+        explorer:"https://testnet.bscscan.com/tx/"+hash
+      };
     };
 
     bridge.hireErc8183Testnet = async ({provider, description, budgetTokens="0.1", expirySeconds=3600, onProgress}) => {
