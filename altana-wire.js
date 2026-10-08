@@ -1,6 +1,6 @@
 /**
  * Stivium ↔ Altana session-key wiring.
- * REAL BNB Smart Chain Testnet flow only (chain 97).
+ * REAL BNB Smart Chain Mainnet flow only (chain 56).
  *
  * A successful grant returns a real on-chain transaction hash. There is no
  * mock fallback in this module: if the wallet cannot sign/fund the grant,
@@ -8,10 +8,10 @@
  */
 
 const SDK_URL = "https://esm.sh/@altananetwork/sdk@0.9.0";
-const TESTNET_RPC = "https://bsc-testnet-rpc.publicnode.com";
-const EXPLORER_TX = "https://testnet.bscscan.com/tx/";
-const FAUCET_URL = "https://testnet.bnbchain.org/faucet-smart";
-const CHAIN_ID = 97;
+const MAINNET_RPC = "https://bsc-dataseed.binance.org";
+const EXPLORER_TX = "https://bscscan.com/tx/";
+
+const CHAIN_ID = 56;
 const EXECUTION_RECIPIENT = "0x000000000000000000000000000000000000dEaD";
 
 const KEYSTORE_ABI = [{
@@ -25,18 +25,18 @@ const KEYSTORE_ABI = [{
   outputs: [{ type: "bool" }],
 }];
 
-const KEYSTORE_TESTNET = "0x6b8361C29d05D498b1a12B54A37310f94171E94A";
+const KEYSTORE_MAINNET = sdk?.BNB?.keyStore || "";
 
 // Category → allowed contract targets. These are permission boundaries only;
-// the grant itself is executed on Altana's BNB testnet stack.
+// the grant itself is executed on Altana's BNB mainnet stack.
 // Only use contracts that are actually deployed for the selected Altana network.
 // BNB testnet PancakeSwap V2 router: 0x9ac64cc6e4415144c455bd8e4837fea55603e5c3.
 // The previous mainnet addresses are deliberately not reused on chain 97.
 // Aave-like targets are not enabled until a verified BNB testnet deployment is
 // identified; this prevents granting authority to an unverified address.
-const PANCAKE_V2_TESTNET = "0x9ac64cc6e4415144c455bd8e4837fea55603e5c3";
+const PANCAKE_V2_MAINNET = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
 const CATEGORY_TARGETS = {
-  "Rebalancing": [PANCAKE_V2_TESTNET],
+  "Rebalancing": [PANCAKE_V2_MAINNET],
   "Grid Trading": [PANCAKE_V2_TESTNET],
   "Yield Optimisation": [PANCAKE_V2_TESTNET],
   "Health Factor Monitoring": [],
@@ -74,11 +74,11 @@ async function ensureClient() {
 
   assertWebAuthnReady();
   const sdk = await loadSdk();
-  if (!sdk.BNB_TESTNET) {
-    throw new Error("Altana SDK did not expose BNB_TESTNET.");
+  if (!sdk.BNB) {
+    throw new Error("Altana SDK did not expose BNB mainnet.");
   }
 
-  client = sdk.createClient({ chains: [sdk.BNB_TESTNET] });
+  client = sdk.createClient({ chains: [sdk.BNB] });
 
   // Do not auto-recover before first creation: recovery itself opens the
   // discoverable-passkey picker. On a first visit that can consume the
@@ -136,7 +136,7 @@ function usdToNativeWei(usd) {
 async function waitForReceipt(txHash, timeoutMs = 45000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    const response = await fetch(TESTNET_RPC, {
+    const response = await fetch(MAINNET_RPC, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -196,7 +196,7 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
       },
     });
     const grantTimeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Altana session grant is still pending after 90 seconds. The Passkey was accepted, but the Altana relay did not finish. Check the testnet wallet balance/network and try again once.")), 90000)
+      setTimeout(() => reject(new Error("Altana session grant is still pending after 90 seconds. The Passkey was accepted, but the Altana relay did not finish. Check the mainnet wallet balance/network and try again once.")), 90000)
     );
     const session = await Promise.race([grantPromise, grantTimeout]);
 
@@ -239,9 +239,8 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
       walletMode: "passkey",
       chainId: CHAIN_ID,
       confirmed: !!receipt,
-      faucet: FAUCET_URL,
       warning: receipt
-        ? "Real Altana session grant confirmed on BNB testnet. Testnet only."
+        ? "Real Altana session grant confirmed on BNB testnet. Mainnet only."
         : "Real Altana transaction was returned by the confirmed Altana grant. Testnet only.",
       grantStatus,
       legs: legs.map(leg => ({
@@ -261,7 +260,6 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
       wallet: currentWallet?.address || window.__stiviumWalletAddress || null,
       walletMode: wallet ? "passkey" : "none",
       chainId: CHAIN_ID,
-      faucet: FAUCET_URL,
     };
   }
 }
@@ -282,9 +280,9 @@ export async function verifyAgentAuthority(agentName) {
 
     const viem = await import("https://esm.sh/viem@2.37.3");
     const sdk = await loadSdk();
-    const network = sdk.BNB_TESTNET;
+    const network = sdk.BNB;
     const keyStore = network?.keyStore || KEYSTORE_TESTNET;
-    const rpcUrl = network?.publicRpcUrl || TESTNET_RPC;
+    const rpcUrl = network?.publicRpcUrl || MAINNET_RPC;
     const keyId = viem.keccak256(publicKey);
     const publicClient = viem.createPublicClient({
       chain: network,
