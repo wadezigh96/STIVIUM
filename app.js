@@ -234,7 +234,7 @@ document.getElementById("dismissOnboard").addEventListener("click", () => {
 const overlay = document.getElementById("overlay");
 const modalBody = document.getElementById("modalBody");
 function openModal(name, jumpToSetup){
-  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, erc8183:false, erc8183Provider:"", erc8183JobId:null, erc8183FundTxHash:null, erc8183Error:null, shadow:true, shadowDays:"3", authorityVerified:false, authority:null};
+  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, erc8183:true, erc8183Provider:"", erc8183JobId:null, erc8183FundTxHash:null, erc8183Error:null, shadow:true, shadowDays:"3", authorityVerified:false, authority:null};
   if(jumpToSetup && activations[name].stage === "overview") activations[name].stage = "setup";
   overlay.classList.add("open");
   renderModal(name);
