@@ -52,8 +52,11 @@ async function loadSdk() {
 function rpId() {
   const host = location.hostname.toLowerCase();
   if (host === "localhost" || host === "127.0.0.1") return "localhost";
-  // WebAuthn RP ID must be the effective domain (or a registrable
-  // parent domain), never a URL, port, path, or Vercel preview host.
+  // Passkeys are origin-bound. Use the exact production Vercel origin when
+  // running there; GitHub Pages keeps its own exact host. Preview Vercel
+  // deployments intentionally use their own host and therefore create a
+  // separate WebAuthn credential.
+  if (host === "stivium.vercel.app") return "stivium.vercel.app";
   return host;
 }
 
@@ -115,6 +118,9 @@ async function ensureClient() {
 
   window.__stiviumWalletMode = "passkey";
   window.__stiviumWalletAddress = wallet.address;
+  window.dispatchEvent(new CustomEvent("stivium-altana-status", {
+    detail: { status: "Altana connected · " + String(wallet.address).slice(0, 6) + "…" + String(wallet.address).slice(-4), walletAddress: wallet.address, walletMode: "passkey", chainId: CHAIN_ID }
+  }));
   return { client, wallet };
 }
 
