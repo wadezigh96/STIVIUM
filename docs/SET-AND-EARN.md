@@ -1,0 +1,82 @@
+# Set and Earn — STIVIUM qualification plan
+
+This is an evidence checklist, not a claim that campaign requirements are already complete.
+
+## Requirements
+
+| Requirement | STIVIUM implementation | Status |
+|---|---|---|
+| Register campaign wallet first | Operator action on official campaign page | TODO |
+| Hire 3 different agents across 2+ shortlisted marketplaces | Qualifying hire must happen on the shortlisted marketplace | TODO |
+| Each hire has an on-chain hire event | Use the marketplace's real hire/commerce flow | TODO |
+| Own qualifying agent | erc8183-provider/ | IN PROGRESS |
+| ERC-8004 on BSC 56 or 97 | scripts/register-agent.py | READY TO RUN |
+| Campaign wallet owns agent | Verify owner on Identity Registry | TODO |
+| Public agent card | /.well-known/agent-card.json | READY |
+| Listed on shortlisted marketplace | TermiX/KATTEGAT/another shortlisted marketplace | TODO |
+| 3 completed hires from independent wallets | External users complete real jobs | TODO |
+| >=5 on-chain actions on >=3 days | Real category-consistent transactions | TODO |
+
+## ERC-8004
+
+- BSC Testnet: chain ID 97
+- BSC Mainnet: chain ID 56
+- BSC Testnet Identity Registry: 0x8004A818BFB912233c491871b3d84c89A494BD9e
+- BSC Mainnet Identity Registry: 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432
+
+STIVIUM does not store wallet credentials in the repository.
+
+## Registration
+
+Install the provider dependencies, configure the required credentials only in the local environment, and run:
+
+    npm run register:agent:testnet
+
+The script prints the wallet address, ERC-8004 agentId, registration transaction hash, and generated agent URI.
+
+After registration, verify the agent owner, chain, URI and transaction on an ERC-8004 explorer before recording evidence.
+
+## Provider endpoints
+
+    GET /.well-known/agent-card.json
+    POST /a2a
+    GET /erc8183/health
+    GET /erc8183/status
+    POST /erc8183/negotiate
+    GET /erc8183/job/{job_id}
+    GET /erc8183/job/{job_id}/response
+    GET /erc8183/job/{job_id}/verify
+
+The public provider URL must remain reachable because campaign checks may probe agent availability.
+
+## Evidence
+
+    Campaign wallet:
+    Agent name:
+    Network:
+    Chain ID:
+    ERC-8004 agent ID:
+    ERC-8004 registration tx:
+    Agent card URL:
+    Shortlisted marketplace listing URL:
+    Completed hire #1:
+    Completed hire #2:
+    Completed hire #3:
+    On-chain action #1:
+    On-chain action #2:
+    On-chain action #3:
+    On-chain action #4:
+    On-chain action #5:
+    Distinct action dates:
+
+Never count a local activation, token approval, unsigned quote, or mock receipt as a qualifying hire.
+
+## Next P0
+
+After ERC-8004 registration is verified, wire the STIVIUM client to the canonical BSC Testnet ERC-8183 AgenticCommerce stack instead of the current local/mock activation path.
+
+- AgenticCommerce: 0xa206c0517B6371C6638CD9e4a42Cc9f02A33B0DE
+- EvaluatorRouter: 0xd7d36d66d2f1b608a0f943f722d27e3744f66f25
+- OptimisticPolicy: 0xd6a4217588f6b1f5657a92a3e94e6422ad771cea
+
+Do not mark a hire as complete until the corresponding on-chain lifecycle and transaction are verified.
