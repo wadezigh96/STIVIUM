@@ -6,6 +6,19 @@ import { encodeFunctionData, decodeEventLog } from "https://esm.sh/viem@2.45.0";
 const PRIVY_APP_ID = "cmucttpbs02380djmk1jxh9j0";
 const BSC_CHAIN_ID = "0x61";
 const BSC_TESTNET = 97;
+const BSC_TESTNET_CHAIN = {
+  id: BSC_TESTNET,
+  name: "BNB Smart Chain Testnet",
+  nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://data-seed-prebsc-1-s1.bnbchain.org"] },
+    public: { http: ["https://data-seed-prebsc-1-s1.bnbchain.org"] }
+  },
+  blockExplorers: {
+    default: { name: "BscScan", url: "https://testnet.bscscan.com" }
+  },
+  testnet: true
+};
 const ERC8183_COMMERCE = "0xa206c0517B6371C6638CD9e4a42Cc9f02A33B0DE";
 const ERC8183_ROUTER = "0xd7d36d66d2f1b608a0f943f722d27e3744f66f25";
 const ERC8183_POLICY = "0xd6a4217588f6b1f5657a92a3e94e6422ad771cea";
@@ -42,27 +55,42 @@ function StiviumPrivyBridge(){
       // If an embedded wallet already exists, never reopen the Privy connect flow.
       if ((wallet && wallet.address)) return wallet.address;
       await connectOrCreateWallet();
-      return true;
+      const started = Date.now();
+      while (Date.now() - started < 15000) {
+        if (window.__stiviumPrivy?.walletAddress) return window.__stiviumPrivy.walletAddress;
+        await new Promise(r => setTimeout(r, 250));
+      }
+      return window.__stiviumPrivy?.walletAddress || true;
     };
 
     bridge.ensureBsc = async () => {
       if (!(wallet && wallet.address)) throw new Error("No Privy wallet is available. Connect the wallet first.");
       const provider = await wallet.getEthereumProvider();
       const current = await provider.request({method:"eth_chainId"});
-      if (current !== BSC_CHAIN_ID) {
+      if (current === BSC_CHAIN_ID) return true;
+      if (typeof wallet.switchChain === "function") {
         try {
-          await provider.request({method:"wallet_switchEthereumChain", params:[{chainId:BSC_CHAIN_ID}]});
+          await wallet.switchChain(BSC_TESTNET);
+          if (await provider.request({method:"eth_chainId"}) === BSC_CHAIN_ID) return true;
         } catch (e) {
-          if ((e && e.code) === 4902) {
-            await provider.request({method:"wallet_addEthereumChain", params:[{
-              chainId:BSC_CHAIN_ID,
-              chainName:"BNB Smart Chain Testnet",
-              nativeCurrency:{name:"BNB",symbol:"BNB",decimals:18},
-              rpcUrls:["https://data-seed-prebsc-1-s1.bnbchain.org"],
-              blockExplorerUrls:["https://testnet.bscscan.com"]
-            }]});
-          } else throw e;
+          console.warn("[Stivium] Privy switchChain(97) failed; using EIP-1193 fallback.", e);
         }
+      }
+      try {
+        await provider.request({method:"wallet_switchEthereumChain", params:[{chainId:BSC_CHAIN_ID}]});
+      } catch (e) {
+        if ((e && e.code) === 4902) {
+          await provider.request({method:"wallet_addEthereumChain", params:[{
+            chainId:BSC_CHAIN_ID,
+            chainName:BSC_TESTNET_CHAIN.name,
+            nativeCurrency:BSC_TESTNET_CHAIN.nativeCurrency,
+            rpcUrls:BSC_TESTNET_CHAIN.rpcUrls.default.http,
+            blockExplorerUrls:[BSC_TESTNET_CHAIN.blockExplorers.default.url]
+          }]});
+        } else throw e;
+      }
+      if (await provider.request({method:"eth_chainId"}) !== BSC_CHAIN_ID) {
+        throw new Error("Wallet did not switch to BNB Smart Chain Testnet (chain 97).");
       }
       return true;
     };
@@ -179,7 +207,15 @@ if (mount) {
   createRoot(mount).render(
     React.createElement(
       PrivyProvider,
-      {appId: PRIVY_APP_ID},
+      {
+        appId: PRIVY_APP_ID,
+        config: {
+          loginMethods: ["wallet", "email"],
+          defaultChain: BSC_TESTNET_CHAIN,
+          supportedChains: [BSC_TESTNET_CHAIN],
+          embeddedWallets: { createOnLogin: "users-without-wallets" }
+        }
+      },
       React.createElement(StiviumPrivyBridge)
     )
   );
