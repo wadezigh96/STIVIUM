@@ -286,7 +286,6 @@ function renderModal(name){
   } else if(state.stage === "setup"){
     activateSection = `<div class="activate-box">
         <h4 style="font-size:11px;color:var(--text-dim);letter-spacing:.3px;margin:0 0 12px;">Set the boundaries before this agent can act</h4>
-        <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="altanaOnchain" ${state.onchain === true ? "checked" : ""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;">On-chain Altana session — <strong style="color:var(--coral)">BNB testnet only</strong>. Local mode is the default. On-chain activation is opt-in.</span></label>
         <label class="chk" style="margin-bottom:10px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="erc8183Pay" ${state.erc8183?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Real ERC-8183 hire</strong> — BSC Testnet via Privy, 0.10 U escrow.</span></label><div id="erc8183TestnetWalletBox" style="display:${state.erc8183?"":"none"};margin:-2px 0 12px;padding:10px 12px;border:1px solid var(--accent-border);border-radius:11px;background:rgba(240,185,11,.04);"><div style="font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);">Uses the connected wallet above · switches to BSC Testnet (chain 97) when you confirm.</div><div id="erc8183ChainStatus" style="font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);margin-top:6px;">BSC Testnet · chain 97</div><div style="font-size:10px;color:var(--text-muted);margin-top:7px;">One wallet connection for the whole app. Swap switches to BNB Mainnet only when needed.</div></div></div><div class="field" id="erc8183ProviderRow" style="${state.erc8183?"":"display:none"}"><label>Provider address</label><input type="text" id="erc8183Provider" placeholder="0x… provider wallet" value="${state.erc8183Provider || a.erc8183Provider || ""}" autocomplete="off"><div style="font-size:11px;color:var(--text-dim);margin-top:6px;">${a.erc8183Provider ? (a.erc8183ProviderLabel || "Verified testnet provider") : "No real provider is mapped to this catalog row."} Provider wallet only. Never paste a private key.</div></div>
         <div class="field" id="x402PriceRow" style="${state.x402?'':'display:none'}"><label>Hire fee (x402)</label><div style="font-size:13px;color:var(--gold);font-family:'IBM Plex Mono',monospace;">x402 integration unavailable · no payment sent</div></div>
         <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="shadowMode" ${state.shadow!==false?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Shadow mode first</strong></span></label>
@@ -298,7 +297,7 @@ function renderModal(name){
       </div>
       <div class="modal-actions"><button type="button" class="hire-btn" id="confirmActivate">Confirm & activate</button><button type="button" class="hire-btn ghost" id="closeBtn">Cancel</button></div>`;
   } else {
-    activateSection = `<div class="success-box"><p>Agent activated${state.onchain && state.txHash ? " on-chain" : ""}</p><div class="detail">Spend cap: $${state.cap || 0}<br>Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none"}<br>Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d") : "OFF"}<br>Expires in ${state.expiry} days<br>${state.orchestrationPlan ? `Provider: ${state.orchestrationPlan.provider}<br>Capability: ${state.orchestrationPlan.capability}<br>` : ""}${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError || "Waiting…")) : (state.erc8183FundTxHash ? "Mode: ERC-8183 BSC Testnet" : "Mode: local mock"))}${state.onchain && state.txHash ? `<br><button class="hire-btn" id="executeAltanaBtn" style="margin-top:10px;">Execute 1 wei test</button>${state.executeTxHash ? `<br>Execute tx: <a href="${state.executeExplorer||('https://testnet.bscscan.com/tx/'+state.executeTxHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.executeTxHash).slice(0,10)}…</a>` : ""}${state.executeError ? `<br><span style="color:var(--coral)">${state.executeError}</span>` : ""}` : ""}${state.x402 ? `<div>x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected"}</div>` : ""}${state.erc8183 ? `<div>ERC-8183: BSC Testnet · job ${state.erc8183JobId||"—"}${state.erc8183FundTxHash ? `<br>Fund tx: <a href="https://testnet.bscscan.com/tx/${state.erc8183FundTxHash}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.erc8183FundTxHash).slice(0,10)}…</a>` : ""}${state.erc8183Error ? `<br><span style="color:var(--coral)">${state.erc8183Error}</span>` : ""}</div>` : ""}${state.erc8183 ? `<div>ERC-8183: BSC Testnet · job ${state.erc8183JobId||"—"}${state.erc8183FundTxHash ? `<br>Fund tx: <a href="https://testnet.bscscan.com/tx/${state.erc8183FundTxHash}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.erc8183FundTxHash).slice(0,10)}…</a>` : ""}${state.erc8183Error ? `<br><span style="color:var(--coral)">${state.erc8183Error}</span>` : ""}</div>` : ""}</div></div><div class="modal-actions"><button class="hire-btn ghost" id="revokeBtn">Revoke access</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
+    activateSection = `<div class="success-box"><p>Agent hired</p><div class="detail">Spend cap: $${state.cap || 0}<br>Allowed: ${state.allowlist.length ? state.allowlist.join(", ") : "none"}<br>Shadow: ${state.shadow!==false ? ("ON · "+(state.shadowDays||"3")+"d") : "OFF"}<br>Expires in ${state.expiry} days<br>${state.orchestrationPlan ? `Provider: ${state.orchestrationPlan.provider}<br>Capability: ${state.orchestrationPlan.capability}<br>` : ""}${state.onchain ? (state.txHash ? `Tx: <a href="${state.explorer||('https://testnet.bscscan.com/tx/'+state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>` : (state.altanaError || "Waiting…")) : (state.erc8183FundTxHash ? "Mode: ERC-8183 BSC Testnet" : "Mode: local mock"))}${state.onchain && state.txHash ? `<br><button class="hire-btn" id="executeAltanaBtn" style="margin-top:10px;">Execute 1 wei test</button>${state.executeTxHash ? `<br>Execute tx: <a href="${state.executeExplorer||('https://testnet.bscscan.com/tx/'+state.executeTxHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.executeTxHash).slice(0,10)}…</a>` : ""}${state.executeError ? `<br><span style="color:var(--coral)">${state.executeError}</span>` : ""}` : ""}${state.x402 ? `<div>x402: ${state.x402Paid ? ("paid mock · "+(state.x402Ref||"")) : "selected"}</div>` : ""}${state.erc8183 ? `<div>ERC-8183: BSC Testnet · job ${state.erc8183JobId||"—"}${state.erc8183FundTxHash ? `<br>Fund tx: <a href="https://testnet.bscscan.com/tx/${state.erc8183FundTxHash}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.erc8183FundTxHash).slice(0,10)}…</a>` : ""}${state.erc8183Error ? `<br><span style="color:var(--coral)">${state.erc8183Error}</span>` : ""}</div>` : ""}${state.erc8183 ? `<div>ERC-8183: BSC Testnet · job ${state.erc8183JobId||"—"}${state.erc8183FundTxHash ? `<br>Fund tx: <a href="https://testnet.bscscan.com/tx/${state.erc8183FundTxHash}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.erc8183FundTxHash).slice(0,10)}…</a>` : ""}${state.erc8183Error ? `<br><span style="color:var(--coral)">${state.erc8183Error}</span>` : ""}</div>` : ""}</div></div><div class="modal-actions"><button class="hire-btn ghost" id="revokeBtn">Revoke access</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
   }
   const modalStats = displayStats(a);
   modalBody.innerHTML = `<div class="modal-head"><div><h2>${a.name}</h2><div class="cat-tag">${a.cat} · ${TIER_LABEL[a.tier]}</div><div class="cat-tag" title="${sourceNote(a)}">${sourceLabel(a)}</div><div class="synced">${syncTime()}</div></div><button class="modal-close" id="xClose">×</button></div><p class="modal-desc">${a.desc}</p><div class="source-note">${sourceNote(a)}</div><div class="modal-stats">${modalStats.map(([value,label]) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`).join("")}</div>${breakdown}${activateSection}`;
@@ -332,11 +331,10 @@ function renderModal(name){
     const originalConfirmText = confirm.textContent;
     const capInput = modalBody.querySelector("#capInput");
     const expirySelect = modalBody.querySelector("#expirySelect");
-    const onchainEl = modalBody.querySelector("#altanaOnchain");
     state.cap = capInput.value || "0";
     state.expiry = expirySelect.value;
     state.allowlist = [...modalBody.querySelectorAll(".chk input[data-opt]:checked")].map(c => c.dataset.opt);
-    state.onchain = onchainEl ? onchainEl.checked : false;
+    state.onchain = false;
     const shadowEl = modalBody.querySelector("#shadowMode");
     const shadowDaysEl = modalBody.querySelector("#shadowDays");
     state.shadow = shadowEl ? shadowEl.checked : true;
@@ -364,30 +362,9 @@ function renderModal(name){
       } catch(e){ state.erc8183Error = e.message || String(e); }
       confirm.disabled = false; confirm.textContent = originalConfirmText || "Confirm & activate";
     }
-    if(state.onchain){
-      confirm.disabled = true;
-      confirm.textContent = "Loading Altana…";
-      const altanaStatusHandler = (ev) => { if ((ev && ev.detail && ev.detail.status) && confirm.disabled) confirm.textContent = ev.detail.status; };
-      window.addEventListener("stivium-altana-status", altanaStatusHandler);
-      try {
-        if (!window.StiviumAltana && window.__stiviumLoad) {
-          const loadPromise = window.__stiviumLoad("./altana-wire.js","module");
-          const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Altana module took too long to load. Check your internet connection and try again.")), 15000));
-          await Promise.race([loadPromise, timeout]);
-        }
-        confirm.textContent = "Signing session…";
-        if (!window.StiviumAltana || typeof window.StiviumAltana.grantAgentSession !== "function") throw new Error("Altana module failed to load. Please refresh and try again.");
-        const res = await window.StiviumAltana.grantAgentSession({ agentName: name, category: a.cat, capUsd: state.cap, expiryDays: state.expiry, allowlistLabels: state.allowlist });
-        if(res.ok && !res.mock){ state.txHash = res.txHash || null; state.explorer = res.explorer || null; state.walletAddress = res.wallet || null; state.walletMode = res.walletMode || null; state.altanaWarning = res.warning || null; if(window.StiviumAltana && typeof window.StiviumAltana.verifyAgentAuthority === "function"){ const auth = await window.StiviumAltana.verifyAgentAuthority(name); state.authorityVerified = !!(auth.ok && auth.authorized); state.authority = auth; if(!state.authorityVerified) state.altanaError = auth.error || "Altana authority was not verified on-chain."; } }
-        else { state.altanaError = res.error || "REAL Altana grant failed"; state.onchain = true; }
-      } catch(e){ state.altanaError = e.message || String(e); state.onchain = true; }
-      window.removeEventListener("stivium-altana-status", altanaStatusHandler);
-      confirm.disabled = false;
-      confirm.textContent = originalConfirmText || "Confirm & activate";
-    }
     state.x402Paid = false;
     state.x402Ref = null;
-    const activationFailed = (!!state.altanaError && state.onchain) || (state.onchain && state.authorityVerified === false) || !!state.erc8183Error || (state.erc8183 && !state.erc8183FundTxHash);
+    const activationFailed = !!state.erc8183Error || (state.erc8183 && !state.erc8183FundTxHash);
     if (!activationFailed) {
       const agent = getAgentCatalog().find(a => a.name === name);
       state.orchestrationPlan = buildOrchestrationPlan(agent, state);
@@ -409,9 +386,6 @@ function renderModal(name){
   });
   const revoke = modalBody.querySelector("#revokeBtn");
   if(revoke) revoke.addEventListener("click", async () => {
-    if(state.onchain && window.StiviumAltana && typeof window.StiviumAltana.revokeAgentSession === "function"){
-      try { await window.StiviumAltana.revokeAgentSession(name); } catch(e){ console.warn(e); }
-    }
     activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, shadow:true, shadowDays:"3"};
     persistActivations();
     renderModal(name);
