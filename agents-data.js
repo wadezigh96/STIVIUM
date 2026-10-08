@@ -1,4 +1,7 @@
 
+const ERC8183_TEST_PROVIDER = "0xFCeAfEc082f9e8B17CDB51f33C3D5c9759a25E03";
+const ERC8183_TEST_AGENT_ID = 2577;
+
 const AGENTS = [
   {name:"DriftGuard", cat:"Rebalancing", peerCount:3, uptimeDays:410, successRate:96, tvl:1_240_000, verified:true, h24n:38, h24p:22, h7n:210, h7p:150, hist7:[18,20,24,27,30,34,38],
    keyLabel:"Rebalances / wk", keyValue:"12",
@@ -26,7 +29,7 @@ const AGENTS = [
    keyLabel:"Max drawdown", keyValue:"-14.5%",
    desc:"An early-stage grid trader, still tuning its step size and range — higher variance than the established agents in this category."},
 
-  {name:"YieldCartographer", cat:"Yield Optimisation", peerCount:5, uptimeDays:300, successRate:92, tvl:1_450_000, verified:true, h24n:33, h24p:31, h7n:200, h7p:196, hist7:[28,29,29,30,31,32,33],
+  {name:"YieldCartographer", cat:"Yield Optimisation", erc8183Provider:ERC8183_TEST_PROVIDER, erc8004AgentId:ERC8183_TEST_AGENT_ID, erc8183ProviderLabel:"STIVIUM Yield Guardian · ERC-8004 #2577 (testnet test provider)", peerCount:5, uptimeDays:300, successRate:92, tvl:1_450_000, verified:true, h24n:33, h24p:31, h7n:200, h7p:196, hist7:[28,29,29,30,31,32,33],
    keyLabel:"Net APY", keyValue:"18.4%",
    desc:"Continuously scans lending markets and LPs for the best safe yield, moving funds and compounding rewards automatically as rates shift."},
   {name:"HarvestHand", cat:"Yield Optimisation", peerCount:10, uptimeDays:150, successRate:85, tvl:210_000, verified:false, h24n:12, h24p:12, h7n:78, h7p:80, hist7:[11,12,11,12,11,12,12],
@@ -51,7 +54,7 @@ const AGENTS = [
   {name:"CushionBot", cat:"Health Factor Monitoring", peerCount:16, uptimeDays:15, successRate:72, tvl:6_000, verified:false, h24n:6, h24p:1, h7n:24, h7p:7, hist7:[1,2,3,3,4,5,6],
    keyLabel:"Min HF maintained", keyValue:"1.11",
    desc:"A new, thin-margin health-factor agent — still early, watch its track record grow before trusting it with a large position."},
-].map(a => ({...a, dataSource:"curated-demo"}));
+].map(a => ({...a, dataSource:"curated-demo", erc8183Provider:a.erc8183Provider || null}));
 
 const CATEGORIES = ["All", "Rebalancing", "Grid Trading", "Yield Optimisation", "Health Factor Monitoring"];
 const ALLOWLIST_OPTIONS = {
