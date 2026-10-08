@@ -137,6 +137,7 @@
       const desc = (modalBody.querySelector("#listDesc").value || "").trim();
       const keyValue = (modalBody.querySelector("#listKey").value || "").trim();
       if (!name) { modalBody.querySelector("#listName").focus(); return; }
+      if (!Array.isArray(window.AGENTS)) { status.textContent = "Agent catalog is still loading. Please wait a moment and try again."; return; }
       if (window.AGENTS.some((a) => String(a.name).toLowerCase() === name.toLowerCase())) {
         status.textContent = "An agent with this name already exists in the catalog.";
         return;
@@ -167,6 +168,7 @@
           erc8183Provider:null, dataSource:"user-registered"
         };
         persistListed(listedAgents().concat(agent));
+        if (!Array.isArray(window.AGENTS)) window.AGENTS = [];
         window.AGENTS.push(agent);
         status.innerHTML = "Registered successfully · ERC-8004 #"+(result.agentId || "pending")+" · <a href=\""+result.explorer+"\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--gold)\">view tx</a>";
         btn.textContent = "Registered";
