@@ -153,7 +153,7 @@ function StiviumPrivyBridge(){
       const decimals = Number(BigInt(decRaw));
       const parseUnits = (value, digits) => {
         const s = String(value).trim();
-        if(!/^\\d+(\\.\\d+)?$/.test(s)) throw new Error("Invalid ERC-20 budget.");
+        if(!/^\d+(\.\d+)?$/.test(s)) throw new Error("Invalid ERC-20 budget.");
         const parts = s.split(".");
         const fraction = parts[1] || "";
         if(fraction.length > digits) throw new Error("Budget has too many decimal places.");
@@ -161,7 +161,7 @@ function StiviumPrivyBridge(){
       };
       const symbolRaw = await read(token, ERC20_ABI, "symbol");
       let symbol = "U";
-      try { symbol = hexToString(symbolRaw, {size:32}).replace(/\\0/g,"").trim() || "U"; } catch (_) {}
+      try { symbol = hexToString(symbolRaw, {size:32}).replace(/\0/g,"").trim() || "U"; } catch (_) {}
       const amount = parseUnits(budgetTokens, decimals);
       if (amount <= 0n) throw new Error("Budget must be greater than zero.");
       const balRaw = await read(token, ERC20_ABI, "balanceOf", [wallet.address]);
