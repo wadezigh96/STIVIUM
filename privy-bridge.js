@@ -67,6 +67,29 @@ function StiviumPrivyBridge(){
       return true;
     };
 
+    bridge.ensureBscMainnet = async () => {
+      if (!(wallet && wallet.address)) throw new Error("No Privy wallet is available. Connect the wallet first.");
+      const provider = await wallet.getEthereumProvider();
+      const chainId = "0x38";
+      const current = await provider.request({method:"eth_chainId"});
+      if (current !== chainId) {
+        try {
+          await provider.request({method:"wallet_switchEthereumChain", params:[{chainId}]});
+        } catch (e) {
+          if ((e && e.code) === 4902) {
+            await provider.request({method:"wallet_addEthereumChain", params:[{
+              chainId,
+              chainName:"BNB Smart Chain",
+              nativeCurrency:{name:"BNB",symbol:"BNB",decimals:18},
+              rpcUrls:["https://bsc-dataseed.binance.org"],
+              blockExplorerUrls:["https://bscscan.com"]
+            }]});
+          } else throw e;
+        }
+      }
+      return true;
+    };
+
     bridge.sendTransaction = async ({to, data="0x", value=0n, chainId=BSC_TESTNET}) => {
       if (!(wallet && wallet.address)) throw new Error("No Privy wallet is available. Connect the wallet first.");
       const provider = await wallet.getEthereumProvider();
