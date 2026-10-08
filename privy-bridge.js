@@ -168,74 +168,154 @@ function StiviumPrivyBridge(){
     };
 
     bridge.hireErc8183Testnet = async ({provider, description, budgetTokens="0.1", expirySeconds=3600, onProgress}) => {
-      // Global in-flight lock: one Hire click can only start one ERC-8183 lifecycle.
+      // One wallet action per button press. ERC-8183 needs multiple on-chain
+      // calls, but never auto-chain them after a single approval.
       if (stiviumHireInFlight) return await stiviumHireInFlight;
       if (!(wallet && wallet.address)) throw new Error("Connect Privy before hiring.");
 
       stiviumHireInFlight = (async () => {
-      if (!/^0x[a-fA-F0-9]{40}$/.test(provider || "")) throw new Error("No ERC-8183 provider is configured for this agent.");
-      const progress = (step) => { try { if (typeof onProgress === "function") onProgress(step); } catch (_) {} };
-      progress("switch");
-      await bridge.ensureBsc();
-      const rpc = await wallet.getEthereumProvider();
-      const call = async (to, abi, functionName, args) => {
-        const data = encodeFunctionData({abi, functionName, args});
-        const hash = await rpc.request({method:"eth_sendTransaction", params:[{from:wallet.address,to,data,value:"0x0"}]});
-        return await waitReceipt(rpc, hash);
-      };
-      const read = async (to, abi, functionName, args=[]) => {
-        const data = encodeFunctionData({abi, functionName, args});
-        const raw = await rpc.request({method:"eth_call", params:[{to,data},"latest"]});
-        return raw;
-      };
-      const tokenRaw = await read(ERC8183_COMMERCE, ERC8183_COMMERCE_ABI, "paymentToken");
-      const token = "0x" + tokenRaw.slice(-40);
-      const decRaw = await read(token, ERC20_ABI, "decimals");
-      const decimals = Number(BigInt(decRaw));
-      const parseUnits = (value, digits) => {
-        const s = String(value).trim();
-        if(!/^\d+(\.\d+)?$/.test(s)) throw new Error("Invalid ERC-20 budget.");
-        const parts = s.split(".");
-        const fraction = parts[1] || "";
-        if(fraction.length > digits) throw new Error("Budget has too many decimal places.");
-        return BigInt(parts[0]) * (10n ** BigInt(digits)) + BigInt((fraction + "0".repeat(digits)).slice(0, digits));
-      };
-      const symbolRaw = await read(token, ERC20_ABI, "symbol");
-      let symbol = "U";
-      try { symbol = hexToString(symbolRaw, {size:32}).replace(/\0/g,"").trim() || "U"; } catch (_) {}
-      progress("balance");
-      const amount = parseUnits(budgetTokens, decimals);
-      if (amount <= 0n) throw new Error("Budget must be greater than zero.");
-      const balRaw = await read(token, ERC20_ABI, "balanceOf", [wallet.address]);
-      const balance = BigInt(balRaw);
-      if (balance < amount) throw new Error(`Insufficient U balance. Fund this Privy wallet with BSC Testnet U first.`);
-      const expires = BigInt(Math.floor(Date.now()/1000) + Number(expirySeconds));
-      progress("create");
-      const createData = encodeFunctionData({abi:ERC8183_COMMERCE_ABI,functionName:"createJob",args:[provider,ERC8183_ROUTER,expires,description,ERC8183_ROUTER]});
-      const createHash = await rpc.request({method:"eth_sendTransaction",params:[{from:wallet.address,to:ERC8183_COMMERCE,data:createData,value:"0x0"}]});
-      const createReceipt = await waitReceipt(rpc, createHash);
-      let jobId = null;
-      for (const log of (createReceipt.logs || [])) {
-        try {
-          const decoded = decodeEventLog({abi:ERC8183_EVENT_ABI,data:log.data,topics:log.topics});
-          if (decoded.eventName === "JobCreated") { jobId = decoded.args.jobId.toString(); break; }
-        } catch (_) {}
-      }
-      if (!jobId) throw new Error("createJob succeeded but JobCreated event was not found in the receipt.");
-      progress("register");
-      const registerReceipt = await call(ERC8183_ROUTER, ERC8183_ROUTER_ABI, "registerJob", [BigInt(jobId), ERC8183_POLICY]);
-      progress("budget");
-      const budgetReceipt = await call(ERC8183_COMMERCE, ERC8183_COMMERCE_ABI, "setBudget", [BigInt(jobId), amount, "0x"]);
-      const allowanceRaw = await read(token, ERC20_ABI, "allowance", [wallet.address,ERC8183_COMMERCE]);
-      let approvalReceipt = null;
-      if (BigInt(allowanceRaw) < amount) {
-        progress("approve");
-        approvalReceipt = await call(token, ERC20_ABI, "approve", [ERC8183_COMMERCE, amount]);
-      }
-      progress("fund");
-      const fundReceipt = await call(ERC8183_COMMERCE, ERC8183_COMMERCE_ABI, "fund", [BigInt(jobId), amount, "0x"]);
-      return {ok:true,network:"bsc-testnet",chainId:BSC_TESTNET,provider,jobId,budget:budgetTokens,currency:"U",token,createJobTxHash:createHash,createTxHash:createHash,registerJobTxHash:registerReceipt.hash,registerTxHash:registerReceipt.hash,setBudgetTxHash:budgetReceipt.hash,budgetTxHash:budgetReceipt.hash,approveTxHash:approvalReceipt && approvalReceipt.hash,approvalTxHash:approvalReceipt && approvalReceipt.hash,fundTxHash:fundReceipt.hash,explorer:"https://testnet.bscscan.com/tx/"+fundReceipt.hash,wallet:wallet.address};
+        const progress = (step) => { try { if (typeof onProgress === "function") onProgress(step); } catch (_) {} };
+        const rpc = await wallet.getEthereumProvider();
+        const sendAndWait = async (to, abi, functionName, args) => {
+          const data = encodeFunctionData({abi, functionName, args});
+          const hash = await rpc.request({method:"eth_sendTransaction", params:[{from:wallet.address,to,data,value:"0x0"}]});
+          return await waitReceipt(rpc, hash);
+        };
+        const read = async (to, abi, functionName, args=[]) => {
+          const data = encodeFunctionData({abi, functionName, args});
+          const raw = await rpc.request({method:"eth_call", params:[{to,data},"latest"]});
+          return raw;
+        };
+
+        // Resume the next step from the in-memory session, but do exactly one
+        // transaction here and return control to the UI.
+        if (bridge.__erc8183Session) {
+          const s = bridge.__erc8183Session;
+          if (provider && provider !== s.provider) throw new Error("ERC-8183 hire session is already bound to another provider.");
+          await bridge.ensureBsc();
+
+          if (s.step === "register") {
+            progress("register");
+            const receipt = await sendAndWait(ERC8183_ROUTER, ERC8183_ROUTER_ABI, "registerJob", [BigInt(s.jobId), ERC8183_POLICY]);
+            s.step = "budget";
+            return {
+              ok:true, complete:false, step:"budget", nextStep:"budget",
+              provider:s.provider, jobId:s.jobId, budget:budgetTokens, currency:"U", token:s.token,
+              createJobTxHash:s.createJobTxHash, createTxHash:s.createJobTxHash,
+              registerJobTxHash:receipt.hash, registerTxHash:receipt.hash
+            };
+          }
+
+          if (s.step === "budget") {
+            progress("budget");
+            const receipt = await sendAndWait(ERC8183_COMMERCE, ERC8183_COMMERCE_ABI, "setBudget", [BigInt(s.jobId), BigInt(s.amount), "0x"]);
+            const allowanceRaw = await read(s.token, ERC20_ABI, "allowance", [wallet.address, ERC8183_COMMERCE]);
+            s.step = BigInt(allowanceRaw) < BigInt(s.amount) ? "approve" : "fund";
+            return {
+              ok:true, complete:false, step:s.step, nextStep:s.step,
+              provider:s.provider, jobId:s.jobId, budget:budgetTokens, currency:"U", token:s.token,
+              createJobTxHash:s.createJobTxHash, createTxHash:s.createJobTxHash,
+              registerJobTxHash:s.registerJobTxHash, registerTxHash:s.registerJobTxHash,
+              setBudgetTxHash:receipt.hash, budgetTxHash:receipt.hash
+            };
+          }
+
+          if (s.step === "approve") {
+            progress("approve");
+            const receipt = await sendAndWait(s.token, ERC20_ABI, "approve", [ERC8183_COMMERCE, BigInt(s.amount)]);
+            s.approveTxHash = receipt.hash;
+            s.step = "fund";
+            return {
+              ok:true, complete:false, step:"fund", nextStep:"fund",
+              provider:s.provider, jobId:s.jobId, budget:budgetTokens, currency:"U", token:s.token,
+              createJobTxHash:s.createJobTxHash, createTxHash:s.createJobTxHash,
+              registerJobTxHash:s.registerJobTxHash, registerTxHash:s.registerJobTxHash,
+              setBudgetTxHash:s.setBudgetTxHash, budgetTxHash:s.setBudgetTxHash,
+              approveTxHash:s.approveTxHash, approvalTxHash:s.approveTxHash
+            };
+          }
+
+          if (s.step === "fund") {
+            progress("fund");
+            const receipt = await sendAndWait(ERC8183_COMMERCE, ERC8183_COMMERCE_ABI, "fund", [BigInt(s.jobId), BigInt(s.amount), "0x"]);
+            const out = {
+              ok:true, complete:true, step:"done", nextStep:null,
+              network:"bsc-testnet", chainId:BSC_TESTNET, provider:s.provider, jobId:s.jobId,
+              budget:budgetTokens, currency:"U", token:s.token,
+              createJobTxHash:s.createJobTxHash, createTxHash:s.createJobTxHash,
+              registerJobTxHash:s.registerJobTxHash, registerTxHash:s.registerJobTxHash,
+              setBudgetTxHash:s.setBudgetTxHash, budgetTxHash:s.setBudgetTxHash,
+              approveTxHash:s.approveTxHash || null, approvalTxHash:s.approveTxHash || null,
+              fundTxHash:receipt.hash, explorer:"https://testnet.bscscan.com/tx/"+receipt.hash,
+              wallet:wallet.address
+            };
+            bridge.__erc8183Session = null;
+            return out;
+          }
+
+          throw new Error("Unknown ERC-8183 hire step: " + s.step);
+        }
+
+        if (!/^0x[a-fA-F0-9]{40}$/.test(provider || "")) throw new Error("No ERC-8183 provider is configured for this agent.");
+        progress("switch");
+        await bridge.ensureBsc();
+
+        const tokenRaw = await read(ERC8183_COMMERCE, ERC8183_COMMERCE_ABI, "paymentToken");
+        const token = "0x" + tokenRaw.slice(-40);
+        const decRaw = await read(token, ERC20_ABI, "decimals");
+        const decimals = Number(BigInt(decRaw));
+        const parseUnits = (value, digits) => {
+          const s = String(value).trim();
+          if(!/^\\d+(\\.\\d+)?$/.test(s)) throw new Error("Invalid ERC-20 budget.");
+          const parts = s.split(".");
+          const fraction = parts[1] || "";
+          if(fraction.length > digits) throw new Error("Budget has too many decimal places.");
+          return BigInt(parts[0]) * (10n ** BigInt(digits)) + BigInt((fraction + "0".repeat(digits)).slice(0, digits));
+        };
+        const amount = parseUnits(budgetTokens, decimals);
+        if (amount <= 0n) throw new Error("Budget must be greater than zero.");
+        const balRaw = await read(token, ERC20_ABI, "balanceOf", [wallet.address]);
+        if (BigInt(balRaw) < amount) throw new Error("Insufficient U balance. Fund this Privy wallet with BSC Testnet U first.");
+
+        const expires = BigInt(Math.floor(Date.now()/1000) + Number(expirySeconds));
+        progress("create");
+        const createData = encodeFunctionData({
+          abi:ERC8183_COMMERCE_ABI,
+          functionName:"createJob",
+          args:[provider,ERC8183_ROUTER,expires,description,ERC8183_ROUTER]
+        });
+        const createHash = await rpc.request({method:"eth_sendTransaction",params:[{from:wallet.address,to:ERC8183_COMMERCE,data:createData,value:"0x0"}]});
+        const createReceipt = await waitReceipt(rpc, createHash);
+        let jobId = null;
+        for (const log of (createReceipt.logs || [])) {
+          try {
+            const decoded = decodeEventLog({abi:ERC8183_EVENT_ABI,data:log.data,topics:log.topics});
+            if (decoded.eventName === "JobCreated") { jobId = decoded.args.jobId.toString(); break; }
+          } catch (_) {}
+        }
+        if (!jobId) throw new Error("createJob succeeded but JobCreated event was not found in the receipt.");
+
+        bridge.__erc8183Session = {
+          provider,
+          jobId,
+          amount:amount.toString(),
+          token,
+          createJobTxHash:createHash,
+          registerJobTxHash:null,
+          setBudgetTxHash:null,
+          approveTxHash:null,
+          step:"register"
+        };
+
+        return {
+          ok:true, complete:false, step:"register", nextStep:"register",
+          network:"bsc-testnet", chainId:BSC_TESTNET, provider, jobId,
+          budget:budgetTokens, currency:symbol, token,
+          createJobTxHash:createHash, createTxHash:createHash,
+          explorer:"https://testnet.bscscan.com/tx/"+createHash, wallet:wallet.address
+        };
       })();
+
       try { return await stiviumHireInFlight; }
       finally { stiviumHireInFlight = null; }
     };
