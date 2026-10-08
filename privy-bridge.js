@@ -53,15 +53,48 @@ function StiviumPrivyBridge(){
     // Keep the bridge object stable so swap-ui.js does not lose its onStateChange handler.
     bridge.login = async () => {
       if (!ready) throw new Error("Privy is still loading. Please try again.");
-      // If an embedded wallet already exists, never reopen the Privy connect flow.
-      if ((wallet && wallet.address)) return wallet.address;
-      await connectOrCreateWallet();
-      const started = Date.now();
-      while (Date.now() - started < 15000) {
-        if (window.__stiviumPrivy?.walletAddress) return window.__stiviumPrivy.walletAddress;
-        await new Promise(r => setTimeout(r, 250));
+      if (wallet && wallet.address) return wallet.address;
+
+      // connectOrCreateWallet() can resolve before Privy's wallet list has
+      // propagated into React state. Wait for the bridge state event and only
+      // report success once a real wallet address exists.
+      let resolveState;
+      let rejectState;
+      let settled = false;
+      const waitForState = new Promise((resolve, reject) => {
+        resolveState = resolve;
+        rejectState = reject;
+      });
+      const onState = (event) => {
+        const address = event?.detail?.walletAddress;
+        if (address) {
+          settled = true;
+          window.removeEventListener("stivium:privy-state", onState);
+          resolveState(address);
+        }
+      };
+      window.addEventListener("stivium:privy-state", onState);
+
+      try {
+        await connectOrCreateWallet();
+        const immediate = window.__stiviumPrivy?.walletAddress;
+        if (immediate) {
+          settled = true;
+          window.removeEventListener("stivium:privy-state", onState);
+          return immediate;
+        }
+
+        const timeout = new Promise((_, reject) => {
+          setTimeout(() => {
+            if (settled) return;
+            reject(new Error("Wallet connection timed out. Please approve the wallet connection and try again."));
+          }, 20000);
+        });
+        return await Promise.race([waitForState, timeout]);
+      } catch (e) {
+        window.removeEventListener("stivium:privy-state", onState);
+        throw e;
       }
-      return window.__stiviumPrivy?.walletAddress || true;
     };
 
     bridge.ensureBsc = async () => {
