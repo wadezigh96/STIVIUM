@@ -234,7 +234,7 @@ document.getElementById("dismissOnboard").addEventListener("click", () => {
 const overlay = document.getElementById("overlay");
 const modalBody = document.getElementById("modalBody");
 function openModal(name, jumpToSetup){
-  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, erc8183:true, erc8183Provider:"", erc8183JobId:null, erc8183FundTxHash:null, erc8183Error:null, shadow:true, shadowDays:"3", authorityVerified:false, authority:null};
+  if(!activations[name]) activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, erc8183:true, erc8183Provider:"", erc8183JobId:null, erc8183FundTxHash:null, erc8183Error:null, erc8183Step:null, shadow:true, shadowDays:"3", authorityVerified:false, authority:null};
   if(jumpToSetup && activations[name].stage === "overview") activations[name].stage = "setup";
   overlay.classList.add("open");
   renderModal(name);
@@ -284,9 +284,12 @@ function renderModal(name){
   if(state.stage === "overview"){
     activateSection = `<div class="modal-actions"><button type="button" class="hire-btn" id="goSetup" data-agent="${a.name}">Activate agent</button><button class="hire-btn ghost" id="closeBtn">Close</button></div>`;
   } else if(state.stage === "setup"){
+    const ercStepLabels = {register:"Continue · Register job", budget:"Continue · Set budget", approve:"Continue · Approve U", fund:"Continue · Fund job"};
+    const ercActionLabel = state.erc8183Step ? (ercStepLabels[state.erc8183Step] || "Continue ERC-8183") : "Create ERC-8183 job";
+
     activateSection = `<div class="activate-box">
         <h4 style="font-size:11px;color:var(--text-dim);letter-spacing:.3px;margin:0 0 12px;">Set the boundaries before this agent can act</h4>
-        <label class="chk" style="margin-bottom:10px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="erc8183Pay" ${state.erc8183?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Real ERC-8183 hire</strong> — BSC Testnet via Privy, 0.10 U escrow.</span></label><div id="erc8183TestnetWalletBox" style="display:${state.erc8183?"":"none"};margin:-2px 0 12px;padding:10px 12px;border:1px solid var(--accent-border);border-radius:11px;background:rgba(240,185,11,.04);"><div style="font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);">Uses the connected wallet above · switches to BSC Testnet (chain 97) when you confirm.</div><div id="erc8183ChainStatus" style="font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);margin-top:6px;">BSC Testnet · chain 97</div><div style="font-size:10px;color:var(--text-muted);margin-top:7px;">One wallet connection for the whole app. Swap switches to BNB Mainnet only when needed.</div></div></div><div class="field" id="erc8183ProviderRow" style="${state.erc8183?"":"display:none"}"><label>Provider address</label><input type="text" id="erc8183Provider" placeholder="0x… provider wallet" value="${state.erc8183Provider || a.erc8183Provider || ""}" autocomplete="off"><div style="font-size:11px;color:var(--text-dim);margin-top:6px;">${a.erc8183Provider ? (a.erc8183ProviderLabel || "Verified testnet provider") : "No real provider is mapped to this catalog row."} Provider wallet only. Never paste a private key.</div></div>
+        <label class="chk" style="margin-bottom:10px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="erc8183Pay" ${state.erc8183?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Real ERC-8183 hire</strong> — BSC Testnet via Privy, 0.10 U escrow.</span></label><div id="erc8183TestnetWalletBox" style="display:${state.erc8183?"":"none"};margin:-2px 0 12px;padding:10px 12px;border:1px solid var(--accent-border);border-radius:11px;background:rgba(240,185,11,.04);"><div style="font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);">Uses the connected wallet above · switches to BSC Testnet (chain 97) when you confirm.</div><div id="erc8183ChainStatus" style="font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);margin-top:6px;">BSC Testnet · chain 97</div><div style="font-size:10px;color:var(--text-muted);margin-top:7px;">One wallet connection for the whole app. Swap switches to BNB Mainnet only when needed.</div></div></div><div id="erc8183StepStatus" style="font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);margin:-4px 0 12px;">${state.erc8183Step ? ("Next on-chain step: "+(ercStepLabels[state.erc8183Step] || state.erc8183Step)) : "No automatic follow-up transaction will be sent."}</div><div class="field" id="erc8183ProviderRow" style="${state.erc8183?"":"display:none"}"><label>Provider address</label><input type="text" id="erc8183Provider" placeholder="0x… provider wallet" value="${state.erc8183Provider || a.erc8183Provider || ""}" autocomplete="off"><div style="font-size:11px;color:var(--text-dim);margin-top:6px;">${a.erc8183Provider ? (a.erc8183ProviderLabel || "Verified testnet provider") : "No real provider is mapped to this catalog row."} Provider wallet only. Never paste a private key.</div></div>
         <div class="field" id="x402PriceRow" style="${state.x402?'':'display:none'}"><label>Hire fee (x402)</label><div style="font-size:13px;color:var(--gold);font-family:'IBM Plex Mono',monospace;">x402 integration unavailable · no payment sent</div></div>
         <label class="chk" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;"><input type="checkbox" id="shadowMode" ${state.shadow!==false?"checked":""}><span style="font-size:12px;color:var(--text-dim);line-height:1.4;"><strong style="color:var(--text)">Shadow mode first</strong></span></label>
         <div class="field" id="shadowDaysRow" style="${state.shadow===false?'display:none':''}"><label>Shadow window</label><select class="expiry" id="shadowDays"><option value="1" ${state.shadowDays==="1"?"selected":""}>1 day observe</option><option value="3" ${!state.shadowDays||state.shadowDays==="3"?"selected":""}>3 days observe</option><option value="7" ${state.shadowDays==="7"?"selected":""}>7 days observe</option></select></div>
@@ -295,7 +298,7 @@ function renderModal(name){
         <div class="field"><label>Allowed actions</label><div class="checks">${allow.map(opt => `<label class="chk"><input type="checkbox" data-opt="${opt}" ${state.allowlist.includes(opt)?"checked":""}> ${opt}</label>`).join("")}</div></div>
         <div class="field"><label>Expiry</label><select class="expiry" id="expirySelect"><option value="1" ${state.expiry==="1"?"selected":""}>1 day</option><option value="7" ${state.expiry==="7"?"selected":""}>7 days</option><option value="30" ${state.expiry==="30"?"selected":""}>30 days</option></select></div>
       </div>
-      <div class="modal-actions"><button type="button" class="hire-btn" id="confirmActivate">Confirm & activate</button><button type="button" class="hire-btn ghost" id="closeBtn">Cancel</button></div>`;
+      <div class="modal-actions"><button type="button" class="hire-btn" id="confirmActivate">${ercActionLabel}</button><button type="button" class="hire-btn ghost" id="closeBtn">Cancel</button></div>`;
   } else {
     const txLink = state.txHash
       ? `Tx: <a href="${state.explorer || ('https://testnet.bscscan.com/tx/' + state.txHash)}" target="_blank" rel="noopener" style="color:var(--gold)">${String(state.txHash).slice(0,10)}…</a>`
@@ -335,54 +338,88 @@ function renderModal(name){
   const capInputLive = modalBody.querySelector("#capInput");
   if(capInputLive){ capInputLive.addEventListener("input", () => { const el = modalBody.querySelector("#blastCap"); if(el) el.textContent = "$" + (capInputLive.value || "0"); }); }
   const confirm = modalBody.querySelector("#confirmActivate");
-  if(confirm) confirm.onclick = async (event) => {
+  if(confirm) confirm.addEventListener("click", async (event) => {
     event.preventDefault();
     event.stopPropagation();
+    if(confirm.disabled || window.__stiviumUiHireInFlight) return;
+    window.__stiviumUiHireInFlight = true;
+    confirm.disabled = true;
+
     const originalConfirmText = confirm.textContent;
     const capInput = modalBody.querySelector("#capInput");
     const expirySelect = modalBody.querySelector("#expirySelect");
-    state.cap = capInput.value || "0";
-    state.expiry = expirySelect.value;
-    state.allowlist = [...modalBody.querySelectorAll(".chk input[data-opt]:checked")].map(c => c.dataset.opt);
-    state.onchain = false;
     const shadowEl = modalBody.querySelector("#shadowMode");
     const shadowDaysEl = modalBody.querySelector("#shadowDays");
+    const x402El = modalBody.querySelector("#x402Pay");
+    const erc8183ProviderEl = modalBody.querySelector("#erc8183Provider");
+
+    const continuing = !!state.erc8183JobId && !state.erc8183FundTxHash;
+    state.cap = capInput ? (capInput.value || state.cap || "0") : (state.cap || "0");
+    state.expiry = expirySelect ? expirySelect.value : (state.expiry || "30");
+    state.allowlist = [...modalBody.querySelectorAll(".chk input[data-opt]:checked")].map(c => c.dataset.opt);
+    state.onchain = false;
     state.shadow = shadowEl ? shadowEl.checked : true;
     state.shadowDays = shadowDaysEl ? shadowDaysEl.value : "3";
-    const x402El = modalBody.querySelector("#x402Pay");
     state.x402 = !!(x402El && x402El.checked);
-    const erc8183ProviderEl = modalBody.querySelector("#erc8183Provider");
     state.erc8183 = true;
     state.erc8183Provider = erc8183ProviderEl ? erc8183ProviderEl.value.trim() : (state.erc8183Provider || "");
     if(state.erc8183 && !state.erc8183Provider) state.erc8183Provider = getErc8183Provider(a, state);
-    state.erc8183JobId = null; state.erc8183FundTxHash = null; state.erc8183Error = null;
-    state.x402Paid = false;
-    state.x402Ref = null;
-    state.txHash = null;
-    state.explorer = null;
-    state.altanaError = null;
-    if(state.erc8183){
-      confirm.disabled = true; confirm.textContent = "Hiring on BSC Testnet…";
-      try {
-        if(!window.__stiviumPrivy || typeof window.__stiviumPrivy.hireErc8183Testnet !== "function") throw new Error("Privy is still loading. Please wait a moment and try again.");
-        if(!state.erc8183Provider) throw new Error("Enter the provider address for this ERC-8183 agent.");
-        const hire = await window.__stiviumPrivy.hireErc8183Testnet({provider:state.erc8183Provider,description:"STIVIUM hire: "+name+" · "+a.cat,budgetTokens:"0.1",expirySeconds:Math.max(3600,Number(state.expiry||30)*86400)});
-        state.erc8183JobId = hire.jobId; state.erc8183FundTxHash = hire.fundTxHash;
-      } catch(e){ state.erc8183Error = e.message || String(e); }
-      confirm.disabled = false; confirm.textContent = originalConfirmText || "Confirm & activate";
+
+    if(!continuing){
+      state.erc8183JobId = null;
+      state.erc8183FundTxHash = null;
+      state.erc8183CreateTxHash = null;
+      state.erc8183RegisterTxHash = null;
+      state.erc8183BudgetTxHash = null;
+      state.erc8183ApproveTxHash = null;
+      state.erc8183Step = null;
+      state.erc8183Error = null;
+      state.x402Paid = false;
+      state.x402Ref = null;
+      state.txHash = null;
+      state.explorer = null;
+      state.altanaError = null;
     }
-    state.x402Paid = false;
-    state.x402Ref = null;
-    const activationFailed = !!state.erc8183Error || (state.erc8183 && !state.erc8183FundTxHash);
-    if (!activationFailed) {
-      const agent = getAgentCatalog().find(a => a.name === name);
-      state.orchestrationPlan = buildOrchestrationPlan(agent, state);
+
+    try {
+      if(!window.__stiviumPrivy || typeof window.__stiviumPrivy.hireErc8183Testnet !== "function") throw new Error("Privy is still loading. Please wait a moment and try again.");
+      if(!state.erc8183Provider) throw new Error("Enter the provider address for this ERC-8183 agent.");
+      confirm.textContent = continuing ? "Executing one transaction…" : "Creating one ERC-8183 transaction…";
+
+      const hire = await window.__stiviumPrivy.hireErc8183Testnet({
+        provider:state.erc8183Provider,
+        description:"STIVIUM hire: "+name+" · "+a.cat,
+        budgetTokens:"0.1",
+        expirySeconds:Math.max(3600,Number(state.expiry||30)*86400)
+      });
+
+      state.erc8183JobId = hire.jobId || state.erc8183JobId;
+      state.erc8183Step = hire.complete ? null : (hire.nextStep || hire.step || state.erc8183Step);
+      state.erc8183CreateTxHash = hire.createJobTxHash || state.erc8183CreateTxHash;
+      state.erc8183RegisterTxHash = hire.registerJobTxHash || state.erc8183RegisterTxHash;
+      state.erc8183BudgetTxHash = hire.setBudgetTxHash || state.erc8183BudgetTxHash;
+      state.erc8183ApproveTxHash = hire.approveTxHash || state.erc8183ApproveTxHash;
+      state.erc8183FundTxHash = hire.fundTxHash || state.erc8183FundTxHash;
+      state.erc8183Error = null;
+
+      const complete = !!hire.complete && !!state.erc8183FundTxHash;
+      state.stage = complete ? "done" : "setup";
+      if (complete) {
+        state.orchestrationPlan = buildOrchestrationPlan(a, state);
+        persistActivations();
+      }
+    } catch(e) {
+      state.erc8183Error = e.message || String(e);
+      state.stage = "setup";
+    } finally {
+      window.__stiviumUiHireInFlight = false;
+      confirm.disabled = false;
+      confirm.textContent = originalConfirmText || "Continue ERC-8183";
+      renderModal(name);
+      render();
     }
-    state.stage = activationFailed ? "setup" : "done";
-    if (!activationFailed) persistActivations();
-    renderModal(name);
-    render();
-  };  const executeAltanaBtn = modalBody.querySelector("#executeAltanaBtn");
+  });
+  const executeAltanaBtn = modalBody.querySelector("#executeAltanaBtn");
   if(executeAltanaBtn) executeAltanaBtn.addEventListener("click", async () => {
     if(!window.StiviumAltana || typeof window.StiviumAltana.executeAgentSession !== "function") return;
     executeAltanaBtn.disabled = true; executeAltanaBtn.textContent = "Executing 1 wei…";
@@ -395,7 +432,7 @@ function renderModal(name){
   });
   const revoke = modalBody.querySelector("#revokeBtn");
   if(revoke) revoke.addEventListener("click", async () => {
-    activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, shadow:true, shadowDays:"3"};
+    activations[name] = {stage:"overview", cap:"", allowlist:[], expiry:"30", onchain:false, x402:false, x402Paid:false, x402Ref:null, erc8183:true, erc8183Provider:"", erc8183JobId:null, erc8183FundTxHash:null, erc8183Error:null, erc8183Step:null, shadow:true, shadowDays:"3"};
     persistActivations();
     renderModal(name);
     render();
