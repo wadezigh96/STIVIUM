@@ -97,16 +97,25 @@ function buildOrchestrationPlan(agent, activation){
     "Health Factor Monitoring": "binance-agent-os"
   };
 
+  // A real ERC-8183 hire is the source of truth for execution mode.
+  // Do not let the separate Altana on-chain toggle make a real ERC-8183
+  // hire appear as "local mock".
+  const isRealErc8183 = activation?.erc8183 === true && !!activation?.erc8183FundTxHash;
+  const isRealAltana = activation?.onchain === true && activation?.authorityVerified === true;
+  const provider = isRealErc8183 ? "erc8183" : (providers[category] || "erc8183");
+
   return {
     marketplace: "stivium",
     agent: agent?.name || "",
     category,
-    provider: providers[category] || "erc8183",
+    provider,
     capability: category,
     allowedActions: allowlist,
     spendCap: activation?.cap || "",
     expiryDays: activation?.expiry || "30",
-    executionMode: activation?.onchain === true ? "onchain-opt-in" : "local",
+    executionMode: isRealErc8183
+      ? "erc8183-bsc-testnet"
+      : (isRealAltana ? "altana-bsc-testnet" : "local"),
     shadowMode: activation?.shadow !== false
   };
 }
