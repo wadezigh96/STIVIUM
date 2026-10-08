@@ -120,7 +120,7 @@ function buildOrchestrationPlan(agent, activation){
     expiryDays: activation?.expiry || "30",
     executionMode: isRealErc8183
       ? "erc8183-bsc-testnet"
-      : (isRealAltana ? "altana-bsc-testnet" : "local"),
+      : (isRealAltana ? "altana-bsc-mainnet" : "local"),
     shadowMode: activation?.shadow !== false
   };
 }
@@ -316,10 +316,10 @@ function renderModal(name){
   }
   const x402Pay = modalBody.querySelector("#x402Pay");
   if(x402Pay){ x402Pay.addEventListener("change", () => { state.x402 = x402Pay.checked; const row = modalBody.querySelector("#x402PriceRow"); if(row) row.style.display = x402Pay.checked ? "" : "none"; }); }
-  const erc8183Pay = modalBody.querySelector("#erc8183Pay");
+  const erc8183Pay = null;
   const erc8183TestnetWalletBox = modalBody.querySelector("#erc8183TestnetWalletBox");
   const erc8183ChainStatus = modalBody.querySelector("#erc8183ChainStatus");
-  if(erc8183Pay){ erc8183Pay.addEventListener("change", () => { state.erc8183 = erc8183Pay.checked; const row = modalBody.querySelector("#erc8183ProviderRow"); if(row) row.style.display = erc8183Pay.checked ? "" : "none"; if(erc8183TestnetWalletBox) erc8183TestnetWalletBox.style.display = erc8183Pay.checked ? "" : "none"; }); }
+  if(erc8183TestnetWalletBox) erc8183TestnetWalletBox.style.display = "";
   const shadowMode = modalBody.querySelector("#shadowMode");
   if(shadowMode){ shadowMode.addEventListener("change", () => { state.shadow = shadowMode.checked; const row = modalBody.querySelector("#shadowDaysRow"); if(row) row.style.display = shadowMode.checked ? "" : "none"; const bl = modalBody.querySelector("#blastShadow"); if(bl) bl.textContent = shadowMode.checked ? "Shadow ON" : "Shadow OFF"; }); }
   const capInputLive = modalBody.querySelector("#capInput");
@@ -341,9 +341,8 @@ function renderModal(name){
     state.shadowDays = shadowDaysEl ? shadowDaysEl.value : "3";
     const x402El = modalBody.querySelector("#x402Pay");
     state.x402 = !!(x402El && x402El.checked);
-    const erc8183El = modalBody.querySelector("#erc8183Pay");
     const erc8183ProviderEl = modalBody.querySelector("#erc8183Provider");
-    state.erc8183 = !!(erc8183El && erc8183El.checked);
+    state.erc8183 = true;
     state.erc8183Provider = erc8183ProviderEl ? erc8183ProviderEl.value.trim() : (state.erc8183Provider || "");
     if(state.erc8183 && !state.erc8183Provider) state.erc8183Provider = getErc8183Provider(a, state);
     state.erc8183JobId = null; state.erc8183FundTxHash = null; state.erc8183Error = null;
