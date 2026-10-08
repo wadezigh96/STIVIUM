@@ -25,19 +25,19 @@ const KEYSTORE_ABI = [{
   outputs: [{ type: "bool" }],
 }];
 
-const KEYSTORE_MAINNET = sdk?.BNB?.keyStore || "";
+
 
 // Category → allowed contract targets. These are permission boundaries only;
 // the grant itself is executed on Altana's BNB mainnet stack.
 // Only use contracts that are actually deployed for the selected Altana network.
-// BNB testnet PancakeSwap V2 router: 0x9ac64cc6e4415144c455bd8e4837fea55603e5c3.
-// The previous mainnet addresses are deliberately not reused on chain 97.
-// Aave-like targets are not enabled until a verified BNB testnet deployment is
+// BNB mainnet PancakeSwap V2 router: 0x10ED43C718714eb63d5aA57B78B54704E256024E.
+// The previous mainnet addresses are deliberately not reused on BNB mainnet.
+// Aave-like targets are not enabled until a verified BNB mainnet deployment is
 // identified; this prevents granting authority to an unverified address.
 const PANCAKE_V2_MAINNET = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
 const CATEGORY_TARGETS = {
   "Rebalancing": [PANCAKE_V2_MAINNET],
-  "Grid Trading": [PANCAKE_V2_TESTNET],
+  "Grid Trading": [PANCAKE_V2_MAINNET],
   "Yield Optimisation": [PANCAKE_V2_TESTNET],
   "Health Factor Monitoring": [],
 };
@@ -146,12 +146,12 @@ async function waitForReceipt(txHash, timeoutMs = 45000) {
         params: [txHash],
       }),
     });
-    if (!response.ok) throw new Error("BNB testnet RPC returned HTTP " + response.status);
+    if (!response.ok) throw new Error("BNB mainnet RPC returned HTTP " + response.status);
     const json = await response.json();
     const receipt = json.result;
     if (receipt) {
       if (receipt.status === "0x0") {
-        throw new Error("Altana grant transaction reverted on BNB testnet.");
+        throw new Error("Altana grant transaction reverted on BNB mainnet.");
       }
       return receipt;
     }
@@ -161,7 +161,7 @@ async function waitForReceipt(txHash, timeoutMs = 45000) {
 }
 
 /**
- * Grant a real Altana session on BNB testnet.
+ * Grant a real Altana session on BNB mainnet.
  */
 export async function grantAgentSession({ agentName, category, capUsd, expiryDays }) {
   let currentWallet = wallet;
@@ -240,7 +240,7 @@ export async function grantAgentSession({ agentName, category, capUsd, expiryDay
       chainId: CHAIN_ID,
       confirmed: !!receipt,
       warning: receipt
-        ? "Real Altana session grant confirmed on BNB testnet. Mainnet only."
+        ? "Real Altana session grant confirmed on BNB mainnet. Mainnet only."
         : "Real Altana transaction was returned by the confirmed Altana grant. Testnet only.",
       grantStatus,
       legs: legs.map(leg => ({
@@ -281,13 +281,14 @@ export async function verifyAgentAuthority(agentName) {
     const viem = await import("https://esm.sh/viem@2.37.3");
     const sdk = await loadSdk();
     const network = sdk.BNB;
-    const keyStore = network?.keyStore || KEYSTORE_TESTNET;
+    const keyStore = network?.keyStore;
     const rpcUrl = network?.publicRpcUrl || MAINNET_RPC;
     const keyId = viem.keccak256(publicKey);
     const publicClient = viem.createPublicClient({
       chain: network,
       transport: viem.http(rpcUrl),
     });
+    if (!keyStore) throw new Error("Altana BNB mainnet KeyStore address is unavailable from the SDK.");
     const authorized = await publicClient.readContract({
       address: keyStore,
       abi: KEYSTORE_ABI,
@@ -300,7 +301,7 @@ export async function verifyAgentAuthority(agentName) {
       wallet: walletAddress,
       keyId,
       publicKey,
-      keyStore,
+      keyStore: keyStore || null,
       chainId: CHAIN_ID,
       verifiedAt: new Date().toISOString(),
     };
@@ -314,7 +315,7 @@ export async function verifyAgentAuthority(agentName) {
 
 /**
  * Execute a real, deliberately tiny Altana session-key transaction.
- * This is a BNB testnet proof-of-execution: 1 wei is sent to a fixed
+ * This is a BNB mainnet proof-of-execution: 1 wei is sent to a fixed
  * test-only recipient after the scoped session has been granted.
  */
 export async function executeAgentSession(agentName) {
@@ -369,7 +370,7 @@ export async function executeAgentSession(agentName) {
       explorer: EXPLORER_TX + txHash,
       recipient: EXECUTION_RECIPIENT,
       valueWei: "1",
-      warning: "Real Altana session execution confirmed on BNB testnet. 1 wei test transfer only.",
+      warning: "Real Altana session execution confirmed on BNB mainnet. 1 wei test transfer only.",
     };
   } catch (err) {
     console.error("[Stivium] Real Altana execute failed", err);
