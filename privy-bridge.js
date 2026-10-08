@@ -1,7 +1,7 @@
 import React, { useEffect } from "https://esm.sh/react@18.3.1";
 import { createRoot } from "https://esm.sh/react-dom@18.3.1/client";
 import { PrivyProvider, usePrivy, useWallets } from "https://esm.sh/@privy-io/react-auth@3.45.0?deps=react@18.3.1,react-dom@18.3.1";
-import { encodeFunctionData, decodeEventLog } from "https://esm.sh/viem@2.45.0";
+import { encodeFunctionData, decodeEventLog, hexToString } from "https://esm.sh/viem@2.45.0";
 
 const PRIVY_APP_ID = "cmucttpbs02380djmk1jxh9j0";
 const BSC_CHAIN_ID = "0x61";
@@ -32,6 +32,7 @@ const ERC8183_COMMERCE_ABI = [
 const ERC8183_ROUTER_ABI = [{type:"function",name:"registerJob",stateMutability:"nonpayable",inputs:[{name:"jobId",type:"uint256"},{name:"policy",type:"address"}],outputs:[]}];
 const ERC20_ABI = [
   {type:"function",name:"decimals",stateMutability:"view",inputs:[],outputs:[{type:"uint8"}]},
+  {type:"function",name:"symbol",stateMutability:"view",inputs:[],outputs:[{type:"string"}]},
   {type:"function",name:"balanceOf",stateMutability:"view",inputs:[{name:"account",type:"address"}],outputs:[{type:"uint256"}]},
   {type:"function",name:"allowance",stateMutability:"view",inputs:[{name:"owner",type:"address"},{name:"spender",type:"address"}],outputs:[{type:"uint256"}]},
   {type:"function",name:"approve",stateMutability:"nonpayable",inputs:[{name:"spender",type:"address"},{name:"amount",type:"uint256"}],outputs:[{type:"bool"}]}
@@ -150,10 +151,22 @@ function StiviumPrivyBridge(){
       const token = "0x" + tokenRaw.slice(-40);
       const decRaw = await read(token, ERC20_ABI, "decimals");
       const decimals = Number(BigInt(decRaw));
-      const amount = BigInt(Math.round(Number(budgetTokens) * (10 ** decimals)));
+      const parseUnits = (value, digits) => {
+        const s = String(value).trim();
+        if(!/^\\d+(\\.\\d+)?$/.test(s)) throw new Error("Invalid ERC-20 budget.");
+        const parts = s.split(".");
+        const fraction = parts[1] || "";
+        if(fraction.length > digits) throw new Error("Budget has too many decimal places.");
+        return BigInt(parts[0]) * (10n ** BigInt(digits)) + BigInt((fraction + "0".repeat(digits)).slice(0, digits));
+      };
+      const symbolRaw = await read(token, ERC20_ABI, "symbol");
+      let symbol = "U";
+      try { symbol = hexToString(symbolRaw, {size:32}).replace(/\\0/g,"").trim() || "U"; } catch (_) {}
+      const amount = parseUnits(budgetTokens, decimals);
       if (amount <= 0n) throw new Error("Budget must be greater than zero.");
       const balRaw = await read(token, ERC20_ABI, "balanceOf", [wallet.address]);
-      if (BigInt(balRaw) < amount) throw new Error("Insufficient testnet U balance. Fund the Privy wallet with BSC testnet U first.");
+      const balance = BigInt(balRaw);
+      if (balance < amount) throw new Error(`Insufficient ${symbol} balance for hire: need ${budgetTokens} ${symbol}; current balance is ${balance.toString()} base units. Fund this Privy wallet with BSC Testnet ${symbol} first.`);
       const expires = BigInt(Math.floor(Date.now()/1000) + Number(expirySeconds));
       const createData = encodeFunctionData({abi:ERC8183_COMMERCE_ABI,functionName:"createJob",args:[provider,ERC8183_ROUTER,expires,description,ERC8183_ROUTER]});
       const createHash = await rpc.request({method:"eth_sendTransaction",params:[{from:wallet.address,to:ERC8183_COMMERCE,data:createData,value:"0x0"}]});
