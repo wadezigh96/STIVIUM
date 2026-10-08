@@ -321,8 +321,8 @@ select.expiry{
   <div class="brand"><span class="mark"></span><div><h1>Stivium</h1><p>BNB Chain AI Agent Marketplace · Discover · Compare · Activate</p></div></div>
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
     <span class="stat-pill" id="floorCount">— agents available</span>
-    <button type="button" class="wallet-connect" id="connectWalletBtn">Connect wallet</button>
-    <span class="wallet-status" id="walletStatus">Not connected</span>
+    <button type="button" class="wallet-connect" id="connectWalletBtn">Connect wallet</button>\n    <button type="button" class="wallet-connect" id="connectAltanaBtn">Connect Altana</button>
+    <span class="wallet-status" id="walletStatus">Not connected</span>\n    <span class="wallet-status" id="altanaStatus">Altana not connected</span>
   </div>
 </header>
 <div class="ticker-wrap"><div class="ticker" id="ticker"></div></div>
@@ -421,8 +421,9 @@ window.StiviumBinance = {
 <script>
 (function(){
   const btn=document.getElementById("connectWalletBtn");
+  const altanaBtn=document.getElementById("connectAltanaBtn");
   const status=document.getElementById("walletStatus");
-  if(!btn||!status)return;
+  const altanaStatus=document.getElementById("altanaStatus");
   function short(a){return a ? a.slice(0,6)+"…"+a.slice(-4) : "";}
   function apply(e){
     const d=e&&e.detail||{};
@@ -438,11 +439,22 @@ window.StiviumBinance = {
       for(let i=0;(!bridge||typeof bridge.login!=="function")&&i<50;i++){await new Promise(r=>setTimeout(r,100));bridge=window.__stiviumPrivy;}
       if(!bridge||typeof bridge.login!=="function")throw new Error("Privy is still loading. Refresh and try again.");
       const address=await bridge.login();
-      if(address&&typeof address==="string")status.textContent=short(address);
-      else if(bridge.walletAddress)status.textContent=short(bridge.walletAddress);
+      status.textContent=short(address||bridge.walletAddress)||"Wallet connected";
       btn.textContent="Wallet connected";
     }catch(e){status.textContent=e&&e.message?e.message:"Wallet connection failed";btn.textContent="Connect wallet";}
     finally{btn.disabled=false;}
+  });
+  altanaBtn?.addEventListener("click",async function(){
+    altanaBtn.disabled=true;altanaStatus.textContent="Opening Altana…";
+    try{
+      if(!window.StiviumAltana&&window.__stiviumLoad)await window.__stiviumLoad("./altana-wire.js","module");
+      if(!window.StiviumAltana?.ensureClient)throw new Error("Altana is still loading. Try again.");
+      const result=await window.StiviumAltana.ensureClient();
+      const address=result?.wallet?.address||window.__stiviumWalletAddress;
+      altanaStatus.textContent=address?"Altana · "+short(address):"Altana connected";
+      altanaBtn.textContent="Altana connected";
+    }catch(e){altanaStatus.textContent=e&&e.message?e.message:"Altana connection failed";altanaBtn.textContent="Connect Altana";}
+    finally{altanaBtn.disabled=false;}
   });
 })();
 </script>
