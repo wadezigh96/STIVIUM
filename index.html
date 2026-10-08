@@ -63,6 +63,7 @@ header.top{
 .brand .mark::before{content:"S"}
 .brand h1{font-size:14px;margin:0;font-weight:900;letter-spacing:.16em;text-transform:none}
 .brand p{margin:2px 0 0;color:var(--text-muted);font-size:8px;letter-spacing:.14em;text-transform:uppercase}
+.wallet-connect{all:unset;cursor:pointer;touch-action:manipulation;padding:8px 12px;border-radius:10px;background:var(--gold);color:#1a1607;font-size:11px;font-weight:900;letter-spacing:.02em}.wallet-connect:hover{filter:brightness(1.06)}.wallet-connect:disabled{opacity:.55;cursor:wait}.wallet-status{font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);border:1px solid var(--line-2);padding:8px 10px;border-radius:10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .stat-pill{
   font-family:Inter,sans-serif;font-size:10px;font-weight:800;letter-spacing:.08em;
   color:var(--text-dim);border:1px solid var(--line-2);padding:8px 11px;border-radius:999px;
@@ -318,7 +319,11 @@ select.expiry{
 </script>
 <header class="top">
   <div class="brand"><span class="mark"></span><div><h1>Stivium</h1><p>BNB Chain AI Agent Marketplace · Discover · Compare · Activate</p></div></div>
-  <span class="stat-pill" id="floorCount">— agents available</span>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+    <span class="stat-pill" id="floorCount">— agents available</span>
+    <button type="button" class="wallet-connect" id="connectWalletBtn">Connect wallet</button><button type="button" class="wallet-connect" id="connectAltanaBtn">Connect Altana</button>
+    <span class="wallet-status" id="walletStatus">Not connected</span><span class="wallet-status" id="altanaStatus">Altana not connected</span>
+  </div>
 </header>
 <div class="ticker-wrap"><div class="ticker" id="ticker"></div></div>
 <div class="onboard" id="onboard">
@@ -412,7 +417,47 @@ window.StiviumBinance = {
 </script>
 <script src="./app.js?v=stivium-activatefix6"></script>
 <script src="./live-data.js?v=stivium-livefix1"></script>
-<script type="module" src="./privy-bridge.js?v=stivium-livefix1"></script>
+<script type="module" src="./privy-bridge.js?v=stivium-walletfix1"></script>
+<script>
+(function(){
+  const btn=document.getElementById("connectWalletBtn");
+  const altanaBtn=document.getElementById("connectAltanaBtn");
+  const status=document.getElementById("walletStatus");
+  const altanaStatus=document.getElementById("altanaStatus");
+  function short(a){return a ? a.slice(0,6)+"…"+a.slice(-4) : "";}
+  function apply(e){
+    const d=e&&e.detail||{};
+    if(d.walletAddress){status.textContent=short(d.walletAddress);btn.textContent="Wallet connected";btn.disabled=false;}
+    else if(d.ready){status.textContent="Not connected";btn.textContent="Connect wallet";btn.disabled=false;}
+    else {status.textContent="Loading Privy…";btn.disabled=true;}
+  }
+  window.addEventListener("stivium:privy-state",apply);
+  btn.addEventListener("click",async function(){
+    btn.disabled=true;status.textContent="Opening wallet…";
+    try{
+      let bridge=window.__stiviumPrivy;
+      for(let i=0;(!bridge||typeof bridge.login!=="function")&&i<50;i++){await new Promise(r=>setTimeout(r,100));bridge=window.__stiviumPrivy;}
+      if(!bridge||typeof bridge.login!=="function")throw new Error("Privy is still loading. Refresh and try again.");
+      const address=await bridge.login();
+      status.textContent=short(address||bridge.walletAddress)||"Wallet connected";
+      btn.textContent="Wallet connected";
+    }catch(e){status.textContent=e&&e.message?e.message:"Wallet connection failed";btn.textContent="Connect wallet";}
+    finally{btn.disabled=false;}
+  });
+  altanaBtn?.addEventListener("click",async function(){
+    altanaBtn.disabled=true;altanaStatus.textContent="Opening Altana…";
+    try{
+      if(!window.StiviumAltana&&window.__stiviumLoad)await window.__stiviumLoad("./altana-wire.js","module");
+      if(!window.StiviumAltana?.ensureClient)throw new Error("Altana is still loading. Try again.");
+      const result=await window.StiviumAltana.ensureClient();
+      const address=result?.wallet?.address||window.__stiviumWalletAddress;
+      altanaStatus.textContent=address?"Altana · "+short(address):"Altana connected";
+      altanaBtn.textContent="Altana connected";
+    }catch(e){altanaStatus.textContent=e&&e.message?e.message:"Altana connection failed";altanaBtn.textContent="Connect Altana";}
+    finally{altanaBtn.disabled=false;}
+  });
+})();
+</script>
 <script src="./swap-ui.js?v=stivium-livefix1"></script>
 </body>
 </html>
