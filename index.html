@@ -1,1 +1,37 @@
-PLACEHOLDER_WILL_UPDATE
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Stivium — BNB Chain AI Agent Marketplace." />
+<meta name="theme-color" content="#f0b90b" />
+<title>Stivium — BNB Chain AI Agent Marketplace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<p style="color:#f3eee3;font-family:Inter,sans-serif;padding:40px;background:#0c0a07">Loading Stivium…</p>
+<script>
+(async function(){
+  try {
+    const r = await fetch("https://cdn.jsdelivr.net/gh/wadezigh96/STIVIUM@e52032f/index.html");
+    const t = await r.text();
+    let html = t
+      .replace(/src="\\.\\/app\\.js[^"]*"/, 'src="https://cdn.jsdelivr.net/gh/wadezigh96/STIVIUM@e52032f/app.js"')
+      .replace(/src="\\.\\/agents-data\\.js[^"]*"/, 'src="https://cdn.jsdelivr.net/gh/wadezigh96/STIVIUM@e52032f/agents-data.js"')
+      .replace(/src="\\.\\/swap-data\\.js[^"]*"/, 'src="https://cdn.jsdelivr.net/gh/wadezigh96/STIVIUM@e52032f/swap-data.js"')
+      .replace(/src="\\.\\/live-data\\.js[^"]*"/, 'src="https://cdn.jsdelivr.net/gh/wadezigh96/STIVIUM@e52032f/live-data.js"')
+      .replace(/src="\\.\\/swap-ui\\.js[^"]*"/, 'src="https://cdn.jsdelivr.net/gh/wadezigh96/STIVIUM@e52032f/swap-ui.js"')
+      .replace(/src="\\.\\/privy-bridge\\.js[^"]*"/, 'src="./privy-bridge.js?v=stivium-walletfix1"')
+      .replace(/src="\\.\\/altana-wire\\.js[^"]*"/, 'src="https://cdn.jsdelivr.net/gh/wadezigh96/STIVIUM@e52032f/altana-wire.js"');
+    html = html.replace("</body>", '<script src="./hire-force.js?v=stivium-hire-force1"><\\/script></body>');
+    document.open();
+    document.write(html);
+    document.close();
+  } catch (e) {
+    document.body.innerHTML = "<pre style=color:red>STIVIUM load failed: "+e+"</pre>";
+  }
+})();
+</script>
+</body>
+</html>
