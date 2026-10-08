@@ -95,7 +95,7 @@ async function getWalletProvider(){
 async function ensureBsc(){
   const privy=window.__stiviumPrivy;
   if(privy?.walletAddress){
-    if(typeof privy.ensureBsc==="function") return privy.ensureBsc();
+    if(typeof privy.ensureBscMainnet==="function") return privy.ensureBscMainnet();
     return;
   }
   const provider=getInjectedProvider(),current=await provider.request({method:"eth_chainId"});
