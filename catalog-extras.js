@@ -119,32 +119,64 @@
     });
   }
 
-  function openListBuilder() {
+  async function openListBuilder() {
     const overlay = document.getElementById("overlay");
     const modalBody = document.getElementById("modalBody");
     if (!overlay || !modalBody) return;
     overlay.classList.add("open");
-    modalBody.innerHTML = '<div class="modal-head"><div><h2>List an agent</h2><div class="cat-tag">Builder claim \u00b7 local only</div></div><button class="modal-close" id="xClose" type="button" aria-label="Close">\u00d7</button></div><p class="modal-desc">Adds a card to <em>your</em> browser catalog. The 16 judging agents stay untouched.</p><div class="activate-box"><div class="field"><label for="listName">Agent name</label><input id="listName" type="text" placeholder="e.g. DriftNote" maxlength="48"></div><div class="field"><label for="listCat">Category</label><select class="expiry" id="listCat"><option>Rebalancing</option><option>Grid Trading</option><option>Yield Optimisation</option><option>Health Factor Monitoring</option></select></div><div class="field"><label for="listDesc">What it does</label><input id="listDesc" type="text" placeholder="One sentence strategy" maxlength="220"></div><div class="field"><label for="listKey">Category metric value</label><input id="listKey" type="text" placeholder="e.g. 10 or 1.35 or 16.2%" maxlength="16"></div></div><div class="modal-actions"><button class="hire-btn" id="confirmList" type="button">Publish to my catalog</button><button class="hire-btn ghost" id="closeBtn" type="button">Cancel</button></div>';
+    modalBody.innerHTML = '<div class="modal-head"><div><h2>List & Register an agent</h2><div class="cat-tag">ERC-8004 · BSC Testnet</div></div><button class="modal-close" id="xClose" type="button" aria-label="Close">×</button></div><p class="modal-desc">Create your agent card, register its identity on-chain, then add it to <em>YOURS</em>. Registration uses the connected Privy wallet; no private key is requested.</p><div class="activate-box"><div class="field"><label for="listName">Agent name</label><input id="listName" type="text" placeholder="e.g. DriftNote" maxlength="48"></div><div class="field"><label for="listCat">Category</label><select class="expiry" id="listCat"><option>Rebalancing</option><option>Grid Trading</option><option>Yield Optimisation</option><option>Health Factor Monitoring</option></select></div><div class="field"><label for="listDesc">What it does</label><input id="listDesc" type="text" placeholder="One sentence strategy" maxlength="220"></div><div class="field"><label for="listKey">Category metric value</label><input id="listKey" type="text" placeholder="e.g. 10 or 1.35 or 16.2%" maxlength="16"></div><div id="registerAgentStatus" style="font:500 10px 'IBM Plex Mono',monospace;color:var(--text-dim);margin-top:10px;">Connect Privy first. Registration is a real on-chain ERC-8004 transaction.</div></div><div class="modal-actions"><button class="hire-btn" id="confirmList" type="button">Register & publish agent</button><button class="hire-btn ghost" id="closeBtn" type="button">Cancel</button></div>';
     const close = () => { overlay.classList.remove("open"); modalBody.innerHTML = ""; };
     modalBody.querySelector("#xClose").addEventListener("click", close);
     modalBody.querySelector("#closeBtn").addEventListener("click", close);
-    modalBody.querySelector("#confirmList").addEventListener("click", () => {
+    modalBody.querySelector("#confirmList").addEventListener("click", async () => {
+      const btn = modalBody.querySelector("#confirmList");
+      const status = modalBody.querySelector("#registerAgentStatus");
+      if (btn.disabled) return;
       const name = (modalBody.querySelector("#listName").value || "").trim();
       const cat = modalBody.querySelector("#listCat").value;
       const desc = (modalBody.querySelector("#listDesc").value || "").trim();
       const keyValue = (modalBody.querySelector("#listKey").value || "").trim();
       if (!name) { modalBody.querySelector("#listName").focus(); return; }
       if (window.AGENTS.some((a) => String(a.name).toLowerCase() === name.toLowerCase())) {
-        modalBody.querySelector("#listName").value = name + " (yours)";
+        status.textContent = "An agent with this name already exists in the catalog.";
         return;
       }
-      const keys = defaultKey(cat);
-      const agent = { name, cat, peerCount: 12, uptimeDays: 1, successRate: 80, tvl: 25000, verified: false, h24n: 2, h24p: 1, h7n: 6, h7p: 4, hist7: [1,1,2,2,2,3,3], keyLabel: keys.keyLabel, keyValue: keyValue || keys.keyValue, desc: desc || "Builder-listed agent. Local catalog only.", listed: true };
-      persistListed(listedAgents().concat(agent));
-      window.AGENTS.push(agent);
-      close();
-      if (window.StiviumApp && typeof window.StiviumApp.refresh === "function") window.StiviumApp.refresh();
-      else window.render();
+      if (!window.__stiviumPrivy || typeof window.__stiviumPrivy.registerErc8004Agent !== "function") {
+        status.textContent = "Privy is still loading. Refresh and connect the wallet first.";
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = "Registering on BSC Testnet…";
+      status.textContent = "Waiting for wallet approval…";
+      try {
+        const result = await window.__stiviumPrivy.registerErc8004Agent({
+          name,
+          description: desc || "STIVIUM builder-listed agent.",
+          endpoints:[
+            {name:"Agent Card",endpoint:location.origin+"/.well-known/agent-card.json",version:"1.0"}
+          ]
+        });
+        const keys = defaultKey(cat);
+        const agent = {
+          name, cat, peerCount:0, uptimeDays:0, successRate:0, tvl:0, verified:true,
+          h24n:0,h24p:0,h7n:0,h7p:0,hist7:[0,0,0,0,0,0,0],
+          keyLabel:keys.keyLabel,keyValue:keyValue || keys.keyValue,
+          desc:desc || "Builder-listed agent. ERC-8004 registered on BSC Testnet.",
+          listed:true, erc8004AgentId:result.agentId || null,
+          erc8004RegistrationTx:result.transactionHash, erc8004AgentURI:result.agentURI,
+          erc8183Provider:null, dataSource:"user-registered"
+        };
+        persistListed(listedAgents().concat(agent));
+        window.AGENTS.push(agent);
+        status.innerHTML = "Registered successfully · ERC-8004 #"+(result.agentId || "pending")+" · <a href=\""+result.explorer+"\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--gold)\">view tx</a>";
+        btn.textContent = "Registered";
+        if (window.StiviumApp && typeof window.StiviumApp.refresh === "function") window.StiviumApp.refresh();
+        else window.render();
+      } catch (e) {
+        status.textContent = e && e.message ? e.message : String(e);
+        btn.disabled = false;
+        btn.textContent = "Register & publish agent";
+      }
     });
   }
 
