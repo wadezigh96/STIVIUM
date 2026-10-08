@@ -38,6 +38,8 @@ const ERC20_ABI = [
   {type:"function",name:"approve",stateMutability:"nonpayable",inputs:[{name:"spender",type:"address"},{name:"amount",type:"uint256"}],outputs:[{type:"bool"}]}
 ];
 
+let stiviumHireInFlight = null;
+
 function StiviumPrivyBridge(){
   const { ready, authenticated, connectOrCreateWallet } = usePrivy();
   const { wallets } = useWallets();
@@ -166,7 +168,11 @@ function StiviumPrivyBridge(){
     };
 
     bridge.hireErc8183Testnet = async ({provider, description, budgetTokens="0.1", expirySeconds=3600, onProgress}) => {
+      // Global in-flight lock: one Hire click can only start one ERC-8183 lifecycle.
+      if (stiviumHireInFlight) return await stiviumHireInFlight;
       if (!(wallet && wallet.address)) throw new Error("Connect Privy before hiring.");
+
+      stiviumHireInFlight = (async () => {
       if (!/^0x[a-fA-F0-9]{40}$/.test(provider || "")) throw new Error("No ERC-8183 provider is configured for this agent.");
       const progress = (step) => { try { if (typeof onProgress === "function") onProgress(step); } catch (_) {} };
       progress("switch");
@@ -229,6 +235,9 @@ function StiviumPrivyBridge(){
       progress("fund");
       const fundReceipt = await call(ERC8183_COMMERCE, ERC8183_COMMERCE_ABI, "fund", [BigInt(jobId), amount, "0x"]);
       return {ok:true,network:"bsc-testnet",chainId:BSC_TESTNET,provider,jobId,budget:budgetTokens,currency:"U",token,createJobTxHash:createHash,createTxHash:createHash,registerJobTxHash:registerReceipt.hash,registerTxHash:registerReceipt.hash,setBudgetTxHash:budgetReceipt.hash,budgetTxHash:budgetReceipt.hash,approveTxHash:approvalReceipt && approvalReceipt.hash,approvalTxHash:approvalReceipt && approvalReceipt.hash,fundTxHash:fundReceipt.hash,explorer:"https://testnet.bscscan.com/tx/"+fundReceipt.hash,wallet:wallet.address};
+      })();
+      try { return await stiviumHireInFlight; }
+      finally { stiviumHireInFlight = null; }
     };
     window.__stiviumPrivy = bridge;
     if (window.__swapState) window.__swapState.wallet = (wallet && wallet.address) || null;
