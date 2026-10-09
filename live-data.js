@@ -133,7 +133,7 @@
   function loadCatalogExtras() {
     if (document.querySelector("script[data-stivium-catalog]")) return;
     const script = document.createElement("script");
-    script.src = "./catalog-extras.js?v=stivium-register2";
+    script.src = "./catalog-extras.js?v=stivium-register3";
     script.dataset.stiviumCatalog = "1";
     document.head.appendChild(script);
   }
