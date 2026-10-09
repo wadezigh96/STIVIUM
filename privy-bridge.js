@@ -318,7 +318,7 @@ function StiviumPrivyBridge(){
         const decimals = Number(BigInt(decRaw));
         const parseUnits = (value, digits) => {
           const s = String(value).trim();
-          if(!/^\\d+(\\.\\d+)?$/.test(s)) throw new Error("Invalid ERC-20 budget.");
+          if(!/^\d+(\.\d+)?$/.test(s)) throw new Error("Invalid ERC-20 budget.");
           const parts = s.split(".");
           const fraction = parts[1] || "";
           if(fraction.length > digits) throw new Error("Budget has too many decimal places.");
