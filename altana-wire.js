@@ -70,6 +70,7 @@ function assertWebAuthnReady() {
 }
 
 async function ensureClient() {
+  throw new Error("Altana execution is disabled in STIVIUM Testnet-only mode until the Altana SDK confirms BSC Testnet support and verified Testnet contract targets. No transaction was sent.");
   if (client && wallet) return { client, wallet };
 
   assertWebAuthnReady();
