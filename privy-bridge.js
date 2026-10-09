@@ -309,6 +309,9 @@ function StiviumPrivyBridge(){
         }
 
         if (!/^0x[a-fA-F0-9]{40}$/.test(provider || "")) throw new Error("No ERC-8183 provider is configured for this agent.");
+        if (String(provider).toLowerCase() === String(wallet.address).toLowerCase()) {
+          throw new Error("This agent resolves to your connected wallet, so it would hire and pay yourself. No transaction was sent. Select a verified external provider before hiring.");
+        }
         progress("switch");
         await bridge.ensureBsc();
 
