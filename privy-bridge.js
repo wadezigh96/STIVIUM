@@ -381,7 +381,7 @@ function StiviumPrivyBridge(){
     if (typeof bridge.onStateChange === "function") {
       bridge.onStateChange({walletAddress: (wallet && wallet.address) || null, authenticated, ready});
     }
-  }, [ready, authenticated, wallet, connectOrCreateWallet]);
+  }, [ready, authenticated, wallet, connectOrCreateWallet, privySendTransaction]);
 
   return null;
 }
