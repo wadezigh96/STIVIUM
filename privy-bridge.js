@@ -1,6 +1,6 @@
 import React, { useEffect } from "https://esm.sh/react@18.3.1";
 import { createRoot } from "https://esm.sh/react-dom@18.3.1/client";
-import { PrivyProvider, usePrivy, useWallets } from "https://esm.sh/@privy-io/react-auth@3.45.0?deps=react@18.3.1,react-dom@18.3.1";
+import { PrivyProvider, usePrivy, useWallets, useSendTransaction } from "https://esm.sh/@privy-io/react-auth@3.45.0?deps=react@18.3.1,react-dom@18.3.1";
 import { encodeFunctionData, decodeEventLog, hexToString } from "https://esm.sh/viem@2.45.0";
 
 const PRIVY_APP_ID = "cmucttpbs02380djmk1jxh9j0";
@@ -46,6 +46,7 @@ let stiviumHireInFlight = null;
 
 function StiviumPrivyBridge(){
   const { ready, authenticated, connectOrCreateWallet } = usePrivy();
+  const { sendTransaction: privySendTransaction } = useSendTransaction();
   const { wallets } = useWallets();
   const wallet = (wallets && wallets.find(w => w.walletClientType === "privy")) || (wallets && wallets[0]) || null;
 
@@ -160,15 +161,9 @@ function StiviumPrivyBridge(){
 
     bridge.sendTransaction = async ({to, data="0x", value=0n, chainId=BSC_TESTNET}) => {
       if (!(wallet && wallet.address)) throw new Error("No Privy wallet is available. Connect the wallet first.");
-      const provider = await wallet.getEthereumProvider();
-      const chainHex = "0x" + Number(chainId).toString(16);
-      const current = await provider.request({method:"eth_chainId"});
-      if (current !== chainHex) {
-        await provider.request({method:"wallet_switchEthereumChain", params:[{chainId:chainHex}]});
-      }
-      const from = wallet.address;
-      const tx = {from, to, data, value:"0x"+BigInt(value).toString(16)};
-      return { hash: await provider.request({method:"eth_sendTransaction", params:[tx]}) };
+      if (Number(chainId) !== BSC_TESTNET) throw new Error("STIVIUM is testnet-only: transaction chain must be BSC Testnet (97).");
+      await bridge.ensureBsc();
+      return await privySendTransaction({to, data, value:BigInt(value), chainId:BSC_TESTNET}, {address:wallet.address});
     };
 
     bridge.registerErc8004Agent = async ({name, description, endpoints=[]}) => {
@@ -235,8 +230,8 @@ function StiviumPrivyBridge(){
         const rpc = await wallet.getEthereumProvider();
         const sendAndWait = async (to, abi, functionName, args) => {
           const data = encodeFunctionData({abi, functionName, args});
-          const hash = await rpc.request({method:"eth_sendTransaction", params:[{from:wallet.address,to,data,value:"0x0"}]});
-          return await waitReceipt(rpc, hash);
+          const sent = await bridge.sendTransaction({to, data, value:0n, chainId:BSC_TESTNET});
+          return await waitReceipt(rpc, sent.hash);
         };
         const read = async (to, abi, functionName, args=[]) => {
           const data = encodeFunctionData({abi, functionName, args});
@@ -341,7 +336,8 @@ function StiviumPrivyBridge(){
           functionName:"createJob",
           args:[provider,ERC8183_ROUTER,expires,description,ERC8183_ROUTER]
         });
-        const createHash = await rpc.request({method:"eth_sendTransaction",params:[{from:wallet.address,to:ERC8183_COMMERCE,data:createData,value:"0x0"}]});
+        const createSent = await bridge.sendTransaction({to:ERC8183_COMMERCE, data:createData, value:0n, chainId:BSC_TESTNET});
+        const createHash = createSent.hash;
         const createReceipt = await waitReceipt(rpc, createHash);
         let jobId = null;
         for (const log of (createReceipt.logs || [])) {
@@ -367,7 +363,7 @@ function StiviumPrivyBridge(){
         return {
           ok:true, complete:false, step:"register", nextStep:"register",
           network:"bsc-testnet", chainId:BSC_TESTNET, provider, jobId,
-          budget:budgetTokens, currency:symbol, token,
+          budget:budgetTokens, currency:"U", token,
           createJobTxHash:createHash, createTxHash:createHash,
           explorer:"https://testnet.bscscan.com/tx/"+createHash, wallet:wallet.address
         };
