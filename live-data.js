@@ -3,7 +3,7 @@
  * Keeps the 16 curated seed agents (judging path) and layers:
  *  - last-synced timestamps
  *  - 8004scan registry size + 1 live sample per category
- *  - live crypto mid prices for the swap panel
+ *  - live public crypto prices (display only; swap execution is disabled until testnet routes are verified)
  *
  * GitHub Pages cannot call 8004scan (no ACAO). Vercel `/api/agents` proxies it.
  * Prices use Binance Vision public ticker (CORS *).
@@ -133,7 +133,7 @@
   function loadCatalogExtras() {
     if (document.querySelector("script[data-stivium-catalog]")) return;
     const script = document.createElement("script");
-    script.src = "./catalog-extras.js?v=stivium-register3";
+    script.src = "./catalog-extras.js?v=stivium-registertestnet1";
     script.dataset.stiviumCatalog = "1";
     document.head.appendChild(script);
   }
@@ -177,7 +177,7 @@
       }
 
       try {
-        const proxied = await fetch("./api/agents?chain_id=56&limit=1", { cache: "no-store" });
+        const proxied = await fetch("./api/agents?chain_id=97&limit=1", { cache: "no-store" });
         if (proxied.ok) {
           const data = await proxied.json();
           if (data && data.total) {
