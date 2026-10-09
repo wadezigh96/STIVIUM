@@ -49,7 +49,7 @@
   }
 
   function mapSample(sample) {
-    const cat = sample.cat;
+    const cat = sample.cat || sample.category || "Yield Optimisation";
     const score = Number(sample.total_score) || 0;
     const success = Math.max(55, Math.min(97, Math.round(60 + score)));
     const name = String(sample.name || "Live agent").trim();
@@ -68,7 +68,9 @@
       hist7: [4, 5, 6, 6, 7, 8, 8 + Math.round(score / 4)],
       keyLabel: KEY_LABEL[cat] || "Signal",
       keyValue: keyValueFor(cat, score),
-      desc: sample.description || "Live agent indexed by 8004scan.",
+      desc: sample.description || "Live ERC-8004 agent indexed on BSC Testnet.",
+      ownerAddress: sample.owner_address || "",
+      erc8004AgentId: sample.token_id || sample.agent_id || "",
       live: true,
       liveId: sample.agent_id || "",
       chainId: sample.chain_id,
@@ -133,7 +135,7 @@
   function loadCatalogExtras() {
     if (document.querySelector("script[data-stivium-catalog]")) return;
     const script = document.createElement("script");
-    script.src = "./catalog-extras.js?v=stivium-registertestnet1";
+    script.src = "./catalog-extras.js?v=stivium-registertestnet2";
     script.dataset.stiviumCatalog = "1";
     document.head.appendChild(script);
   }
@@ -177,12 +179,16 @@
       }
 
       try {
-        const proxied = await fetch("./api/agents?chain_id=97&limit=1", { cache: "no-store" });
+        const proxied = await fetch("./api/agents?chain_id=97&limit=100", { cache: "no-store" });
         if (proxied.ok) {
           const data = await proxied.json();
-          if (data && data.total) {
+          if (data && Array.isArray(data.items)) {
+            state.liveCount += mergeLiveAgents(data.items);
+            state.indexed = Number(data.total) || data.items.length;
+            state.source = "seed + live 8004scan · BSC Testnet";
+          } else if (data && data.total) {
             state.indexed = data.total;
-            state.source = "seed + live 8004scan";
+            state.source = "seed + live 8004scan · BSC Testnet";
           }
         }
       } catch (_) {
