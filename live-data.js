@@ -80,15 +80,23 @@
     };
   }
 
+  function getAgentCatalog() {
+    if (typeof AGENTS !== "undefined" && Array.isArray(AGENTS)) return AGENTS;
+    if (Array.isArray(window.AGENTS)) return window.AGENTS;
+    window.AGENTS = [];
+    return window.AGENTS;
+  }
+
   function mergeLiveAgents(samples) {
-    if (!Array.isArray(window.AGENTS) || !samples || !samples.length) return 0;
-    const have = new Set(window.AGENTS.map((a) => a.name.toLowerCase()));
+    const catalog = getAgentCatalog();
+    if (!samples || !samples.length) return 0;
+    const have = new Set(catalog.map((a) => String(a.name || "").toLowerCase()));
     let added = 0;
     samples.forEach((sample) => {
       const mapped = mapSample(sample);
       const key = mapped.name.toLowerCase();
       if (have.has(key)) return;
-      window.AGENTS.push(mapped);
+      catalog.push(mapped);
       have.add(key);
       added += 1;
     });
