@@ -1,4 +1,6 @@
-// ---------- live PancakeSwap V2 + EIP-1193 wallet ----------
+// ---------- BSC TESTNET-ONLY safety gate ----------
+// Swap execution stays disabled until a verified BSC Testnet router and token list are configured.
+const STIVIUM_SWAP_TESTNET_ONLY = true;
 const PANCAKE_BSC = {
   chainId: "0x38",
   router: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
@@ -93,6 +95,7 @@ async function getWalletProvider(){
   return getInjectedProvider();
 }
 async function ensureBsc(){
+  throw new Error("Swap is temporarily disabled: STIVIUM is Testnet-only, and a verified BSC Testnet router/token list has not been configured yet. No transaction was sent.");
   const privy=window.__stiviumPrivy;
   if(privy?.walletAddress){
     if(typeof privy.ensureBscMainnet==="function") return privy.ensureBscMainnet();
