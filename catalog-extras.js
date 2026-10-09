@@ -7,6 +7,13 @@
   const LISTED_KEY = "stivium-listed-v1";
   let searchQuery = "";
 
+  function getAgentCatalog() {
+    if (typeof AGENTS !== "undefined" && Array.isArray(AGENTS)) return AGENTS;
+    if (Array.isArray(window.AGENTS)) return window.AGENTS;
+    window.AGENTS = [];
+    return window.AGENTS;
+  }
+
   function injectChrome() {
     if (!document.getElementById("stivium-catalog-css")) {
       const style = document.createElement("style");
@@ -51,13 +58,13 @@
     try { localStorage.setItem(LISTED_KEY, JSON.stringify(list)); } catch (_) {}
   }
   function mergeListed() {
-    if (!Array.isArray(window.AGENTS)) return;
-    const have = new Set(window.AGENTS.map((a) => String(a.name).toLowerCase()));
+    const catalog = getAgentCatalog();
+    const have = new Set(catalog.map((a) => String(a.name).toLowerCase()));
     listedAgents().forEach((a) => {
       if (!a || !a.name) return;
       const key = String(a.name).toLowerCase();
       if (have.has(key)) return;
-      window.AGENTS.push(a);
+      catalog.push(a);
       have.add(key);
     });
   }
@@ -83,7 +90,8 @@
     const grid = document.getElementById("grid");
     if (!grid) return;
     const q = searchQuery.trim().toLowerCase();
-    const scored = typeof computeScores === "function" ? computeScores(window.AGENTS) : window.AGENTS;
+    const catalog = getAgentCatalog();
+    const scored = typeof computeScores === "function" ? computeScores(catalog) : catalog;
     const visible = [];
     grid.querySelectorAll(".card").forEach((card) => {
       const name = card.dataset.name;
@@ -137,8 +145,8 @@
       const desc = (modalBody.querySelector("#listDesc").value || "").trim();
       const keyValue = (modalBody.querySelector("#listKey").value || "").trim();
       if (!name) { modalBody.querySelector("#listName").focus(); return; }
-      if (!Array.isArray(window.AGENTS)) { status.textContent = "Agent catalog is still loading. Please wait a moment and try again."; return; }
-      if (window.AGENTS.some((a) => String(a.name).toLowerCase() === name.toLowerCase())) {
+      const catalog = getAgentCatalog();
+      if (catalog.some((a) => String(a.name).toLowerCase() === name.toLowerCase())) {
         status.textContent = "An agent with this name already exists in the catalog.";
         return;
       }
@@ -186,8 +194,7 @@
           erc8183Provider:null, dataSource:"user-registered"
         };
         persistListed(listedAgents().concat(agent));
-        if (!Array.isArray(window.AGENTS)) window.AGENTS = [];
-        window.AGENTS.push(agent);
+        getAgentCatalog().push(agent);
         status.innerHTML = "Registered successfully · ERC-8004 #"+(result.agentId || "pending")+" · <a href=\""+result.explorer+"\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--gold)\">view tx</a>";
         btn.textContent = "Registered";
         if (window.StiviumApp && typeof window.StiviumApp.refresh === "function") window.StiviumApp.refresh();
