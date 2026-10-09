@@ -147,9 +147,27 @@
         return;
       }
       btn.disabled = true;
-      btn.textContent = "Registering on BSC Testnet…";
-      status.textContent = "Waiting for wallet approval…";
+      btn.textContent = "Connecting wallet…";
+      status.textContent = "Checking Privy connection…";
       try {
+        // If the session expired or the wallet has not propagated yet, open
+        // the Privy connection flow from this button instead of failing silently.
+        let bridge = window.__stiviumPrivy;
+        if (!bridge || typeof bridge.login !== "function") {
+          throw new Error("Privy is still loading. Refresh the page and try again.");
+        }
+        if (!bridge.walletAddress) {
+          await bridge.login();
+          bridge = window.__stiviumPrivy;
+        }
+        if (!bridge || !bridge.walletAddress) {
+          throw new Error("Wallet connection was not confirmed. Connect Privy and try again.");
+        }
+        if (typeof bridge.registerErc8004Agent !== "function") {
+          throw new Error("Registration bridge is still loading. Refresh the page and try again.");
+        }
+        btn.textContent = "Registering on BSC Testnet…";
+        status.textContent = "Wallet connected. Waiting for transaction approval…";
         const result = await window.__stiviumPrivy.registerErc8004Agent({
           name,
           description: desc || "STIVIUM builder-listed agent.",
