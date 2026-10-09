@@ -36,7 +36,7 @@ def pick(cat: str, items: list[dict]) -> dict | None:
             if item.get("name") == want:
                 return item
     for item in items:
-        if item.get("chain_id") in (56, 97):
+        if str(item.get("chain_id")) == "97":
             return item
     return items[0] if items else None
 
@@ -66,7 +66,7 @@ def main() -> None:
         if item:
             samples.append(slim(cat, item))
 
-    listing = get("https://api.8004scan.io/api/v1/agents?chain_id=56&limit=1")
+    listing = get("https://api.8004scan.io/api/v1/agents?chain_id=97&limit=1")
     prices = {}
     for symbol, key in (
         ("BNBUSDT", "BNB"),
