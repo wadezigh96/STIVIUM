@@ -45,11 +45,11 @@ Useful fields: `name`, `description`, `owner_address`, `total_score`, `is_verifi
 | `h24n / h7n` | Hire events when an ERC-8183 indexer exists |
 | `keyMetric` | Category skill text until capability endpoints are stable |
 
-Keep the same `scoreRarity` / `scoreTrending` formulas.
+Keep the same `computeScores` formulas in `app.js` (rarity / trending / restraint).
 
 ## Altana session keys
 
-Activation UI already mirrors spend cap, allowlist, expiry, revoke. On-chain path: `altana-wire.js` on BNB testnet.
+Temporarily disabled in the code (`altana-wire.js` throws before any call). Activation UI mirrors spend cap, allowlist, expiry, revoke; the live path is the real ERC-8183 testnet hire via Privy (see `docs/SET-AND-EARN.md`).
 
 ## Fallback order
 

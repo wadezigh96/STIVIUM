@@ -19,6 +19,8 @@ flowchart TD
   M --> N[Later: Inspect or Revoke]
 ```
 
+> Note (18 Nov 2026): step L is now a real ERC-8183 hire on BNB Testnet via a Privy wallet — it needs testnet BNB (gas), 0.10 testnet U (escrow), and a provider address (only YieldCartographer has one prefilled). There is no local/demo activation in the current build, so a judge without a funded testnet wallet cannot reach M/N. See `docs/AUDIT-2026-11-18.md` (F1).
+
 ## Filter & compare path
 
 1. User selects **Yield Optimisation**.

@@ -1,6 +1,6 @@
 # Portfolio CLI Implementation Plan
 
-> **For agentic workers:** This plan is implemented natively in the current session.
+> **Status: implemented 18 Nov 2026** (merged in PR #6, `feature/portfolio-cli`). The CLI runs (`npm run portfolio -- overview` verified in `docs/AUDIT-2026-11-18.md`).
 
 **Goal:** Add a polished, read-only portfolio CLI for stocks and crypto with local snapshots, allocation analytics, optional public price refresh, and reminders.
 
@@ -42,25 +42,25 @@
 
 ### Task 1: Local ledger and analytics
 
-- [ ] Implement portfolio state schema with holdings, cash, settings, and reminders.
-- [ ] Validate add/remove inputs and write atomically.
-- [ ] Calculate market value, cost basis, unrealized P/L, allocation, and concentration.
-- [ ] Add deterministic fixtures through CLI commands for manual smoke checks.
+- [x] Implement portfolio state schema with holdings, cash, settings, and reminders.
+- [x] Validate add/remove inputs and write atomically.
+- [x] Calculate market value, cost basis, unrealized P/L, allocation, and concentration.
+- [x] Add deterministic fixtures through CLI commands for manual smoke checks.
 
 ### Task 2: Price refresh and rendering
 
-- [ ] Add optional public price refresh for crypto symbols only, keeping quantities and cost basis local.
-- [ ] Preserve source, retrieval timestamp, currency, and stale/error status.
-- [ ] Render a dark terminal dashboard with KPI cards, allocation bars, risk flags, and source freshness.
+- [x] Add optional public price refresh for crypto symbols only, keeping quantities and cost basis local.
+- [x] Preserve source, retrieval timestamp, currency, and stale/error status.
+- [x] Render a dark terminal dashboard with KPI cards, allocation bars, risk flags, and source freshness.
 
 ### Task 3: Reminder workflow
 
-- [ ] Add reminder creation, listing, completion, and deletion.
-- [ ] Render due reminders prominently in `overview`.
-- [ ] Document cron/Task Scheduler and Manus ScheduleTask as external unattended runners without embedding credentials.
+- [x] Add reminder creation, listing, completion, and deletion.
+- [x] Render due reminders prominently in `overview`.
+- [x] Document cron/Task Scheduler and Manus ScheduleTask as external unattended runners without embedding credentials.
 
 ### Task 4: Documentation and verification
 
-- [ ] Add package script and CLI README.
-- [ ] Run syntax checks and deterministic smoke tests.
-- [ ] Review diff for secrets and commit as one feature change.
+- [x] Add package script and CLI README.
+- [x] Run syntax checks and deterministic smoke tests.
+- [x] Review diff for secrets and commit as one feature change.

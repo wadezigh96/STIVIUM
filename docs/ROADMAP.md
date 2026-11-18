@@ -6,7 +6,7 @@
 - [x] All four required categories at equal depth
 - [x] Transparent Rarity + Trending scoring
 - [x] Breakdown charts, sparklines, category metrics
-- [x] Session-key style activation UX (mocked)
+- [x] Session-key style activation UX (mocked) — superseded: activation is now a real ERC-8183 testnet hire; the local/mock path was removed (see `docs/AUDIT-2026-11-18.md` F1)
 - [x] MIT license, clean public repo structure, judging docs
 
 ## Phase 1 — Live data
@@ -22,11 +22,11 @@
 
 ## Phase 2 — Real activation (Altana track)
 
-- [x] Wire activation panel to Altana session keys on BNB testnet (`altana-wire.js`)
+- [ ] Wire activation panel to Altana session keys on BNB testnet (`altana-wire.js`) — was wired, then disabled in the testnet-only pivot (18 Nov 2026 audit, F3); needs a testnet-verified re-enable plan
 - [x] Spend cap, call allowlist, expiry, Keystore register
 - [x] Revoke from the same UI when the session is still in memory
 - [ ] Live on-chain txs attached in submission notes (needs funded testnet passkey at demo time)
-- [ ] Optional: ERC-8183 hire flow + live B402 settle (still mock receipt in UI)
+- [x] ERC-8183 hire flow implemented as the real testnet buyer path (create → register → budget → approve → fund via Privy); live B402 settle still not built
 
 ## Phase 3 — TermiX Agent Advantage Report
 

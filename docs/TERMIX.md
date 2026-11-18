@@ -36,16 +36,20 @@ Stivium result
 - Marketplace discovery and four-category catalog
 - Decision-oriented agent cards
 - Bounded activation UX
-- Optional x402/B402 payment **mock**
-- Optional Altana session-key path
-- Live PancakeSwap swap execution
+- Real ERC-8183 escrow hire on BNB Testnet via Privy
 - Live 8004scan registry signals with explicit source labels
+
+Temporarily disabled in the code (see `docs/AUDIT-2026-11-18.md`):
+PancakeSwap swap execution, Altana session keys. The x402/B402 payment
+mock was removed from the UI and now lives in `docs/X402.md` only.
 
 ## What is intentionally not claimed
 
-Stivium does **not** currently claim a live TermiX API integration or live ERC-8183 escrow settlement from the static marketplace.
+Stivium does **not** currently claim a live TermiX API integration. It
+does have a real ERC-8183 escrow hire on BNB Testnet (see above), but
+that is not a TermiX transaction and must not be labeled as one.
 
-Do not label the current x402 checkbox or local activation receipt as a TermiX transaction.
+Do not label the current ERC-8183 testnet hire as a TermiX transaction.
 
 ## Production integration path
 

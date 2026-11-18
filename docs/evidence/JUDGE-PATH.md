@@ -1,5 +1,7 @@
 # Judge path — TermiX / main track (2 minutes)
 
+> **Status note (18 Nov 2026):** this walkthrough was written for the Build the Era submission. Steps 1–4 still work as written. Steps 5–6 changed: there is no local activation in the current build — confirming a hire is a real ERC-8183 hire on BNB Testnet via a Privy wallet (testnet BNB + 0.10 testnet U, provider address required; only YieldCartographer has one prefilled). Browsing and comparing need no wallet; activating and revoking do. See `docs/AUDIT-2026-11-18.md` (F1).
+
 **Live demo:** https://wadezigh96.github.io/STIVIUM/  
 **Repo:** https://github.com/wadezigh96/STIVIUM  
 **Advantage report:** [AGENT-ADVANTAGE-REPORT.md](../AGENT-ADVANTAGE-REPORT.md)
@@ -28,4 +30,4 @@ The current catalog contains a curated/demo layer plus live 8004scan samples. Do
 - Activation with spend limits (session-key shaped; optional Altana on-chain)
 - Four categories at equal depth
 
-No wallet required for UI walkthrough. Optional: tick On-chain Altana session if testing Keystore grant on BNB testnet.
+No wallet required for the browse/compare walkthrough. Activating an agent now requires a Privy wallet with testnet funds (see the status note above).

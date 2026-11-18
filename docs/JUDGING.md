@@ -41,4 +41,4 @@ Same card structure and activation quality across all four.
 
 ## Honesty about the prototype
 
-The 16 judging agents stay seeded so the path never disappears. Live 8004scan samples overlay as LIVE cards; activation can stay local or grant an Altana session on BNB testnet. Scoring, filtering, search, and the full journey run in the browser. Path to live data is in `LIVE-DATA.md`.
+The 16 judging agents stay seeded so the path never disappears. Live 8004scan samples overlay as LIVE cards; activation is a real ERC-8183 hire on BNB Testnet via a Privy wallet (there is no local/demo activation in the current build). Swap execution and Altana session keys are temporarily disabled in the code. Scoring, filtering, search, and the browse/compare journey run in the browser. Path to live data is in `LIVE-DATA.md`.

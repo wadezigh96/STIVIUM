@@ -1,6 +1,10 @@
 /**
  * Tradeable set for Stivium Swap.
- * Live swaps use PancakeSwap V2 Router on BNB Smart Chain (chainId 56).
+ * NOTE (18 Nov 2026): swap execution is temporarily disabled — swap-ui.js
+ * ensureBsc() throws before any quote or swap. The token list below is the
+ * configured set for when the swap is re-enabled after a testnet-verified
+ * plan; see docs/SWAP.md and docs/AUDIT-2026-11-18.md (F2).
+ * When enabled, live swaps use PancakeSwap V2 Router on BNB Smart Chain (chainId 56).
  * RWA/bStock symbols remain discovery-only until their exact live contracts are verified.
  */
 const SWAP_TOKENS = [

@@ -6,13 +6,13 @@
 
 [![BNB Chain](https://img.shields.io/badge/BNB_Chain-Build_the_Era-F0B90B?style=for-the-badge&logo=binance&logoColor=white)](https://www.bnbchain.org/en/hackathons/smart-money-era)
 [![Static](https://img.shields.io/badge/Stack-HTML_%2B_JS-000000?style=for-the-badge)](./index.html)
-[![Altana](https://img.shields.io/badge/Altana-Session_Keys-7C3AED?style=for-the-badge)](docs/ALTANA.md)
-[![x402](https://img.shields.io/badge/x402-Hire_Mock-00C853?style=for-the-badge)](docs/X402.md)
+[![ERC-8183](https://img.shields.io/badge/ERC--8183-Testnet_Hire-7C3AED?style=for-the-badge)](docs/SET-AND-EARN.md)
+[![x402](https://img.shields.io/badge/x402-Payment_Story-00C853?style=for-the-badge)](docs/X402.md)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 **Discover → Compare → Activate with spend cap & scoped permissions**
 
-[Live Demo](https://wadezigh96.github.io/STIVIUM/) · [Submission](docs/SUBMISSION.md) · [Kiroween draft](docs/KIROWEEN-SUBMISSION.md) · [Rare features](docs/RARE-FEATURES.md)
+[Live Demo](https://wadezigh96.github.io/STIVIUM/) · [Vercel mirror](https://stivium.vercel.app/) · [Submission](docs/SUBMISSION.md) · [Kiroween draft](docs/KIROWEEN-SUBMISSION.md) · [Rare features](docs/RARE-FEATURES.md) · [Judge path](docs/evidence/JUDGE-PATH.md)
 
 </div>
 
@@ -32,8 +32,10 @@ Finding agents on BNB is still mostly names and social proof. Stivium surfaces s
 2. Compare rarity, trending, and category metrics on each card.
 3. Open an agent, set spend cap / allowlist / expiry.
 4. Optionally run **shadow mode**, review **blast radius**, then activate.
-5. Optional **x402** hire fee mock; optional **Altana** session keys on BNB testnet.
+5. Activation is a real **ERC-8183** hire on BNB Testnet via a Privy wallet (testnet BNB for gas + 0.10 testnet U escrow); see `docs/SET-AND-EARN.md`.
 6. Revoke from the same UI when done.
+
+> Status (18 Nov 2026): swap quotes/execution and Altana session keys are temporarily disabled in the code, and the x402 hire mock was removed from the UI. See `docs/AUDIT-2026-11-18.md`.
 
 ### Core features
 
@@ -42,9 +44,10 @@ Finding agents on BNB is still mostly names and social proof. Stivium surfaces s
 - 📊 **Category metrics** — rebalances/week, max drawdown, net APY, min health factor before hire.
 - 🔐 **Activate safely** — spend cap, call allowlist, expiry; never a blank check.
 - 🛡️ **Restraint · blast radius · shadow mode** — discipline and worst-case capital before live hire.
-- 🔑 **Optional Altana session keys** — on-chain grant on BNB testnet (see `docs/ALTANA.md`).
-- 💳 **Optional x402 hire mock** — HTTP 402 / B402 story on BSC (see `docs/X402.md`).
-- 🔄 **Live PancakeSwap** — Privy wallet connection plus live BNB Chain router quotes, approvals, and on-chain swaps for verified crypto tokens; injected EIP-1193 wallets remain a fallback and bStocks remain discovery-only (see `docs/SWAP.md`).
+- ⛓️ **Real ERC-8183 hire** — testnet escrow via Privy: create job → register → set budget → approve → fund (see `docs/SET-AND-EARN.md`). Only YieldCartographer ships with a testnet provider address prefilled.
+- 🔑 **Altana session keys** — temporarily disabled in the code (see `docs/ALTANA.md`).
+- 💳 **x402 hire mock** — removed from the UI; the payment story now lives in `docs/X402.md` only.
+- 🔄 **PancakeSwap** — temporarily disabled in the code; the Swap tab shows the disabled state (see `docs/SWAP.md`). bStocks remain discovery-only.
 
 ### The principle
 
@@ -63,7 +66,7 @@ Stivium keeps comparison and activation in the browser. Live data can replace se
 | Decide | Guess | **Category KPIs** before hire |
 | Activate | Unlimited agent | **Spend cap + allowlist + expiry** |
 | Safety | Hope | **Restraint, blast radius, shadow mode** |
-| Pay | Ad-hoc | Optional **x402** hire mock |
+| Pay | Ad-hoc | Real **ERC-8183** testnet escrow |
 | Exit | Support ticket | **Revoke** in the same UI |
 
 ---
@@ -77,15 +80,13 @@ flowchart TB
         C --> M[Modal: metrics + rarity breakdown]
         M --> A[Activate: cap / allowlist / expiry]
         A --> S[Shadow mode / blast radius]
-        S --> H[Hire]
-        H --> X[Optional x402 mock]
-        H --> ALT[Optional Altana grantSession]
+        S --> H[Hire: real ERC-8183 on BNB Testnet]
         H --> R[Revoke session]
-        SW[Swap panel] --> Q[Live wallet + PancakeSwap V2]
+        SW[Swap panel] --> Q[Disabled in code]
     end
 
     DATA[Seeded agents-data.js] -.-> C
-    ALT -.->|BNB testnet| CHAIN[Altana session keys]
+    H -.->|BNB testnet| CHAIN[ERC-8183 escrow]
 ```
 
 ---
@@ -118,7 +119,7 @@ rarity = 0.35 * scarcity
 | **Blast radius** | Worst-case capital at risk under your cap |
 | **Restraint** | Discipline signal, not just win rate |
 
-No blank-check activation. Optional on-chain Altana sessions stay on **BNB testnet** in the demo wiring.
+No blank-check activation. Hiring is a real ERC-8183 escrow on **BNB testnet** (testnet BNB + testnet U); no mainnet execution is enabled. Swap execution and Altana session keys are temporarily disabled in the code (see `docs/AUDIT-2026-11-18.md`).
 
 ---
 
@@ -128,9 +129,10 @@ No blank-check activation. Optional on-chain Altana sessions stay on **BNB testn
 |-------|--------|
 | UI | Static **HTML / JS** (GitHub Pages) |
 | Data | Seeded `agents-data.js` — live-ready (see `docs/LIVE-DATA.md`) |
-| Session keys | Optional **Altana** (BNB testnet) |
-| Payments | Optional **x402** hire mock |
-| Wallet | Privy embedded wallet bridge + injected EIP-1193 fallback |\n| Swap | Live PancakeSwap V2 + verified crypto tokens |
+| Session keys | **Altana** — temporarily disabled (see `docs/ALTANA.md`) |
+| Payments | Real **ERC-8183** testnet escrow via Privy (x402 mock removed from the UI; see `docs/X402.md`) |
+| Wallet | Privy embedded wallet bridge + injected EIP-1193 fallback |
+| Swap | Temporarily disabled (see `docs/SWAP.md`) |
 
 Open [`index.html`](./index.html) locally — **no build step**.
 
@@ -151,7 +153,7 @@ cd STIVIUM
 npx serve .
 ```
 
-Live: [https://wadezigh96.github.io/STIVIUM/](https://wadezigh96.github.io/STIVIUM/)
+Live: [https://wadezigh96.github.io/STIVIUM/](https://wadezigh96.github.io/STIVIUM/) · Vercel mirror: [https://stivium.vercel.app/](https://stivium.vercel.app/) (also serves the `/api/agents` live-registry proxy)
 
 ---
 
@@ -174,9 +176,9 @@ STIVIUM/
 
 ## Kiroween 2026
 
-Stivium is prepared for the **Frankenstein** category: it combines an AI-agent marketplace, registry and market signals, BNB testnet session-key controls, wallet/swap connectivity, and an x402 hire-payment story into one bounded hiring workflow.
+Stivium is prepared for the **Frankenstein** category: it combines an AI-agent marketplace, registry and market signals, a real ERC-8183 testnet hire flow, wallet connectivity, and an x402 hire-payment story into one bounded hiring workflow.
 
-The public demo keeps seeded agents available for deterministic judging. Optional live registry, wallet, swap, and BNB testnet paths are labeled in the UI. The x402 hire path is a mock and is documented as such.
+The public demo keeps seeded agents available for deterministic judging. Live registry samples and market prices overlay the seeded catalog. Activation is a real ERC-8183 hire on BNB Testnet (no local/demo activation in the current build); swap execution and Altana session keys are temporarily disabled in the code, and the x402 hire mock was removed from the UI. See `docs/AUDIT-2026-11-18.md` for the current status of each integration.
 
 Submission artifacts:
 

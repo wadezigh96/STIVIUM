@@ -1,6 +1,13 @@
 # Live Swap — PancakeSwap on BNB Chain
 
-Stivium now includes a **live, non-custodial PancakeSwap V2 swap path** for verified BNB Chain crypto tokens.
+> **Status (18 Nov 2026): temporarily disabled.** `swap-ui.js`
+> `ensureBsc()` throws before any quote or swap, so the Swap tab
+> currently shows a disabled message and no quote or transaction can
+> run. The flow below describes the intended design and the code behind
+> the gate — do not present it as working until the gate is removed
+> after a testnet-verified plan. See `docs/AUDIT-2026-11-18.md` (F2).
+
+Stivium includes a PancakeSwap V2 swap path for verified BNB Chain crypto tokens (currently gated off, see above).
 
 ## Live flow
 
@@ -48,7 +55,7 @@ The browser calls the router through the connected EIP-1193 wallet provider. Sti
 
 ## Important distinction
 
-This is intentionally **not** the old browser mock. The swap module now performs real wallet RPC calls and can submit real BNB Chain transactions.
+When the gate is removed, this is intentionally **not** a browser mock: the swap module performs real wallet RPC calls and can submit real BNB Chain transactions. Until then, no quote or swap runs at all.
 
 The repository still contains separate agent/x402 mock flows where those integrations are explicitly labeled as mock.
 

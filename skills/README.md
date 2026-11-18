@@ -11,9 +11,9 @@ These `SKILL.md` files follow the [Altana Skills Registry](https://docs.altana.n
 
 ## How it pairs with Stivium
 
-1. User activates an agent in the marketplace UI → Altana `grantSession` (spend cap, allowlist, expiry).
+1. User activates an agent in the marketplace UI → real ERC-8183 testnet hire (Altana `grantSession` is temporarily disabled in the code; see `docs/ALTANA.md`).
 2. Agent receives (or fetches) the matching skill file for its category.
-3. Agent runs playbook steps only through `client.execute({ session, calls })`.
+3. Agent runs playbook steps only through the bounded session / escrow it was hired under.
 4. Anything outside the session allowlist or over the spend cap **reverts on-chain**.
 
 The skill cannot grant permissions. The session cannot teach protocol quirks. Together they match Stivium’s “activate with clear limits” flow.

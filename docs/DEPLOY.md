@@ -6,7 +6,7 @@ Use this when you want agent listings stored on-chain.
 
 ## Prerequisites
 
-1. Node.js 18+
+1. Node.js 24 (see `engines` in `package.json`)
 2. A wallet with **testnet BNB**  
    Faucet: https://testnet.bnbchain.org/faucet-smart
 3. Private key of that wallet (for deploy only)

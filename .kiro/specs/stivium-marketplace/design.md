@@ -2,7 +2,7 @@
 
 ## Architecture
 
-Stivium is a static HTML and JavaScript application deployed to GitHub Pages. The browser owns catalog filtering, scoring, activation policy state, and the presentation of seeded demo agents. Optional integrations provide live registry data, wallet connectivity, testnet session-key wiring, swap quotes, and a mocked x402 hire path.
+Stivium is a static HTML and JavaScript application deployed to GitHub Pages. The browser owns catalog filtering, scoring, activation policy state, and the presentation of seeded demo agents. Optional integrations provide live registry data, wallet connectivity, and a real ERC-8183 testnet hire path. Swap execution and Altana session keys are temporarily disabled in the code (see `docs/AUDIT-2026-11-18.md`); the x402 hire mock was removed from the UI and lives in `docs/X402.md` only.
 
 The design keeps the core judge path deterministic: seeded agents are always available, while live integrations are additive and visibly labeled. No private key is shipped to the browser. Deployment is a static artifact and the optional server-side API code remains separated under `api/`.
 
@@ -16,7 +16,7 @@ The design keeps the core judge path deterministic: seeded agents are always ava
 
 ## Safety boundaries
 
-The public demo defaults to local policy-scoped activation. Altana wiring is testnet-only in the demo path. Mainnet actions are not part of the judge flow. Secrets belong only in local environment files and must never be committed.
+The public demo has no local/demo activation in the current build: hiring is a real ERC-8183 escrow on BNB Testnet via a Privy wallet. Altana wiring and swap execution are temporarily disabled in the code. Mainnet actions are not part of the judge flow. Secrets belong only in local environment files and must never be committed.
 
 ## Verification strategy
 
@@ -24,4 +24,4 @@ The primary regression surface is the no-build browser path: opening `index.html
 
 ## Submission mapping
 
-The strongest Kiroween fit is **Frankenstein** because the app combines a static marketplace UX, AI-agent registry data, BNB testnet session-key controls, wallet and swap integrations, and an x402 payment narrative into one bounded hiring workflow. The product is not presented as a generic crypto dashboard; each integration supports the same user decision: compare an agent, constrain the blast radius, and revoke access.
+The strongest Kiroween fit is **Frankenstein** because the app combines a static marketplace UX, AI-agent registry data, a real ERC-8183 testnet hire flow, wallet connectivity, and an x402 payment narrative into one bounded hiring workflow. The product is not presented as a generic crypto dashboard; each integration supports the same user decision: compare an agent, constrain the blast radius, and revoke access.

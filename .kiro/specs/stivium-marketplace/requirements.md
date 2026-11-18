@@ -31,13 +31,13 @@ As a user, I want to activate an agent with explicit limits so that I never gran
 - Activation requires a spend cap, scoped call allowlist, and expiry.
 - Shadow mode is available before live execution.
 - The UI shows estimated blast radius before confirmation.
-- A user can revoke an active session from the same flow.
+- A user can revoke a completed hire from the same flow. (Note: hiring is a real ERC-8183 testnet hire via a Privy wallet; there is no local/demo activation in the current build — see `docs/AUDIT-2026-11-18.md` F1.)
 
 ### 4. Keep live integrations explicit
 
 As a judge, I want to distinguish local prototype behavior from live blockchain behavior so that the demo is honest and reproducible.
 
-- The UI labels local policy activation, testnet Altana sessions, and mocked x402 payment separately.
+- The UI labels seeded catalog data (CURATED DEMO) and live registry samples (8004SCAN INDEX) separately, and the docs state which integrations are live, disabled, or documentation-only.
 - Mainnet execution is not enabled by default.
 - External integration failures are surfaced as readable errors.
 

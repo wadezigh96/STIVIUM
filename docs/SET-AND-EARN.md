@@ -12,7 +12,7 @@ This is an evidence checklist, not a claim that campaign requirements are alread
 | Own qualifying agent | erc8183-provider/ | IN PROGRESS |
 | ERC-8004 on BSC 56 or 97 | `scripts/register-agent.py` | **VERIFIED — BSC Testnet** |
 | Campaign wallet owns agent | Verify owner on Identity Registry | TODO |
-| Public agent card | /.well-known/agent-card.json | READY |
+| Public agent card | /.well-known/agent-card.json | **NOT VERIFIED — the URL https://stivium.vercel.app/.well-known/agent-card.json returns 404 (checked 18 Nov 2026); the card is served only by the Python provider when deployed** |
 | Listed on shortlisted marketplace | TermiX/KATTEGAT/another shortlisted marketplace | TODO |
 | 3 completed hires from independent wallets | External users complete real jobs | TODO |
 | >=5 on-chain actions on >=3 days | Real category-consistent transactions | TODO |
@@ -84,9 +84,9 @@ The public provider URL must remain reachable because campaign checks may probe 
 
 Never count a local activation, token approval, unsigned quote, or mock receipt as a qualifying hire.
 
-## Next P0
+## Next P0 — DONE (18 Nov 2026 audit)
 
-After ERC-8004 registration is verified, wire the STIVIUM client to the canonical BSC Testnet ERC-8183 AgenticCommerce stack instead of the current local/mock activation path.
+The STIVIUM client is now wired to the canonical BSC Testnet ERC-8183 AgenticCommerce stack (see "Real BSC Testnet hire" below); the local/mock activation path it replaced no longer exists.
 
 - AgenticCommerce: 0xa206c0517B6371C6638CD9e4a42Cc9f02A33B0DE
 - EvaluatorRouter: 0xd7d36d66d2f1b608a0f943f722d27e3744f66f25
