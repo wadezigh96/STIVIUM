@@ -136,6 +136,10 @@ Open [`index.html`](./index.html) locally — **no build step**.
 
 Docs: `docs/` — SUBMISSION, AGENT-ADVANTAGE-REPORT, ALTANA, X402, SWAP, RARE-FEATURES, LIVE-DATA, ARCHITECTURE.
 
+### Portfolio Command Center
+
+The repository also includes a local-first, read-only CLI for stock and crypto portfolio snapshots. It shows allocation, cost basis, unrealized P/L, concentration flags, public crypto price refresh, and local reminders without broker, exchange, wallet, or transaction access. See [`cli/portfolio/README.md`](cli/portfolio/README.md) and run `npm run portfolio -- overview`.
+
 ---
 
 ## Quick start
