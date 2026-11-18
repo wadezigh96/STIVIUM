@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Format JavaScript on save",
+      "description": "Offer a formatting reminder when a JavaScript file is saved.",
+      "trigger": "PostFileSave",
+      "matcher": "\\.js$",
+      "action": {
+        "type": "agent",
+        "prompt": "Review the saved JavaScript file for formatting only. Do not change behavior, dependencies, secrets, or generated files. Suggest the smallest formatting correction if one is needed."
+      },
+      "enabled": true
+    }
+  ]
+}

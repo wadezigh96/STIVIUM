@@ -12,7 +12,7 @@
 
 **Discover → Compare → Activate with spend cap & scoped permissions**
 
-[Live Demo](https://wadezigh96.github.io/STIVIUM/) · [Submission](docs/SUBMISSION.md) · [Rare features](docs/RARE-FEATURES.md)
+[Live Demo](https://wadezigh96.github.io/STIVIUM/) · [Submission](docs/SUBMISSION.md) · [Kiroween draft](docs/KIROWEEN-SUBMISSION.md) · [Rare features](docs/RARE-FEATURES.md)
 
 </div>
 
@@ -136,6 +136,10 @@ Open [`index.html`](./index.html) locally — **no build step**.
 
 Docs: `docs/` — SUBMISSION, AGENT-ADVANTAGE-REPORT, ALTANA, X402, SWAP, RARE-FEATURES, LIVE-DATA, ARCHITECTURE.
 
+### Portfolio Command Center
+
+The repository also includes a local-first, read-only CLI for stock and crypto portfolio snapshots. It shows allocation, cost basis, unrealized P/L, concentration flags, public crypto price refresh, and local reminders without broker, exchange, wallet, or transaction access. See [`cli/portfolio/README.md`](cli/portfolio/README.md) and run `npm run portfolio -- overview`.
+
 ---
 
 ## Quick start
@@ -168,7 +172,21 @@ STIVIUM/
 
 ---
 
-## Hackathon
+## Kiroween 2026
+
+Stivium is prepared for the **Frankenstein** category: it combines an AI-agent marketplace, registry and market signals, BNB testnet session-key controls, wallet/swap connectivity, and an x402 hire-payment story into one bounded hiring workflow.
+
+The public demo keeps seeded agents available for deterministic judging. Optional live registry, wallet, swap, and BNB testnet paths are labeled in the UI. The x402 hire path is a mock and is documented as such.
+
+Submission artifacts:
+
+- [Kiroween submission draft](docs/KIROWEEN-SUBMISSION.md)
+- [Kiro requirements](.kiro/specs/stivium-marketplace/requirements.md)
+- [Kiro design](.kiro/specs/stivium-marketplace/design.md)
+- [Kiro steering](.kiro/steering/product.md)
+- [Kiro hook](.kiro/hooks/format-javascript.json)
+
+## Previous hackathon
 
 **Build the Era — BNB Chain**
 

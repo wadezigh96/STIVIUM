@@ -1,5 +1,7 @@
 # Form answers — Build the Era
 
+> This document is the historical BNB Chain submission draft. For Kiroween 2026, use [`KIROWEEN-SUBMISSION.md`](./KIROWEEN-SUBMISSION.md) instead.
+
 Form: https://forms.gle/9g9XPNFwnYaHAz9L8  
 (Use the official intake link from the BNB hackathon page if this URL changes.)
 
