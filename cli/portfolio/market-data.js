@@ -22,10 +22,10 @@ function getJson(url, timeoutMs = 8000) {
       response.on('data', (chunk) => { body += chunk; });
       response.on('end', () => {
         if (response.statusCode < 200 || response.statusCode >= 300) return reject(new Error(`HTTP ${response.statusCode}`));
-        try { resolve(JSON.parse(body)); } catch { reject(new Error('Respons harga bukan JSON valid')); }
+        try { resolve(JSON.parse(body)); } catch { reject(new Error('Price response is not valid JSON')); }
       });
     });
-    request.setTimeout(timeoutMs, () => request.destroy(new Error('Timeout mengambil harga')));
+    request.setTimeout(timeoutMs, () => request.destroy(new Error('Timed out fetching prices')));
     request.on('error', reject);
   });
 }

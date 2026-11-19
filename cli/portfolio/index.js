@@ -22,7 +22,7 @@ function parseArgs(argv) {
 
 function usage() {
   console.log(`\n${paint('bold', 'STIVIUM PORTFOLIO CLI')}\n\n` +
-`  ${paint('cyan', 'overview')}                         dashboard portfolio + reminders\n` +
+`  ${paint('cyan', 'overview')}                         portfolio dashboard + reminders\n` +
 `  ${paint('cyan', 'add')} --symbol BTC --type crypto --quantity 0.1 --cost 60000 [--price 65000]\n` +
 `  ${paint('cyan', 'remove')} --symbol BTC [--type crypto]\n` +
 `  ${paint('cyan', 'prices')}                         refresh crypto prices (read-only)\n` +
@@ -30,20 +30,20 @@ function usage() {
 `  ${paint('cyan', 'reminder list')} [--all]\n` +
 `  ${paint('cyan', 'reminder done')} --id <id-prefix>\n` +
 `  ${paint('cyan', 'reminder delete')} --id <id-prefix>\n\n` +
-`  ${paint('dim', 'Data disimpan lokal. CLI tidak punya akses transaksi atau wallet.')}`);
+`  ${paint('dim', 'Data is stored locally. The CLI has no transaction or wallet access.')}`);
 }
 
 async function refreshPrices() {
   const state = readState();
   const cryptoSymbols = state.holdings.filter((holding) => holding.assetType === 'crypto').map((holding) => holding.symbol);
-  if (!cryptoSymbols.length) return console.log(paint('yellow', 'Tidak ada holding crypto yang bisa di-refresh. Stock/ETF gunakan --price manual.'));
+  if (!cryptoSymbols.length) return console.log(paint('yellow', 'No crypto holdings to refresh. Stocks/ETFs use a manual --price.'));
   try {
     const result = await fetchCryptoPrices(cryptoSymbols);
     replacePrices(result.prices, result.source);
-    console.log(paint('green', `Harga diperbarui: ${Object.keys(result.prices).join(', ') || 'tidak ada symbol yang dikenali'}.`));
-    if (result.skipped.length) console.log(paint('yellow', `Dilewati: ${result.skipped.join(', ')}.`));
+    console.log(paint('green', `Prices updated: ${Object.keys(result.prices).join(', ') || 'no recognized symbols'}.`));
+    if (result.skipped.length) console.log(paint('yellow', `Skipped: ${result.skipped.join(', ')}.`));
   } catch (error) {
-    console.error(paint('red', `Gagal refresh harga: ${error.message}`));
+    console.error(paint('red', `Failed to refresh prices: ${error.message}`));
     process.exitCode = 1;
   }
 }
@@ -60,12 +60,12 @@ async function main() {
   }
   if (command === 'add') {
     upsertHolding(args);
-    console.log(paint('green', `${String(args.symbol).toUpperCase()} tersimpan secara lokal.`));
+    console.log(paint('green', `${String(args.symbol).toUpperCase()} saved locally.`));
     return;
   }
   if (command === 'remove') {
     removeHolding(args.symbol, args.type);
-    console.log(paint('green', `${String(args.symbol).toUpperCase()} dihapus dari ledger lokal.`));
+    console.log(paint('green', `${String(args.symbol).toUpperCase()} removed from the local ledger.`));
     return;
   }
   if (command === 'prices') return refreshPrices();
@@ -73,15 +73,15 @@ async function main() {
     const subcommand = args._[1] || 'list';
     if (subcommand === 'add') {
       addReminder(args.title, args.due, args.notes);
-      console.log(paint('green', 'Reminder tersimpan secara lokal.'));
+      console.log(paint('green', 'Reminder saved locally.'));
     } else if (subcommand === 'list' || subcommand === 'check') {
       renderReminders(listReminders(Boolean(args.all)));
     } else if (subcommand === 'done') {
       completeReminder(args.id);
-      console.log(paint('green', 'Reminder ditandai selesai.'));
+      console.log(paint('green', 'Reminder marked done.'));
     } else if (subcommand === 'delete') {
       deleteReminder(args.id);
-      console.log(paint('green', 'Reminder dihapus.'));
+      console.log(paint('green', 'Reminder deleted.'));
     } else usage();
     return;
   }

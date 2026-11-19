@@ -78,7 +78,7 @@ function isLiveToken(t){ return !!(t&&t.kind==="crypto"&&(t.native||t.address));
 function getInjectedProvider(){
   const p=window.ethereum;
   if(p) return p;
-  throw new Error("Wallet belum terdeteksi. Jika memakai Android Chrome, buka Stivium dari browser bawaan MetaMask/Trust Wallet atau gunakan wallet yang menyediakan EIP-1193. Tombol ini tidak bisa meminta seed phrase/private key.");
+  throw new Error("No wallet detected. If you are on Android Chrome, open Stivium from the built-in MetaMask/Trust Wallet browser, or use a wallet that provides EIP-1193. This button cannot ask for a seed phrase/private key.");
 }
 const BSC_RPC = "https://bsc-dataseed.binance.org";
 async function rpc(method,params=[]){

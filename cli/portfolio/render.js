@@ -25,25 +25,25 @@ function overview(state, view, file) {
   const pnlTone = view.knownPnl >= 0 ? 'green' : 'red';
   console.log(`  ${paint('cyan', 'Unrealized P/L')} ${paint(pnlTone, `${money(view.knownPnl)} (${pct(view.pnlPct)})`)}`);
   console.log(`\n${paint('bold', 'HOLDINGS')}`);
-  if (!view.positions.length) console.log(`  ${paint('dim', 'Belum ada holding. Mulai dengan: npm run portfolio -- add --symbol BTC --type crypto --quantity 0.1 --cost 60000 --price 65000')}`);
+  if (!view.positions.length) console.log(`  ${paint('dim', 'No holdings yet. Start with: npm run portfolio -- add --symbol BTC --type crypto --quantity 0.1 --cost 60000 --price 65000')}`);
   for (const position of view.positions) {
     const value = position.marketValue === null ? paint('yellow', 'price unknown') : money(position.marketValue);
     const pnl = position.pnl === null ? '—' : paint(position.pnl >= 0 ? 'green' : 'red', money(position.pnl));
     console.log(`  ${paint('bold', position.symbol.padEnd(8))} ${paint('dim', position.assetType.padEnd(7))} ${String(position.quantity).padStart(12)}  value ${value.padStart(15)}  P/L ${pnl}`);
   }
   console.log(`\n${paint('bold', 'ALLOCATION')}`);
-  if (!view.allocation.length) console.log(`  ${paint('dim', 'Belum ada posisi dengan harga yang diketahui.')}`);
+  if (!view.allocation.length) console.log(`  ${paint('dim', 'No positions with a known price yet.')}`);
   for (const position of view.allocation) {
     const tone = position.weight >= 0.5 ? 'red' : position.weight >= 0.25 ? 'yellow' : 'green';
     console.log(`  ${position.symbol.padEnd(8)} ${paint(tone, bar(position.weight))} ${pct(position.weight).padStart(7)}`);
   }
   console.log(`\n${paint('bold', 'RISK FLAGS')}`);
-  for (const flag of riskFlags(view)) console.log(`  ${paint(flag.includes('tinggi') || flag.includes('melewati') ? 'red' : 'yellow', '◆')} ${flag}`);
+  for (const flag of riskFlags(view)) console.log(`  ${paint(flag.includes('high') || flag.includes('exceeds') ? 'red' : 'yellow', '◆')} ${flag}`);
 }
 
 function reminders(items) {
   console.log(`\n${paint('bold', 'REMINDERS')}`);
-  if (!items.length) return console.log(`  ${paint('dim', 'Tidak ada reminder aktif.')}`);
+  if (!items.length) return console.log(`  ${paint('dim', 'No active reminders.')}`);
   for (const item of items) {
     const tone = item.status === 'due' ? 'red' : 'cyan';
     console.log(`  ${paint(tone, item.status.toUpperCase().padEnd(9))} ${item.dueAt}  ${item.title} ${paint('dim', item.id.slice(0, 8))}`);

@@ -37,10 +37,10 @@ function snapshot(state) {
 
 function riskFlags(view) {
   const flags = [];
-  if (view.unknownCount) flags.push(`${view.unknownCount} posisi belum punya harga`);
-  if (view.largest && view.largest.weight >= 0.5) flags.push(`konsentrasi tinggi: ${view.largest.symbol} ${pct(view.largest.weight)}`);
-  if (view.pnlPct !== null && view.pnlPct < -0.2) flags.push('unrealized loss melewati -20%');
-  if (!flags.length) flags.push('tidak ada flag berbasis aturan sederhana');
+  if (view.unknownCount) flags.push(`${view.unknownCount} position(s) without a price`);
+  if (view.largest && view.largest.weight >= 0.5) flags.push(`high concentration: ${view.largest.symbol} ${pct(view.largest.weight)}`);
+  if (view.pnlPct !== null && view.pnlPct < -0.2) flags.push('unrealized loss exceeds -20%');
+  if (!flags.length) flags.push('no flags from the simple rules');
   return flags;
 }
 

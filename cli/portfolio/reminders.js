@@ -3,13 +3,13 @@ const { readState, writeState } = require('./store');
 
 function isoDate(value) {
   const parsed = new Date(value);
-  if (!value || Number.isNaN(parsed.getTime())) throw new Error('Due date harus ISO datetime, contoh 2026-12-01T09:00:00+07:00.');
+  if (!value || Number.isNaN(parsed.getTime())) throw new Error('Due date must be an ISO datetime, e.g. 2026-12-01T09:00:00+07:00.');
   return parsed.toISOString();
 }
 
 function addReminder(title, dueAt, notes = '') {
   const cleanTitle = String(title || '').trim();
-  if (!cleanTitle) throw new Error('Title reminder wajib diisi.');
+  if (!cleanTitle) throw new Error('Reminder title is required.');
   const state = readState();
   state.reminders.push({ id: crypto.randomUUID(), title: cleanTitle, dueAt: isoDate(dueAt), notes: String(notes || '').trim(), completedAt: null });
   return writeState(state);
@@ -29,7 +29,7 @@ function listReminders(includeCompleted = false) {
 
 function findReminder(state, id) {
   const reminder = state.reminders.find((item) => item.id === id || item.id.startsWith(id));
-  if (!reminder) throw new Error(`Reminder ${id} tidak ditemukan.`);
+  if (!reminder) throw new Error(`Reminder ${id} not found.`);
   return reminder;
 }
 

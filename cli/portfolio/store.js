@@ -27,7 +27,7 @@ function readState() {
   try {
     parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
   } catch (error) {
-    throw new Error(`Portfolio file tidak valid: ${file} (${error.message})`);
+    throw new Error(`Invalid portfolio file: ${file} (${error.message})`);
   }
   return {
     ...structuredClone(DEFAULT_STATE),
@@ -51,20 +51,20 @@ function writeState(state) {
 function number(value, name, { min = 0, allowZero = true } = {}) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || (allowZero ? parsed < min : parsed <= min)) {
-    throw new Error(`${name} harus berupa angka ${allowZero ? `>= ${min}` : `> ${min}`}.`);
+    throw new Error(`${name} must be a number ${allowZero ? `>= ${min}` : `> ${min}`}.`);
   }
   return parsed;
 }
 
 function normalizeSymbol(value) {
   const symbol = String(value || '').trim().toUpperCase();
-  if (!/^[A-Z0-9._-]{1,20}$/.test(symbol)) throw new Error('Symbol tidak valid. Contoh: BTC, ETH, AAPL.');
+  if (!/^[A-Z0-9._-]{1,20}$/.test(symbol)) throw new Error('Invalid symbol. Example: BTC, ETH, AAPL.');
   return symbol;
 }
 
 function normalizeType(value) {
   const type = String(value || 'crypto').trim().toLowerCase();
-  if (!['crypto', 'stock', 'etf', 'cash'].includes(type)) throw new Error('Type harus crypto, stock, etf, atau cash.');
+  if (!['crypto', 'stock', 'etf', 'cash'].includes(type)) throw new Error('Type must be crypto, stock, etf, or cash.');
   return type;
 }
 
@@ -98,7 +98,7 @@ function removeHolding(symbol, type) {
   const assetType = type ? normalizeType(type) : null;
   const before = state.holdings.length;
   state.holdings = state.holdings.filter((holding) => !(holding.symbol === normalized && (!assetType || holding.assetType === assetType)));
-  if (state.holdings.length === before) throw new Error(`Holding ${normalized}${assetType ? ` (${assetType})` : ''} tidak ditemukan.`);
+  if (state.holdings.length === before) throw new Error(`Holding ${normalized}${assetType ? ` (${assetType})` : ''} not found.`);
   return writeState(state);
 }
 

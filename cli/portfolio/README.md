@@ -1,6 +1,6 @@
 # Stivium Portfolio CLI
 
-CLI ini adalah command center read-only untuk snapshot portofolio saham, ETF, dan crypto. Ia menyimpan ledger lokal, menghitung nilai posisi, cost basis, unrealized P/L, alokasi, konsentrasi, dan reminder review. CLI tidak terhubung ke broker, exchange account, wallet signer, atau endpoint transaksi.
+This CLI is a read-only command center for snapshots of stock, ETF, and crypto portfolios. It stores a local ledger, computes position values, cost basis, unrealized P/L, allocation, concentration, and review reminders. The CLI does not connect to any broker, exchange account, wallet signer, or transaction endpoint.
 
 ## Quick start
 
@@ -13,24 +13,24 @@ npm run portfolio -- reminder add --title "Review allocation" --due 2026-12-01T0
 npm run portfolio -- overview
 ```
 
-Ledger default tersimpan di `~/.stivium/portfolio.json` dengan permission lokal yang ketat. Untuk workspace atau test terpisah, gunakan `STIVIUM_PORTFOLIO_FILE=/path/to/portfolio.json`.
+The default ledger is stored at `~/.stivium/portfolio.json` with strict local permissions. For a separate workspace or test, use `STIVIUM_PORTFOLIO_FILE=/path/to/portfolio.json`.
 
 ## Commands
 
-`overview` menampilkan dashboard terminal, holdings, P/L, allocation bars, risk flags, dan reminder aktif. `add` membuat atau memperbarui posisi berdasarkan `symbol`, `type`, `quantity`, `cost`, dan optional `price`. `remove` menghapus posisi dari ledger lokal. `prices` mengambil harga crypto yang dikenali dari CoinGecko public API; hanya symbol publik yang dikirim, bukan quantity, cost basis, atau data pribadi. Stock/ETF memakai `--price` manual sampai adapter market data yang sesuai ditambahkan.
+`overview` shows the terminal dashboard, holdings, P/L, allocation bars, risk flags, and active reminders. `add` creates or updates a position based on `symbol`, `type`, `quantity`, `cost`, and optional `price`. `remove` deletes a position from the local ledger. `prices` fetches prices for recognized crypto from the CoinGecko public API; only public symbols are sent, not quantity, cost basis, or personal data. Stocks/ETFs use a manual `--price` until a suitable market data adapter is added.
 
-Subcommand `reminder add`, `reminder list`, `reminder check`, `reminder done`, dan `reminder delete` mengelola reminder lokal. `reminder check` cocok dijalankan dari cron atau Task Scheduler. CLI sendiri tidak mengklaim sebagai daemon dan tidak menjamin delivery jika tidak dijalankan oleh scheduler.
+The `reminder add`, `reminder list`, `reminder check`, `reminder done`, and `reminder delete` subcommands manage local reminders. `reminder check` is meant to be run from cron or Task Scheduler. The CLI itself does not claim to be a daemon and does not guarantee delivery unless run by a scheduler.
 
 ## Scheduling reminder
 
-Linux/macOS, contoh menjalankan pengecekan setiap jam dan menulis output ke log lokal:
+Linux/macOS — example: run the check every hour and write output to a local log:
 
 ```cron
 0 * * * * cd /path/to/STIVIUM && STIVIUM_PORTFOLIO_FILE=$HOME/.stivium/portfolio.json npm run portfolio -- reminder check >> $HOME/.stivium/reminders.log 2>&1
 ```
 
-Windows dapat memakai Task Scheduler dengan action yang sama. Untuk reminder berbasis Manus, gunakan ScheduleTask dengan instruksi untuk menjalankan `npm run portfolio -- reminder check` pada environment yang memiliki file ledger; konfigurasi jadwal adalah langkah terpisah dari CLI ini.
+Windows can use Task Scheduler with the same action. For Manus-based reminders, use ScheduleTask with instructions to run `npm run portfolio -- reminder check` in an environment that has the ledger file; schedule configuration is a separate step from this CLI.
 
 ## Data and safety notes
 
-Harga adalah snapshot non-executable dan dapat stale atau gagal. Output akan menandai posisi tanpa harga, bukan menganggap nilainya nol. Angka P/L dan alokasi memakai mata uang yang tersimpan pada holding; versi pertama mengasumsikan `USD` sebagai presentation currency dan tidak melakukan FX conversion otomatis. Jangan memasukkan nomor rekening, private key, seed phrase, API key, atau kredensial ke command line, ledger, atau log.
+Prices are non-executable snapshots and may be stale or fail. Output will flag positions without a price instead of treating their value as zero. P/L and allocation figures use the currency stored on the holding; the first version assumes `USD` as the presentation currency and does no automatic FX conversion. Do not put bank account numbers, private keys, seed phrases, API keys, or credentials on the command line, in the ledger, or in logs.
