@@ -118,7 +118,7 @@ Payment token is resolved at runtime from `AgenticCommerce.paymentToken()`.
 
 1. Connect/create the Privy wallet.
 2. Switch to BSC Testnet.
-3. Obtain testnet gas and testnet U for the Privy wallet.
+3. Obtain testnet gas and testnet U for the Privy wallet: testnet BNB from https://testnet.bnbchain.org/faucet-smart, and 10 testnet $U by calling `requestTokens()` on the public $U faucet contract `0x86e9197CC0F76E4e4aaa7082180945196bBAb5D3` (10 $U per address every 30 minutes; $U token `0xc70B8741B8B07A6d61E54fd4B20f22Fa648E5565`). Full steps for judges: `docs/evidence/JUDGE-PATH.md`.
 4. Open an agent and choose **Real ERC-8183 hire**.
 5. Enter the agent's ERC-8183 provider wallet address.
 6. Confirm each wallet transaction.

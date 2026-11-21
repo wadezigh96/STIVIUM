@@ -20,10 +20,10 @@ The public demo is deterministic for judging. Seeded agents keep the core journe
 2. Browse or filter the four categories.
 3. Open an agent and inspect the rarity, trending, and category-specific metric.
 4. Choose an activation policy with a spend cap, allowlist, expiry, and shadow mode.
-5. Confirm the hire. Activation is a real ERC-8183 hire on BNB Testnet via a Privy wallet: the judge needs a Privy wallet funded with testnet BNB (gas) and testnet U (0.10 escrow), plus a provider address. YieldCartographer ships with a testnet provider address prefilled; other agents require the judge to enter one. There is no local/demo activation in the current build, so steps 5–6 need a funded testnet wallet.
-6. Revoke the session from the active state once the hire completes.
+5. Confirm the hire. Activation is a real ERC-8183 hire on BNB Testnet via a Privy wallet — follow the full setup in the [judge path](evidence/JUDGE-PATH.md): connect a Privy wallet, fund it with testnet BNB (gas) and 10 testnet $U from the public faucet (the hire escrows 0.10 U), then hire YieldCartographer, the only agent with a testnet provider address prefilled. The hire takes 4–5 wallet transactions, one per click. There is no local/demo activation in the current build.
+6. Revoke the session from the active state once the hire completes (Revoke clears the local activation record; it sends no on-chain transaction).
 
-The repository's [judge path](evidence/JUDGE-PATH.md) contains the shorter walkthrough and the [architecture notes](ARCHITECTURE.md) explain the boundaries between seeded data and live integrations.
+The repository's [judge path](evidence/JUDGE-PATH.md) is the full setup guide, with wallet funding, faucet addresses, the hire steps, and troubleshooting; the [architecture notes](ARCHITECTURE.md) explain the boundaries between seeded data and live integrations.
 
 ## How Kiro was used
 
